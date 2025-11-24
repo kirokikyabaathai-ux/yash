@@ -12,7 +12,7 @@ import { Database } from '@/types/database';
  */
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createRouteHandlerClient<Database>({ cookies });
@@ -30,7 +30,7 @@ export async function PATCH(
       );
     }
 
-    const notificationId = params.id;
+    const { id: notificationId } = await params;
 
     // Verify the notification belongs to the user
     const { data: notification, error: fetchError } = await supabase

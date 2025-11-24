@@ -11,12 +11,11 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; stepId: string } }
+  { params }: { params: Promise<{ id: string; stepId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const leadId = params.id;
-    const leadStepId = params.stepId;
+    const { id: leadId, stepId: leadStepId } = await params;
 
     // Check authentication
     const {

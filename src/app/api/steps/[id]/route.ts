@@ -12,11 +12,11 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const stepId = params.id;
+    const { id: stepId } = await params;
 
     // Check authentication
     const {
@@ -122,11 +122,11 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const stepId = params.id;
+    const { id: stepId } = await params;
 
     // Check authentication
     const {

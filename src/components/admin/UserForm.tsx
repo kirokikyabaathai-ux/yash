@@ -28,6 +28,8 @@ interface FormData {
   status: UserStatus;
   assigned_area: string;
   password?: string;
+  sendEmail?: boolean;
+  generatePassword?: boolean;
 }
 
 export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
@@ -39,7 +41,11 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
     status: 'active',
     assigned_area: '',
     password: '',
+    sendEmail: true,
+    generatePassword: false,
   });
+  const [generatedPassword, setGeneratedPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,9 +80,10 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
         assigned_area: formData.assigned_area || null,
       };
 
-      // Include password only for new users
+      // Include password and email options only for new users
       if (!user && formData.password) {
         body.password = formData.password;
+        body.sendEmail = formData.sendEmail;
       }
 
       const response = await fetch(url, {
@@ -103,8 +110,46 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
+  };
+
+  const handleGeneratePassword = () => {
+    const password = generateSecurePassword();
+    setGeneratedPassword(password);
+    setFormData((prev) => ({ ...prev, password, generatePassword: true }));
+    setShowPassword(true);
+  };
+
+  const generateSecurePassword = (length: number = 12): string => {
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const symbols = '!@#$%^&*';
+    const allChars = uppercase + lowercase + numbers + symbols;
+    
+    let password = '';
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += symbols[Math.floor(Math.random() * symbols.length)];
+    
+    for (let i = password.length; i < length; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+    
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+  };
+
+  const copyToClipboard = () => {
+    if (formData.password) {
+      navigator.clipboard.writeText(formData.password);
+      alert('Password copied to clipboard!');
+    }
   };
 
   return (
