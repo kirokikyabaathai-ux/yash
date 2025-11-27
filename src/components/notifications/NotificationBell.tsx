@@ -10,9 +10,26 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const supabase = createClientComponentClient<Database>();
 
   useEffect(() => {
+    const supabase = createClientComponentClient<Database>();
+    
+    const fetchUnreadCount = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+
+      setUnreadCount(count || 0);
+    };
+
     fetchUnreadCount();
 
     // Subscribe to new notifications
@@ -64,6 +81,7 @@ export default function NotificationBell() {
   }, [isOpen]);
 
   const fetchUnreadCount = async () => {
+    const supabase = createClientComponentClient<Database>();
     const {
       data: { user },
     } = await supabase.auth.getUser();

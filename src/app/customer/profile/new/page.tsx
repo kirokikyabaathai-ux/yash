@@ -31,7 +31,7 @@ export default async function NewCustomerProfilePage({ searchParams }: PageProps
     .eq('id', user.id)
     .single();
 
-  if (!userData || !['customer', 'admin', 'office'].includes(userData.role)) {
+  if (!userData || !['customer', 'admin', 'office', 'agent'].includes(userData.role)) {
     redirect('/unauthorized');
   }
 

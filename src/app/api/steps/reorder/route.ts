@@ -63,14 +63,14 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Validate each step has id and order_index
+    // Validate each step has id
     for (const step of steps) {
-      if (!step.id || typeof step.order_index !== 'number') {
+      if (!step.id) {
         return NextResponse.json(
           {
             error: {
               code: 'VALIDATION_ERROR',
-              message: 'Each step must have id and order_index',
+              message: 'Each step must have id',
             },
           },
           { status: 400 }
@@ -78,18 +78,22 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Update each step's order_index
-    // We'll do this in a transaction-like manner by updating all at once
-    const updatePromises = steps.map((step) =>
-      supabase
+    // Update order_index using fractional ordering
+    // Assign order values with gaps (1000, 2000, 3000, etc.)
+    const updatePromises = steps.map((step, index) => {
+      const newOrderIndex = (index + 1) * 1000;
+      const updateData: any = {
+        order_index: newOrderIndex,
+        updated_at: new Date().toISOString(),
+      };
+      
+      return supabase
         .from('step_master')
-        .update({ order_index: step.order_index, updated_at: new Date().toISOString() })
-        .eq('id', step.id)
-    );
+        .update(updateData)
+        .eq('id', step.id);
+    });
 
     const results = await Promise.all(updatePromises);
-
-    // Check for errors
     const errors = results.filter((result) => result.error);
     if (errors.length > 0) {
       console.error('Error reordering steps:', errors);

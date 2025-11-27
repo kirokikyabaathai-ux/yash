@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { format } from 'date-fns';
@@ -39,6 +39,48 @@ export function ActivityLogList() {
 
   const supabase = createClient();
 
+  // Fetch activity logs with filters
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+
+    let query = supabase
+      .from('activity_log')
+      .select(`
+        *,
+        user:users!activity_log_user_id_fkey(name, email, role),
+        lead:leads!activity_log_lead_id_fkey(customer_name, phone)
+      `)
+      .order('timestamp', { ascending: false })
+      .limit(100);
+
+    // Apply filters
+    if (filters.leadId) {
+      query = query.eq('lead_id', filters.leadId);
+    }
+    if (filters.userId) {
+      query = query.eq('user_id', filters.userId);
+    }
+    if (filters.actionType) {
+      query = query.ilike('action', `%${filters.actionType}%`);
+    }
+    if (filters.dateFrom) {
+      query = query.gte('timestamp', filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      query = query.lte('timestamp', filters.dateTo);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching activity logs:', error);
+    } else {
+      setLogs(data as ActivityLogWithDetails[]);
+    }
+
+    setLoading(false);
+  }, [filters, supabase]);
+
   // Fetch users and leads for filter dropdowns
   useEffect(() => {
     async function fetchFilterData() {
@@ -52,53 +94,11 @@ export function ActivityLogList() {
     }
 
     fetchFilterData();
-  }, []);
+  }, [supabase]);
 
-  // Fetch activity logs with filters
   useEffect(() => {
-    async function fetchLogs() {
-      setLoading(true);
-
-      let query = supabase
-        .from('activity_log')
-        .select(`
-          *,
-          user:users!activity_log_user_id_fkey(name, email, role),
-          lead:leads!activity_log_lead_id_fkey(customer_name, phone)
-        `)
-        .order('timestamp', { ascending: false })
-        .limit(100);
-
-      // Apply filters
-      if (filters.leadId) {
-        query = query.eq('lead_id', filters.leadId);
-      }
-      if (filters.userId) {
-        query = query.eq('user_id', filters.userId);
-      }
-      if (filters.actionType) {
-        query = query.ilike('action', `%${filters.actionType}%`);
-      }
-      if (filters.dateFrom) {
-        query = query.gte('timestamp', filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        query = query.lte('timestamp', filters.dateTo);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching activity logs:', error);
-      } else {
-        setLogs(data as ActivityLogWithDetails[]);
-      }
-
-      setLoading(false);
-    }
-
     fetchLogs();
-  }, [filters]);
+  }, [fetchLogs]);
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters((prev) => ({

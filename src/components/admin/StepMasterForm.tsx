@@ -8,20 +8,21 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { UserRole } from '@/types/database';
 
 export interface StepMasterFormData {
   step_name: string;
-  order_index: number;
   allowed_roles: UserRole[];
   remarks_required: boolean;
   attachments_allowed: boolean;
   customer_upload: boolean;
+  requires_installer_assignment: boolean;
 }
 
 export interface StepMaster extends StepMasterFormData {
   id: string;
+  order_index: number;
   created_at: string;
   updated_at: string;
 }
@@ -31,7 +32,6 @@ interface StepMasterFormProps {
   onSubmit: (data: StepMasterFormData) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
-  maxOrderIndex: number;
 }
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
@@ -47,28 +47,36 @@ export function StepMasterForm({
   onSubmit,
   onCancel,
   isLoading = false,
-  maxOrderIndex,
 }: StepMasterFormProps) {
   const [formData, setFormData] = useState<StepMasterFormData>({
     step_name: step?.step_name || '',
-    order_index: step?.order_index ?? maxOrderIndex + 1,
     allowed_roles: step?.allowed_roles || ['admin', 'office'],
     remarks_required: step?.remarks_required ?? false,
     attachments_allowed: step?.attachments_allowed ?? false,
     customer_upload: step?.customer_upload ?? false,
+    requires_installer_assignment: step?.requires_installer_assignment ?? false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Update form data when step prop changes
+  useEffect(() => {
+    setFormData({
+      step_name: step?.step_name || '',
+      allowed_roles: step?.allowed_roles || ['admin', 'office'],
+      remarks_required: step?.remarks_required ?? false,
+      attachments_allowed: step?.attachments_allowed ?? false,
+      customer_upload: step?.customer_upload ?? false,
+      requires_installer_assignment: step?.requires_installer_assignment ?? false,
+    });
+    setErrors({});
+  }, [step]);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.step_name.trim()) {
       newErrors.step_name = 'Step name is required';
-    }
-
-    if (formData.order_index < 1) {
-      newErrors.order_index = 'Order index must be at least 1';
     }
 
     if (formData.allowed_roles.length === 0) {
@@ -97,8 +105,6 @@ export function StepMasterForm({
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else if (name === 'order_index') {
-      setFormData((prev) => ({ ...prev, [name]: parseInt(value, 10) || 1 }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -153,30 +159,8 @@ export function StepMasterForm({
         {errors.step_name && (
           <p className="mt-1 text-sm text-red-600">{errors.step_name}</p>
         )}
-      </div>
-
-      {/* Order Index */}
-      <div>
-        <label htmlFor="order_index" className="block text-sm font-medium text-gray-700">
-          Order Index <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="number"
-          id="order_index"
-          name="order_index"
-          value={formData.order_index}
-          onChange={handleChange}
-          disabled={isLoading}
-          min="1"
-          className={`mt-1 block w-full rounded-md border ${
-            errors.order_index ? 'border-red-300' : 'border-gray-300'
-          } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
-        />
-        {errors.order_index && (
-          <p className="mt-1 text-sm text-red-600">{errors.order_index}</p>
-        )}
         <p className="mt-1 text-sm text-gray-500">
-          Steps are displayed in ascending order. Current max: {maxOrderIndex}
+          Use drag and drop to reorder steps after creation
         </p>
       </div>
 
@@ -187,13 +171,13 @@ export function StepMasterForm({
         </label>
         <div className="space-y-2">
           {ROLE_OPTIONS.map((role) => (
-            <label key={role.value} className="flex items-center">
+            <label key={role.value} className="flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.allowed_roles.includes(role.value)}
                 onChange={() => handleRoleToggle(role.value)}
                 disabled={isLoading}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               />
               <span className="ml-2 text-sm text-gray-700">{role.label}</span>
             </label>
@@ -209,42 +193,57 @@ export function StepMasterForm({
 
       {/* Checkboxes */}
       <div className="space-y-3">
-        <label className="flex items-center">
+        <label className="flex items-center cursor-pointer">
           <input
             type="checkbox"
             name="remarks_required"
             checked={formData.remarks_required}
             onChange={handleChange}
             disabled={isLoading}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           />
           <span className="ml-2 text-sm text-gray-700">Remarks Required</span>
         </label>
 
-        <label className="flex items-center">
+        <label className="flex items-center cursor-pointer">
           <input
             type="checkbox"
             name="attachments_allowed"
             checked={formData.attachments_allowed}
             onChange={handleChange}
             disabled={isLoading}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           />
           <span className="ml-2 text-sm text-gray-700">Attachments Allowed</span>
         </label>
 
-        <label className="flex items-center">
+        <label className="flex items-center cursor-pointer">
           <input
             type="checkbox"
             name="customer_upload"
             checked={formData.customer_upload}
             onChange={handleChange}
             disabled={isLoading}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           />
           <span className="ml-2 text-sm text-gray-700">Customer Upload Enabled</span>
         </label>
+
+        <label className="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            name="requires_installer_assignment"
+            checked={formData.requires_installer_assignment}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          />
+          <span className="ml-2 text-sm text-gray-700">Requires Installer Assignment</span>
+        </label>
       </div>
+      <p className="text-sm text-gray-500">
+        When enabled, admin/office must assign an installer before completing this step
+      </p>
 
       {/* Form Actions */}
       <div className="flex justify-end space-x-3 pt-4 border-t">

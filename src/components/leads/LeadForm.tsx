@@ -42,8 +42,8 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSour
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^\d{10,15}$/.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Phone number must be 10-15 digits';
+    } else if (!/^[1-9][0-9]{9}$/.test(formData.phone)) {
+      newErrors.phone = 'Phone number must be exactly 10 digits and cannot start with 0';
     }
 
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -132,7 +132,7 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSour
             value={formData.phone}
             onChange={handleChange}
             disabled={isLoading}
-            placeholder="1234567890"
+            placeholder="9876543210"
             autoComplete="tel"
             className={`mt-1 block w-full rounded-md border ${
               errors.phone ? 'border-red-300' : 'border-gray-300'

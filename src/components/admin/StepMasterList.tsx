@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { List, arrayMove } from 'react-movable';
 import type { StepMaster } from './StepMasterForm';
 
 interface StepMasterListProps {
@@ -26,43 +27,30 @@ export function StepMasterList({
   onReorder,
   isLoading = false,
 }: StepMasterListProps) {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [localSteps, setLocalSteps] = useState<StepMaster[]>(steps);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    setDragOverIndex(index);
-  };
-
-  const handleDragEnd = async () => {
-    if (draggedIndex === null || dragOverIndex === null || draggedIndex === dragOverIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
-      return;
+  // Update local steps when props change (only if no pending changes)
+  React.useEffect(() => {
+    if (!hasChanges) {
+      setLocalSteps(steps);
     }
+  }, [steps, hasChanges]);
 
-    const reorderedSteps = [...steps];
-    const [draggedStep] = reorderedSteps.splice(draggedIndex, 1);
-    reorderedSteps.splice(dragOverIndex, 0, draggedStep);
-
-    // Update order_index for all steps
-    const updatedSteps = reorderedSteps.map((step, index) => ({
-      ...step,
-      order_index: index + 1,
-    }));
-
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-
-    await onReorder(updatedSteps);
+  const handleReorderChange = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
+    const reorderedSteps = arrayMove(localSteps, oldIndex, newIndex);
+    setLocalSteps(reorderedSteps);
+    setHasChanges(true);
   };
 
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
+  const handleSaveOrder = async () => {
+    await onReorder(localSteps);
+    setHasChanges(false);
+  };
+
+  const handleCancelReorder = () => {
+    setLocalSteps(steps);
+    setHasChanges(false);
   };
 
   const handleDeleteClick = (step: StepMaster) => {
@@ -75,7 +63,7 @@ export function StepMasterList({
     }
   };
 
-  if (steps.length === 0) {
+  if (localSteps.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
         <svg
@@ -100,25 +88,72 @@ export function StepMasterList({
   }
 
   return (
-    <div className="space-y-2">
-      {steps.map((step, index) => (
-        <div
-          key={step.id}
-          draggable={!isLoading}
-          onDragStart={() => handleDragStart(index)}
-          onDragOver={(e) => handleDragOver(e, index)}
-          onDragEnd={handleDragEnd}
-          onDragLeave={handleDragLeave}
-          className={`bg-white border rounded-lg p-4 transition-all ${
-            draggedIndex === index
-              ? 'opacity-50 cursor-grabbing'
-              : 'cursor-grab hover:shadow-md'
-          } ${
-            dragOverIndex === index && draggedIndex !== index
-              ? 'border-blue-500 border-2'
-              : 'border-gray-200'
-          } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
+    <div className="space-y-4">
+      {/* Save/Cancel buttons - shown when order changes */}
+      {hasChanges && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg
+                className="h-5 w-5 text-yellow-600 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <span className="text-sm font-medium text-yellow-800">
+                You have unsaved changes to the step order
+              </span>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={handleCancelReorder}
+                disabled={isLoading}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveOrder}
+                disabled={isLoading}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Saving...' : 'Save Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <List
+        values={localSteps}
+        onChange={handleReorderChange}
+        lockVertically
+        renderList={({ children, props }) => (
+          <div {...props} className="space-y-2">
+            {children}
+          </div>
+        )}
+        renderItem={({ value: step, props, index, isDragged }) => (
+          <div
+            {...props}
+            key={step.id}
+            className={`relative bg-white border border-gray-200 rounded-lg p-4 transition-all ${
+              isDragged
+                ? 'opacity-50 shadow-2xl z-50 scale-105'
+                : 'hover:shadow-md'
+            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={{
+              ...props.style,
+              cursor: isLoading ? 'not-allowed' : isDragged ? 'grabbing' : 'grab',
+            }}
+          >
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div className="flex items-start space-x-3 sm:space-x-4 flex-1">
               {/* Drag Handle */}
@@ -142,7 +177,7 @@ export function StepMasterList({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-3">
                   <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-800 text-sm font-medium flex-shrink-0">
-                    {step.order_index}
+                    {(index ?? 0) + 1}
                   </span>
                   <h3 className="text-base sm:text-lg font-medium text-gray-900 break-words">{step.step_name}</h3>
                 </div>
@@ -151,9 +186,9 @@ export function StepMasterList({
                   {/* Allowed Roles */}
                   <div className="flex flex-wrap items-center gap-1">
                     <span className="text-xs text-gray-500">Roles:</span>
-                    {step.allowed_roles.map((role) => (
+                    {step.allowed_roles.map((role, roleIndex) => (
                       <span
-                        key={role}
+                        key={`${step.id}-${role}-${roleIndex}`}
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
                       >
                         {role}
@@ -187,9 +222,9 @@ export function StepMasterList({
             <div className="flex items-center space-x-2 sm:ml-4 justify-end">
               <button
                 onClick={() => onEdit(step)}
-                disabled={isLoading}
+                disabled={isLoading || hasChanges}
                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                title="Edit step"
+                title={hasChanges ? 'Save or cancel reorder first' : 'Edit step'}
               >
                 <svg
                   className="h-5 w-5"
@@ -207,9 +242,9 @@ export function StepMasterList({
               </button>
               <button
                 onClick={() => handleDeleteClick(step)}
-                disabled={isLoading}
+                disabled={isLoading || hasChanges}
                 className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                title="Delete step"
+                title={hasChanges ? 'Save or cancel reorder first' : 'Delete step'}
               >
                 <svg
                   className="h-5 w-5"
@@ -228,11 +263,12 @@ export function StepMasterList({
             </div>
           </div>
         </div>
-      ))}
+        )}
+      />
 
       <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-blue-800">
-          <strong>Tip:</strong> <span className="hidden sm:inline">Drag and drop steps to reorder them.</span><span className="sm:hidden">On desktop, you can drag and drop steps to reorder them.</span> The order determines how
+          <strong>Tip:</strong> <span className="hidden sm:inline">Drag and drop steps to reorder them, then click "Save Order".</span><span className="sm:hidden">On desktop, you can drag and drop steps to reorder them.</span> The order determines how
           they appear in the timeline for all leads.
         </p>
       </div>

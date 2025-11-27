@@ -23,7 +23,7 @@ DECLARE
   v_remarks_required BOOLEAN;
   v_attachments_allowed BOOLEAN;
   v_current_status TEXT;
-  v_step_order INTEGER;
+  v_step_order NUMERIC;
   v_next_step_id UUID;
   v_result JSONB;
 BEGIN

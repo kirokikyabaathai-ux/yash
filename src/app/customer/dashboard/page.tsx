@@ -35,10 +35,15 @@ export default async function CustomerDashboardPage() {
     redirect('/login');
   }
 
-  // Get the customer's linked lead
+  // Get the customer's linked lead with customer_id
   const { data: lead, error: leadError } = await supabase
     .from('leads')
-    .select('*')
+    .select(`
+      *,
+      customer_account:users!customer_account_id (
+        customer_id
+      )
+    `)
     .eq('customer_account_id', user.id)
     .single();
 

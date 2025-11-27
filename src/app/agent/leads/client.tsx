@@ -21,14 +21,6 @@ export function AgentLeadsClient() {
 
   const pageSize = 10;
 
-  useEffect(() => {
-    fetchLeads();
-  }, [filters, currentPage]);
-
-  useEffect(() => {
-    fetchSteps();
-  }, []);
-
   const fetchLeads = async () => {
     try {
       setIsLoading(true);
@@ -36,7 +28,7 @@ export function AgentLeadsClient() {
 
       const params = new URLSearchParams();
       params.append('page', currentPage.toString());
-      params.append('pageSize', pageSize.toString());
+      params.append('limit', pageSize.toString());
 
       if (filters.search) params.append('search', filters.search);
       if (filters.status) {
@@ -82,6 +74,14 @@ export function AgentLeadsClient() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  useEffect(() => {
+    fetchLeads();
+  }, [filters, currentPage]);
+
+  useEffect(() => {
+    fetchSteps();
+  }, []);
 
   if (error) {
     return (

@@ -36,6 +36,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate file size (9MB limit)
+    const MAX_FILE_SIZE = 9 * 1024 * 1024; // 9MB in bytes
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'File size exceeds 9MB limit' },
+        { status: 400 }
+      );
+    }
+
     // Generate unique file path
     // Format: /leads/{lead_id}/{field}_{timestamp}.{ext}
     const fileExt = file.name.split('.').pop();

@@ -17,6 +17,7 @@ interface SearchBarProps {
   onSearch: (searchTerm: string) => void;
   placeholder?: string;
   className?: string;
+  debounceMs?: number;
 }
 
 export function SearchBar({
@@ -24,6 +25,7 @@ export function SearchBar({
   onSearch,
   placeholder = 'Search by name, phone, email, or address...',
   className = '',
+  debounceMs = 500,
 }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState(initialValue);
 
@@ -31,6 +33,17 @@ export function SearchBar({
   useEffect(() => {
     setSearchTerm(initialValue);
   }, [initialValue]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm !== initialValue) {
+        onSearch(searchTerm.trim());
+      }
+    }, debounceMs);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, debounceMs, onSearch, initialValue]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -66,12 +66,14 @@ export async function PATCH(
     // Build update object with only provided fields
     const updateData: any = {};
     if (step_name !== undefined) updateData.step_name = step_name;
-    if (order_index !== undefined) updateData.order_index = order_index;
     if (allowed_roles !== undefined) updateData.allowed_roles = allowed_roles;
     if (remarks_required !== undefined) updateData.remarks_required = remarks_required;
     if (attachments_allowed !== undefined) updateData.attachments_allowed = attachments_allowed;
     if (customer_upload !== undefined) updateData.customer_upload = customer_upload;
     updateData.updated_at = new Date().toISOString();
+
+    // Note: order_index is now managed by the linked list structure via reorder endpoint
+    // Direct order_index updates are ignored to prevent conflicts
 
     // Update step
     const { data: updatedStep, error: updateError } = await supabase
@@ -83,20 +85,6 @@ export async function PATCH(
 
     if (updateError) {
       console.error('Error updating step:', updateError);
-
-      // Check for unique constraint violation
-      if (updateError.code === '23505') {
-        return NextResponse.json(
-          {
-            error: {
-              code: 'DUPLICATE_ORDER_INDEX',
-              message: 'A step with this order index already exists',
-            },
-          },
-          { status: 409 }
-        );
-      }
-
       return NextResponse.json(
         { error: { code: 'DATABASE_ERROR', message: 'Failed to update step' } },
         { status: 500 }
@@ -163,6 +151,7 @@ export async function DELETE(
     }
 
     // Delete step (cascade will handle lead_steps)
+    // No need to update order_index of other steps - gaps are fine
     const { error: deleteError } = await supabase
       .from('step_master')
       .delete()

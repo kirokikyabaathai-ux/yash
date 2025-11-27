@@ -95,6 +95,12 @@ export function CustomerDashboardContent({
               Project Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(lead as any).customer_account?.customer_id && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Customer ID</p>
+                  <p className="mt-1 text-sm text-gray-900 font-mono">{(lead as any).customer_account.customer_id}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium text-gray-500">Customer Name</p>
                 <p className="mt-1 text-sm text-gray-900">{lead.customer_name}</p>
@@ -113,7 +119,7 @@ export function CustomerDashboardContent({
                   <LeadStatusBadge status={lead.status} />
                 </p>
               </div>
-              <div>
+              <div className="md:col-span-2">
                 <p className="text-sm font-medium text-gray-500">Address</p>
                 <p className="mt-1 text-sm text-gray-900">{lead.address}</p>
               </div>

@@ -26,6 +26,15 @@ export async function POST(
     const body = await request.json();
     const { fileName, fileSize, mimeType, documentType, documentCategory } = body;
 
+    // Validate file size (9MB limit)
+    const MAX_FILE_SIZE = 9 * 1024 * 1024; // 9MB in bytes
+    if (fileSize > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: { message: 'File size exceeds 9MB limit' } },
+        { status: 400 }
+      );
+    }
+
     // Generate unique file path
     const fileExtension = fileName.split('.').pop();
     const timestamp = Date.now();

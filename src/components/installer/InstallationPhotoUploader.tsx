@@ -21,7 +21,7 @@ export function InstallationPhotoUploader({
   leadId,
   onUploadComplete,
   onUploadError,
-  maxSizeMB = 10,
+  maxSizeMB = 9,
   disabled = false,
 }: InstallationPhotoUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);

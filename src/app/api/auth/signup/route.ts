@@ -28,10 +28,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate phone number (basic validation)
-    if (phone.length < 10) {
+    // Validate phone number (exactly 10 digits, cannot start with 0)
+    const phoneRegex = /^[1-9][0-9]{9}$/;
+    if (!phoneRegex.test(phone)) {
       return NextResponse.json(
-        { error: { code: 'INVALID_PHONE', message: 'Please enter a valid phone number' } },
+        { error: { code: 'INVALID_PHONE', message: 'Phone number must be exactly 10 digits and cannot start with 0' } },
         { status: 400 }
       );
     }
@@ -42,6 +43,13 @@ export async function POST(request: NextRequest) {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name,
+          phone,
+          role: 'customer',
+        },
+      },
     });
 
     if (authError) {
@@ -58,40 +66,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 2: Create user profile with 'customer' role
-    const { error: profileError } = await supabase
-      .from('users')
-      .insert({
-        id: authData.user.id,
-        email,
-        name,
-        phone,
-        role: 'customer',
-        status: 'active',
-      });
+    // Step 2: The trigger handle_new_user() automatically creates the user profile and lead
+    // Wait a moment for the trigger to complete
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (profileError) {
-      // If profile creation fails, we should clean up the auth account
-      // However, Supabase doesn't provide a way to delete users from client
-      // This should be handled by admin or a cleanup job
+    // Verify the user profile was created by the trigger
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('Profile verification error:', profileError);
       return NextResponse.json(
         { error: { code: 'PROFILE_ERROR', message: 'Failed to create user profile' } },
         { status: 500 }
       );
-    }
-
-    // Step 3: Call link_customer_to_lead RPC function
-    // This will either link to existing lead or create a new one
-    const { error: linkError } = await supabase.rpc('link_customer_to_lead', {
-      p_customer_id: authData.user.id,
-      p_phone: phone,
-      p_customer_name: name,
-      p_email: email,
-    });
-
-    if (linkError) {
-      console.error('Lead linking error:', linkError);
-      // Don't fail the signup if linking fails - user can still access the system
     }
 
     // Fetch the created profile

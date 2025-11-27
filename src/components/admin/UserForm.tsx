@@ -211,8 +211,14 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 value={formData.phone}
                 onChange={handleChange}
                 required
+                placeholder="9876543210"
+                pattern="[1-9][0-9]{9}"
+                title="Phone number must be exactly 10 digits and cannot start with 0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                10 digits, cannot start with 0
+              </p>
             </div>
 
             <div>

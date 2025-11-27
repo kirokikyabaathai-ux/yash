@@ -42,11 +42,27 @@ export async function PATCH(
       .eq('id', user.id)
       .single();
 
-    if (!userData || !['admin', 'office'].includes(userData.role)) {
+    if (!userData || !['admin', 'office', 'agent'].includes(userData.role)) {
       return NextResponse.json(
-        { error: { message: 'Only admin and office team can update status' } },
+        { error: { message: 'Only admin, office team, and agents can update status' } },
         { status: 403 }
       );
+    }
+
+    // If user is an agent, verify they own the lead
+    if (userData.role === 'agent') {
+      const { data: leadOwnership } = await supabase
+        .from('leads')
+        .select('created_by')
+        .eq('id', leadId)
+        .single();
+
+      if (!leadOwnership || leadOwnership.created_by !== user.id) {
+        return NextResponse.json(
+          { error: { message: 'Agents can only update status of their own leads' } },
+          { status: 403 }
+        );
+      }
     }
 
     // Parse request body

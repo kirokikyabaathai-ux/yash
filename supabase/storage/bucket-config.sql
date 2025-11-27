@@ -12,7 +12,7 @@ VALUES (
   'solar-projects',
   'solar-projects',
   false, -- Private bucket, access controlled by RLS policies
-  10485760, -- 10MB file size limit
+  9437184, -- 9MB file size limit (9 * 1024 * 1024)
   ARRAY[
     'image/jpeg',
     'image/png',

@@ -133,6 +133,11 @@ serve(async (req) => {
         email: email,
         password: password,
         email_confirm: true,
+        user_metadata: {
+          name: name,
+          phone: phone,
+          role: role,
+        },
       });
 
     if (createAuthError) {
@@ -158,8 +163,9 @@ serve(async (req) => {
       );
     }
 
-    // Create user profile
-    const { data: newUser, error: createUserError } = await supabaseAdmin
+    // Create user profile (or fetch if trigger already created it)
+    let newUser;
+    const { data: insertedUser, error: createUserError } = await supabaseAdmin
       .from("users")
       .insert({
         id: authUser.user.id,
@@ -174,18 +180,53 @@ serve(async (req) => {
       .single();
 
     if (createUserError) {
-      console.error("Error creating user profile:", createUserError);
-      // Rollback: delete auth user if profile creation fails
-      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
-      return new Response(
-        JSON.stringify({
-          error: createUserError.message || "Failed to create user profile",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      // Check if it's a duplicate key error (trigger already created the user)
+      if (createUserError.message?.includes("duplicate key")) {
+        // Fetch the existing user and update it
+        const { data: existingUser, error: fetchError } = await supabaseAdmin
+          .from("users")
+          .update({
+            email: email,
+            name: name,
+            phone: phone,
+            role: role,
+            status: status || "active",
+            assigned_area: assigned_area || null,
+          })
+          .eq("id", authUser.user.id)
+          .select()
+          .single();
+
+        if (fetchError) {
+          console.error("Error updating user profile:", fetchError);
+          await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+          return new Response(
+            JSON.stringify({
+              error: fetchError.message || "Failed to update user profile",
+            }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
         }
-      );
+        newUser = existingUser;
+      } else {
+        console.error("Error creating user profile:", createUserError);
+        // Rollback: delete auth user if profile creation fails
+        await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+        return new Response(
+          JSON.stringify({
+            error: createUserError.message || "Failed to create user profile",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    } else {
+      newUser = insertedUser;
     }
 
     return new Response(

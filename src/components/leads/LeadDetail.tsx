@@ -134,8 +134,12 @@ export function LeadDetail({
           </div>
 
           <div>
-            <dt className="text-sm font-medium text-gray-500">Lead ID</dt>
-            <dd className="mt-1 text-sm text-gray-900 font-mono">{lead.id}</dd>
+            <dt className="text-sm font-medium text-gray-500">
+              {(lead as any).customer_account?.customer_id ? 'Customer ID' : 'Lead ID'}
+            </dt>
+            <dd className="mt-1 text-sm text-gray-900 font-mono">
+              {(lead as any).customer_account?.customer_id || lead.id}
+            </dd>
           </div>
         </dl>
       </div>

@@ -55,9 +55,10 @@ export function SignupForm() {
       return;
     }
 
-    // Validate phone number format (basic validation)
-    if (formData.phone.length < 10) {
-      setError('Please enter a valid phone number');
+    // Validate phone number format (exactly 10 digits, cannot start with 0)
+    const phoneRegex = /^[1-9][0-9]{9}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      setError('Phone number must be exactly 10 digits and cannot start with 0');
       setLoading(false);
       return;
     }

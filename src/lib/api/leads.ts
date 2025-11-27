@@ -93,7 +93,12 @@ export async function getLead(
 
   const { data: lead, error } = await supabase
     .from('leads')
-    .select('*')
+    .select(`
+      *,
+      created_by_user:users!leads_created_by_fkey(id, name, email),
+      customer_account:users!leads_customer_account_id_fkey(id, name, email, phone, customer_id),
+      installer:users!leads_installer_id_fkey(id, name, phone)
+    `)
     .eq('id', leadId)
     .single();
 

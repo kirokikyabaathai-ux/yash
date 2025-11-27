@@ -332,10 +332,11 @@ export function validateEmail(email: string): boolean {
 }
 
 /**
- * Validates phone number format (basic validation)
+ * Validates phone number format
+ * Must be exactly 10 digits and cannot start with zero
  */
 export function validatePhone(phone: string): boolean {
-  const phoneRegex = /^\+?[\d\s-()]{10,}$/;
+  const phoneRegex = /^[1-9][0-9]{9}$/;
   return phoneRegex.test(phone);
 }
 

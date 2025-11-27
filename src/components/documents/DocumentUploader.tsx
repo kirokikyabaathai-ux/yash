@@ -27,7 +27,7 @@ export function DocumentUploader({
   documentCategory,
   onUploadComplete,
   onUploadError,
-  maxSizeMB = 10,
+  maxSizeMB = 9,
   acceptedFileTypes = ['image/*', 'application/pdf', '.doc', '.docx'],
   disabled = false,
 }: DocumentUploaderProps) {

@@ -19,6 +19,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
+    // Determine the correct user_id
+    let targetUserId = body.user_id || user.id;
+    
+    // If a lead_id is provided and user_id is not explicitly set, 
+    // use the customer_account_id from the lead (if it exists)
+    if (body.lead_id && !body.user_id) {
+      const { data: leadData } = await supabase
+        .from('leads')
+        .select('customer_account_id')
+        .eq('id', body.lead_id)
+        .single();
+      
+      if (leadData?.customer_account_id) {
+        targetUserId = leadData.customer_account_id;
+      }
+    }
+
     // Ensure timeline exists for the lead
     if (body.lead_id) {
       try {
@@ -50,7 +67,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('customer_profiles')
       .insert({
-        user_id: body.user_id || user.id,
+        user_id: targetUserId,
         lead_id: body.lead_id,
         name: body.name,
         gender: body.gender,

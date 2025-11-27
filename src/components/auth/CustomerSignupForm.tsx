@@ -48,18 +48,11 @@ export function CustomerSignupForm() {
 
   /**
    * Validates phone number format
-   * Accepts: 10-15 digit phone numbers with optional country code
+   * Must be exactly 10 digits and cannot start with zero
    */
   const validatePhoneNumber = (phone: string): boolean => {
-    // Remove all non-digit characters
-    const digitsOnly = phone.replace(/\D/g, '');
-    
-    // Check if it has 10-15 digits
-    if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-      return false;
-    }
-    
-    return true;
+    const phoneRegex = /^[1-9][0-9]{9}$/;
+    return phoneRegex.test(phone);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,7 +76,7 @@ export function CustomerSignupForm() {
 
     // Validate phone number format
     if (!validatePhoneNumber(formData.phone)) {
-      setError('Please enter a valid phone number (10-15 digits)');
+      setError('Phone number must be exactly 10 digits and cannot start with 0');
       setLoading(false);
       return;
     }
@@ -100,6 +93,13 @@ export function CustomerSignupForm() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+            phone: formData.phone,
+            role: 'customer',
+          },
+        },
       });
 
       if (authError) {
@@ -114,40 +114,25 @@ export function CustomerSignupForm() {
         return;
       }
 
-      // Step 2: Create user profile with 'customer' role
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: formData.email,
-          name: formData.name,
-          phone: formData.phone,
-          role: 'customer',
-          status: 'active',
-        });
+      // Step 2: The trigger handle_new_user() automatically creates the user profile and lead
+      // Just wait a moment for the trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (profileError) {
-        setError('Failed to create user profile. Please contact support.');
+      // Step 3: Verify the user profile was created by the trigger
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Profile verification error:', profileError);
+        setError('Account created but profile setup incomplete. Please contact support.');
         setLoading(false);
         return;
       }
 
-      // Step 3: Call link_customer_to_lead RPC function
-      // This will either link to existing lead or create a new one
-      const { data: linkResult, error: linkError } = await supabase.rpc('link_customer_to_lead', {
-        p_customer_id: authData.user.id,
-        p_phone: formData.phone,
-        p_customer_name: formData.name,
-        p_email: formData.email,
-      });
-
-      if (linkError) {
-        console.error('Lead linking error:', linkError);
-        // Don't fail the signup if linking fails - user can still access the system
-        // But log it for debugging
-      } else {
-        console.log('Lead linking result:', linkResult);
-      }
+      console.log('User profile created successfully:', profile);
 
       // Redirect to customer dashboard
       router.push('/customer/dashboard');
@@ -219,7 +204,7 @@ export function CustomerSignupForm() {
               autoComplete="tel"
               required
               className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-              placeholder="Phone Number (10-15 digits)"
+              placeholder="Phone Number (10 digits, e.g., 9876543210)"
               value={formData.phone}
               onChange={handleChange}
               disabled={loading}

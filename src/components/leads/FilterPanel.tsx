@@ -12,7 +12,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Filter, X, Calendar } from 'lucide-react';
 import type { LeadStatus } from '@/types/database';
 
@@ -43,6 +43,7 @@ export function FilterPanel({
   const [dateFrom, setDateFrom] = useState(initialFilters.dateFrom || '');
   const [dateTo, setDateTo] = useState(initialFilters.dateTo || '');
   const [currentStep, setCurrentStep] = useState(initialFilters.currentStep || '');
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Update local state when initialFilters change
   useEffect(() => {
@@ -52,6 +53,25 @@ export function FilterPanel({
     setCurrentStep(initialFilters.currentStep || '');
   }, [initialFilters]);
 
+  // Close panel when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isExpanded]);
+
   const statusOptions: LeadStatus[] = [
     'lead',
     'lead_interested',
@@ -60,11 +80,21 @@ export function FilterPanel({
     'lead_cancelled'
   ];
 
+  const statusLabels: Record<LeadStatus, string> = {
+    'lead': 'New Leads',
+    'lead_interested': 'Lead Interested',
+    'lead_processing': 'Lead Processing',
+    'lead_completed': 'Lead Completed',
+    'lead_cancelled': 'Lead Cancelled'
+  };
+
   const handleStatusToggle = (status: LeadStatus) => {
-    const newStatus = selectedStatus.includes(status)
-      ? selectedStatus.filter((s) => s !== status)
-      : [...selectedStatus, status];
-    setSelectedStatus(newStatus);
+    // Single selection only - if clicking the same status, deselect it
+    if (selectedStatus.includes(status)) {
+      setSelectedStatus([]);
+    } else {
+      setSelectedStatus([status]);
+    }
   };
 
   const handleApplyFilters = () => {
@@ -107,7 +137,7 @@ export function FilterPanel({
     (currentStep ? 1 : 0);
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={panelRef} className={`relative ${className}`}>
       {/* Filter Toggle Button */}
       <button
         type="button"
@@ -161,7 +191,7 @@ export function FilterPanel({
                         : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
                     }`}
                   >
-                    {status.replace('_', ' ')}
+                    {statusLabels[status]}
                   </button>
                 ))}
               </div>

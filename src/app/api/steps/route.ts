@@ -116,48 +116,46 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!step_name || !order_index || !allowed_roles || !Array.isArray(allowed_roles)) {
+    if (!step_name || !allowed_roles || !Array.isArray(allowed_roles)) {
       return NextResponse.json(
         {
           error: {
             code: 'VALIDATION_ERROR',
-            message: 'Missing required fields: step_name, order_index, allowed_roles',
+            message: 'Missing required fields: step_name, allowed_roles',
           },
         },
         { status: 400 }
       );
     }
 
-    // Create step
+    // Get the maximum order_index to append at the end
+    const { data: maxStep } = await supabase
+      .from('step_master')
+      .select('order_index')
+      .order('order_index', { ascending: false })
+      .limit(1)
+      .single();
+
+    const newOrderIndex = maxStep ? Number(maxStep.order_index) + 1000 : 1000;
+
+    // Create new step
+    const insertData: any = {
+      step_name,
+      order_index: newOrderIndex,
+      allowed_roles,
+      remarks_required: remarks_required ?? false,
+      attachments_allowed: attachments_allowed ?? false,
+      customer_upload: customer_upload ?? false,
+    };
+
     const { data: newStep, error: createError } = await supabase
       .from('step_master')
-      .insert({
-        step_name,
-        order_index,
-        allowed_roles,
-        remarks_required: remarks_required ?? false,
-        attachments_allowed: attachments_allowed ?? false,
-        customer_upload: customer_upload ?? false,
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (createError) {
       console.error('Error creating step:', createError);
-      
-      // Check for unique constraint violation
-      if (createError.code === '23505') {
-        return NextResponse.json(
-          {
-            error: {
-              code: 'DUPLICATE_ORDER_INDEX',
-              message: 'A step with this order index already exists',
-            },
-          },
-          { status: 409 }
-        );
-      }
-
       return NextResponse.json(
         { error: { code: 'DATABASE_ERROR', message: 'Failed to create step' } },
         { status: 500 }

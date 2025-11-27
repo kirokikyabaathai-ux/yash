@@ -78,7 +78,11 @@ export function LeadDetailClient({
               {lead.customer_name}
             </h1>
             <p className="mt-2 text-sm text-gray-600">
-              Lead ID: {lead.id}
+              {lead.customer_account?.customer_id ? (
+                <>Customer ID: {lead.customer_account.customer_id}</>
+              ) : (
+                <>Lead ID: {lead.id}</>
+              )}
             </p>
           </div>
           <LeadStatusBadge status={lead.status} className="text-sm px-3 py-1" />

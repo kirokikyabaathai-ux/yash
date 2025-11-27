@@ -1,5 +1,5 @@
 /**
- * Office Leads Client Component
+ * Admin Leads Client Component
  * Client-side component that handles lead fetching and filtering
  */
 
@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { LeadList } from '@/components/leads/LeadList';
 import type { Lead, LeadFilters } from '@/types/api';
 
-export function OfficeLeadsClient() {
+export function AdminLeadsClient() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,14 +106,14 @@ export function OfficeLeadsClient() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">All Leads</h1>
             <p className="mt-2 text-sm text-gray-600">
-              Manage and track all solar installation leads
+              Manage and track all solar installation leads across the system
             </p>
           </div>
           <Link
-            href="/office/leads/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            href="/admin/dashboard"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Create New Lead
+            Back to Dashboard
           </Link>
         </div>
 
@@ -131,7 +131,7 @@ export function OfficeLeadsClient() {
             onFilterChange={handleFilterChange}
             filters={filters}
             availableSteps={availableSteps}
-            baseUrl="/office/leads"
+            baseUrl="/admin/leads"
           />
         )}
       </div>

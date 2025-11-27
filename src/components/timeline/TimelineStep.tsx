@@ -25,6 +25,7 @@ export interface TimelineStepData {
   remarks_required: boolean;
   attachments_allowed: boolean;
   customer_upload: boolean;
+  requires_installer_assignment: boolean;
 }
 
 interface TimelineStepProps {

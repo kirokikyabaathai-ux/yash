@@ -17,11 +17,12 @@ interface TimelineProps {
   userRole: string;
   userId: string;
   leadStatus?: string;
+  leadInstallerId?: string | null;
   initialSteps?: TimelineStepData[];
   onStepComplete?: () => void;
 }
 
-export function Timeline({ leadId, userRole, leadStatus, initialSteps = [], onStepComplete }: TimelineProps) {
+export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initialSteps = [], onStepComplete }: TimelineProps) {
   const steps = initialSteps;
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -203,8 +204,8 @@ export function Timeline({ leadId, userRole, leadStatus, initialSteps = [], onSt
           )}
         </div>
 
-        {/* Complete Next Step Button */}
-        {(() => {
+        {/* Complete Next Step Button - Hidden for agents */}
+        {userRole !== 'agent' && (() => {
           const nextStepIndex = steps.findIndex((s) => s.status === 'pending');
           if (nextStepIndex === -1) return null;
           
@@ -315,6 +316,8 @@ export function Timeline({ leadId, userRole, leadStatus, initialSteps = [], onSt
           onClose={() => setCompletingStep(null)}
           onSubmit={handleCompleteSubmit}
           isLoading={isActionLoading}
+          leadInstallerId={leadInstallerId}
+          leadId={leadId}
         />
       )}
     </div>

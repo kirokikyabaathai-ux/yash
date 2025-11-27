@@ -59,6 +59,9 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   assigned_area: string | null;
+  agent_id: string | null;
+  office_id: string | null;
+  customer_id: string | null;
   created_at: string;
   updated_at: string;
 }
