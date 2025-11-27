@@ -510,7 +510,7 @@ Sample steps with fractional ordering:
 ## Contact & Support
 
 **Project Owner:** Solar CRM Team  
-**Supabase Project:** https://gqalreoyglltniepgnnr.supabase.co  
+**Supabase Project:** [See Supabase Dashboard]  
 **Documentation:** See Project Specification.md
 
 ---

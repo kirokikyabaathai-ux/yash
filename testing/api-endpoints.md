@@ -1,6 +1,6 @@
 # API Endpoints Documentation - Solar CRM
 
-**Base URL:** `https://gqalreoyglltniepgnnr.supabase.co`  
+**Base URL:** `https://YOUR_PROJECT_REF.supabase.co`  
 **API Version:** REST v1  
 **Authentication:** Bearer Token (JWT)
 
@@ -740,7 +740,7 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "upload_url": "https://gqalreoyglltniepgnnr.supabase.co/storage/v1/object/upload/sign/...",
+  "upload_url": "https://YOUR_PROJECT_REF.supabase.co/storage/v1/object/upload/sign/...",
   "file_path": "leads/{lead_id}/mandatory/{uuid}.pdf",
   "expires_in": 3600
 }
@@ -911,14 +911,14 @@ GET /rest/v1/leads?select=*,documents(*),lead_steps(*)
 ### Example: Login and Get Leads
 ```bash
 # Login
-TOKEN=$(curl -X POST 'https://gqalreoyglltniepgnnr.supabase.co/auth/v1/token?grant_type=password' \
+TOKEN=$(curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/auth/v1/token?grant_type=password' \
   -H 'Content-Type: application/json' \
   -H 'apikey: YOUR_ANON_KEY' \
   -d '{"email":"admin@solarcrm.com","password":"your_password"}' \
   | jq -r '.access_token')
 
 # Get leads
-curl 'https://gqalreoyglltniepgnnr.supabase.co/rest/v1/leads?select=*' \
+curl 'https://YOUR_PROJECT_REF.supabase.co/rest/v1/leads?select=*' \
   -H "Authorization: Bearer $TOKEN" \
   -H "apikey: YOUR_ANON_KEY"
 ```

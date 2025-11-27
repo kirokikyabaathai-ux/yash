@@ -139,9 +139,9 @@ All 3 Edge Functions have been successfully deployed and are ACTIVE:
 
 ## 🔗 Useful Links
 
-- **Supabase Dashboard**: https://supabase.com/dashboard/project/gqalreoyglltniepgnnr
-- **API URL**: https://gqalreoyglltniepgnnr.supabase.co
-- **Edge Functions**: https://gqalreoyglltniepgnnr.supabase.co/functions/v1/
+- **Supabase Dashboard**: [See project settings]
+- **API URL**: [Set in environment variables]
+- **Edge Functions**: [Set in environment variables]
 
 ## ✨ Deployment Status: SUCCESS
 
