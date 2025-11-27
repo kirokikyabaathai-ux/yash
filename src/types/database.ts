@@ -15,7 +15,12 @@ export type Json =
 
 export type UserRole = 'admin' | 'agent' | 'office' | 'installer' | 'customer';
 export type UserStatus = 'active' | 'disabled';
-export type LeadStatus = 'ongoing' | 'interested' | 'not_interested' | 'closed';
+export type LeadStatus = 
+  | 'lead'                       // Initial contact, agent found the person
+  | 'lead_interested'            // Customer agreed to proceed
+  | 'lead_processing'            // Form filled + active project (timeline updates)
+  | 'lead_completed'             // Project finished
+  | 'lead_cancelled';            // Customer declined/withdrew
 export type LeadSource = 'agent' | 'office' | 'customer' | 'self';
 export type DocumentType = 'mandatory' | 'optional' | 'installation' | 'customer' | 'admin';
 export type DocumentStatus = 'valid' | 'corrupted' | 'replaced';
@@ -67,8 +72,6 @@ export interface Database {
           phone: string;
           email: string | null;
           address: string;
-          kw_requirement: number | null;
-          roof_type: string | null;
           notes: string | null;
           status: LeadStatus;
           created_by: string | null;
@@ -84,8 +87,6 @@ export interface Database {
           phone: string;
           email?: string | null;
           address: string;
-          kw_requirement?: number | null;
-          roof_type?: string | null;
           notes?: string | null;
           status?: LeadStatus;
           created_by?: string | null;
@@ -101,8 +102,6 @@ export interface Database {
           phone?: string;
           email?: string | null;
           address?: string;
-          kw_requirement?: number | null;
-          roof_type?: string | null;
           notes?: string | null;
           status?: LeadStatus;
           created_by?: string | null;
@@ -282,79 +281,6 @@ export interface Database {
           }
         ];
       };
-      pm_suryaghar_form: {
-        Row: {
-          id: string;
-          lead_id: string;
-          applicant_name: string;
-          applicant_phone: string;
-          applicant_email: string | null;
-          property_address: string;
-          property_type: string;
-          roof_type: string;
-          roof_area: number | null;
-          kw_requirement: number;
-          aadhar_number: string;
-          pan_number: string;
-          bank_account_number: string;
-          bank_ifsc: string;
-          additional_data: Json | null;
-          submitted_by: string;
-          submitted_at: string;
-        };
-        Insert: {
-          id?: string;
-          lead_id: string;
-          applicant_name: string;
-          applicant_phone: string;
-          applicant_email?: string | null;
-          property_address: string;
-          property_type: string;
-          roof_type: string;
-          roof_area?: number | null;
-          kw_requirement: number;
-          aadhar_number: string;
-          pan_number: string;
-          bank_account_number: string;
-          bank_ifsc: string;
-          additional_data?: Json | null;
-          submitted_by: string;
-          submitted_at?: string;
-        };
-        Update: {
-          id?: string;
-          lead_id?: string;
-          applicant_name?: string;
-          applicant_phone?: string;
-          applicant_email?: string | null;
-          property_address?: string;
-          property_type?: string;
-          roof_type?: string;
-          roof_area?: number | null;
-          kw_requirement?: number;
-          aadhar_number?: string;
-          pan_number?: string;
-          bank_account_number?: string;
-          bank_ifsc?: string;
-          additional_data?: Json | null;
-          submitted_by?: string;
-          submitted_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'pm_suryaghar_form_lead_id_fkey';
-            columns: ['lead_id'];
-            referencedRelation: 'leads';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'pm_suryaghar_form_submitted_by_fkey';
-            columns: ['submitted_by'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          }
-        ];
-      };
       activity_log: {
         Row: {
           id: string;
@@ -400,6 +326,97 @@ export interface Database {
             foreignKeyName: 'activity_log_user_id_fkey';
             columns: ['user_id'];
             referencedRelation: 'users';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      customer_profiles: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          lead_id: string | null;
+          name: string;
+          gender: 'male' | 'female' | 'other' | null;
+          address_line_1: string;
+          address_line_2: string | null;
+          pin_code: string;
+          state: string;
+          district: string;
+          account_holder_name: string;
+          bank_account_number: string;
+          bank_name: string;
+          ifsc_code: string;
+          aadhaar_front_path: string | null;
+          aadhaar_back_path: string | null;
+          electricity_bill_path: string | null;
+          bank_passbook_path: string | null;
+          cancelled_cheque_path: string | null;
+          pan_card_path: string | null;
+          itr_documents_path: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          lead_id?: string | null;
+          name: string;
+          gender?: 'male' | 'female' | 'other' | null;
+          address_line_1: string;
+          address_line_2?: string | null;
+          pin_code: string;
+          state: string;
+          district: string;
+          account_holder_name: string;
+          bank_account_number: string;
+          bank_name: string;
+          ifsc_code: string;
+          aadhaar_front_path?: string | null;
+          aadhaar_back_path?: string | null;
+          electricity_bill_path?: string | null;
+          bank_passbook_path?: string | null;
+          cancelled_cheque_path?: string | null;
+          pan_card_path?: string | null;
+          itr_documents_path?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          lead_id?: string | null;
+          name?: string;
+          gender?: 'male' | 'female' | 'other' | null;
+          address_line_1?: string;
+          address_line_2?: string | null;
+          pin_code?: string;
+          state?: string;
+          district?: string;
+          account_holder_name?: string;
+          bank_account_number?: string;
+          bank_name?: string;
+          ifsc_code?: string;
+          aadhaar_front_path?: string | null;
+          aadhaar_back_path?: string | null;
+          electricity_bill_path?: string | null;
+          bank_passbook_path?: string | null;
+          cancelled_cheque_path?: string | null;
+          pan_card_path?: string | null;
+          itr_documents_path?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'customer_profiles_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'customer_profiles_lead_id_fkey';
+            columns: ['lead_id'];
+            referencedRelation: 'leads';
             referencedColumns: ['id'];
           }
         ];
@@ -455,6 +472,12 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      initialize_lead_timeline: {
+        Args: {
+          p_lead_id: string;
+        };
+        Returns: Json;
+      };
       link_customer_to_lead: {
         Args: {
           p_customer_id: string;

@@ -13,7 +13,7 @@
 'use client';
 
 import React from 'react';
-import type { Lead, PMSuryagharForm } from '@/types/api';
+import type { Lead } from '@/types/api';
 
 interface InstallerDataRestrictionsProps {
   userRole: string;
@@ -51,13 +51,6 @@ export function filterLeadDataForInstaller(lead: Lead): Partial<Lead> {
     updated_at: lead.updated_at,
     // Exclude: email, kw_requirement, roof_type, notes, created_by, customer_account_id, source
   };
-}
-
-/**
- * Checks if a user role can access PM Suryaghar form
- */
-export function canAccessPMSuryagharForm(userRole: string): boolean {
-  return ['admin', 'office', 'agent', 'customer'].includes(userRole);
 }
 
 /**

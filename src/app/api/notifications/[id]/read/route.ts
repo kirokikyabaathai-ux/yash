@@ -1,7 +1,5 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { Database } from '@/types/database';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * PATCH /api/notifications/[id]/read
@@ -15,7 +13,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = await createClient();
 
     // Get authenticated user
     const {
@@ -35,7 +33,7 @@ export async function PATCH(
     // Verify the notification belongs to the user
     const { data: notification, error: fetchError } = await supabase
       .from('notifications')
-      .select('user_id')
+      .select('*')
       .eq('id', notificationId)
       .single();
 

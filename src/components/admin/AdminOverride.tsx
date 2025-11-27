@@ -39,7 +39,7 @@ export function AdminOverride({ leadId, leadStatus, steps, onOverrideComplete }:
   const [success, setSuccess] = useState<string | null>(null);
 
   const selectedStep = steps.find(s => s.id === selectedStepId);
-  const isProjectClosed = leadStatus === 'closed';
+  const isProjectClosed = leadStatus === 'completed';
 
   const handleOverride = async () => {
     if (!selectedStepId) {
@@ -95,7 +95,7 @@ export function AdminOverride({ leadId, leadStatus, steps, onOverrideComplete }:
           // Reopen a closed project
           endpoint = `/api/leads/${leadId}`;
           method = 'PATCH';
-          body = { status: 'ongoing' };
+          body = { status: 'lead' };
           break;
       }
 

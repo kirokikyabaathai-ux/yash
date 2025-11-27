@@ -52,7 +52,13 @@ export function FilterPanel({
     setCurrentStep(initialFilters.currentStep || '');
   }, [initialFilters]);
 
-  const statusOptions: LeadStatus[] = ['ongoing', 'interested', 'not_interested', 'closed'];
+  const statusOptions: LeadStatus[] = [
+    'lead',
+    'lead_interested',
+    'lead_processing',
+    'lead_completed',
+    'lead_cancelled'
+  ];
 
   const handleStatusToggle = (status: LeadStatus) => {
     const newStatus = selectedStatus.includes(status)

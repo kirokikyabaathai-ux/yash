@@ -8,6 +8,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 
 export default async function InstallerDashboardPage() {
   const supabase = await createClient();
@@ -238,9 +239,6 @@ export default async function InstallerDashboardPage() {
                     Address
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    KW
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -266,24 +264,7 @@ export default async function InstallerDashboardPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {lead.kw_requirement || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            lead.status === 'ongoing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : lead.status === 'interested'
-                              ? 'bg-green-100 text-green-800'
-                              : lead.status === 'closed'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {lead.status}
-                        </span>
+                        <LeadStatusBadge status={lead.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <Link

@@ -89,8 +89,6 @@ export interface Lead {
   phone: string;
   email: string | null;
   address: string;
-  kw_requirement: number | null;
-  roof_type: string | null;
   notes: string | null;
   status: LeadStatus;
   created_by: string | null;
@@ -106,8 +104,6 @@ export interface CreateLeadRequest {
   phone: string;
   email?: string;
   address: string;
-  kw_requirement?: number;
-  roof_type?: string;
   notes?: string;
   source: LeadSource;
 }
@@ -117,8 +113,6 @@ export interface UpdateLeadRequest {
   phone?: string;
   email?: string;
   address?: string;
-  kw_requirement?: number;
-  roof_type?: string;
   notes?: string;
   status?: LeadStatus;
   installer_id?: string;
@@ -257,62 +251,6 @@ export interface CompleteStepRequest {
 }
 
 // ============================================================================
-// PM Suryaghar Form Types
-// ============================================================================
-
-export interface PMSuryagharForm {
-  id: string;
-  lead_id: string;
-  applicant_name: string;
-  applicant_phone: string;
-  applicant_email: string | null;
-  property_address: string;
-  property_type: string;
-  roof_type: string;
-  roof_area: number | null;
-  kw_requirement: number;
-  aadhar_number: string;
-  pan_number: string;
-  bank_account_number: string;
-  bank_ifsc: string;
-  additional_data: Record<string, any> | null;
-  submitted_by: string;
-  submitted_at: string;
-}
-
-export interface CreatePMSuryagharFormRequest {
-  lead_id: string;
-  applicant_name: string;
-  applicant_phone: string;
-  applicant_email?: string;
-  property_address: string;
-  property_type: string;
-  roof_type: string;
-  roof_area?: number;
-  kw_requirement: number;
-  aadhar_number: string;
-  pan_number: string;
-  bank_account_number: string;
-  bank_ifsc: string;
-  additional_data?: Record<string, any>;
-}
-
-export interface UpdatePMSuryagharFormRequest {
-  applicant_name?: string;
-  applicant_phone?: string;
-  applicant_email?: string;
-  property_address?: string;
-  property_type?: string;
-  roof_type?: string;
-  roof_area?: number;
-  kw_requirement?: number;
-  aadhar_number?: string;
-  pan_number?: string;
-  bank_account_number?: string;
-  bank_ifsc?: string;
-  additional_data?: Record<string, any>;
-}
-
 // ============================================================================
 // Activity Log Types
 // ============================================================================

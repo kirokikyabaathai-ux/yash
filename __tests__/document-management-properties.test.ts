@@ -95,7 +95,7 @@ const createTestLead = async (createdBy: string) => {
       address: '123 Test St',
       source: 'agent',
       created_by: createdBy,
-      status: 'ongoing',
+      status: 'inquiry',
     })
     .select()
     .single();

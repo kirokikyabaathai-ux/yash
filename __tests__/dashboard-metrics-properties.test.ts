@@ -7,7 +7,7 @@
 
 import fc from 'fast-check';
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../src/types/database';
+import type { Database, LeadStatus } from '../src/types/database';
 
 // Configure fast-check to run 100 iterations per property
 fc.configureGlobal({ numRuns: 100 });
@@ -29,7 +29,15 @@ const emailArbitrary = fc.emailAddress();
 const phoneArbitrary = fc.string({ minLength: 10, maxLength: 15 }).map(s => s.replace(/\D/g, '').slice(0, 15));
 const nameArbitrary = fc.string({ minLength: 1, maxLength: 100 });
 const roleArbitrary = fc.constantFrom('admin', 'agent', 'office', 'installer', 'customer');
-const leadStatusArbitrary = fc.constantFrom('ongoing', 'interested', 'not_interested', 'closed');
+const LEAD_STATUSES: LeadStatus[] = [
+  'inquiry',
+  'documentation_pending',
+  'application_submitted',
+  'in_progress',
+  'completed',
+  'withdrawn',
+];
+const leadStatusArbitrary = fc.constantFrom(...LEAD_STATUSES);
 
 // Cleanup functions
 async function cleanupTestUser(userId: string) {
@@ -125,19 +133,16 @@ describe('Dashboard Metrics Properties', () => {
 
             // Calculate expected metrics
             const expectedTotal = leads.length;
-            const expectedByStatus = {
-              ongoing: leads.filter(l => l.status === 'ongoing').length,
-              interested: leads.filter(l => l.status === 'interested').length,
-              not_interested: leads.filter(l => l.status === 'not_interested').length,
-              closed: leads.filter(l => l.status === 'closed').length,
-            };
+            const expectedByStatus = LEAD_STATUSES.reduce<Record<LeadStatus, number>>((acc, status) => {
+              acc[status] = leads.filter(l => l.status === status).length;
+              return acc;
+            }, {} as Record<LeadStatus, number>);
 
             // Verify metrics match expected values
             expect(leads.length).toBe(expectedTotal);
-            expect(leads.filter(l => l.status === 'ongoing').length).toBe(expectedByStatus.ongoing);
-            expect(leads.filter(l => l.status === 'interested').length).toBe(expectedByStatus.interested);
-            expect(leads.filter(l => l.status === 'not_interested').length).toBe(expectedByStatus.not_interested);
-            expect(leads.filter(l => l.status === 'closed').length).toBe(expectedByStatus.closed);
+            LEAD_STATUSES.forEach(status => {
+              expect(leads.filter(l => l.status === status).length).toBe(expectedByStatus[status]);
+            });
 
             return true;
           } finally {
@@ -218,7 +223,7 @@ describe('Dashboard Metrics Properties', () => {
                 customer_name: `Agent Customer ${i}`,
                 phone: `${Date.now()}${i}`,
                 address: `Address ${i}`,
-                status: 'ongoing',
+                status: 'inquiry',
                 created_by: agentUserId,
                 source: 'agent',
               }).select().single();
@@ -232,7 +237,7 @@ describe('Dashboard Metrics Properties', () => {
                 customer_name: `Other Customer ${i}`,
                 phone: `${Date.now() + 1000}${i}`,
                 address: `Other Address ${i}`,
-                status: 'ongoing',
+                status: 'inquiry',
                 created_by: otherUserId,
                 source: 'agent',
               }).select().single();
@@ -279,9 +284,9 @@ describe('Dashboard Metrics Properties', () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
-          ongoingCount: fc.integer({ min: 0, max: 10 }),
-          interestedCount: fc.integer({ min: 0, max: 10 }),
-          closedCount: fc.integer({ min: 0, max: 10 }),
+          inquiryCount: fc.integer({ min: 0, max: 10 }),
+          inProgressCount: fc.integer({ min: 0, max: 10 }),
+          completedCount: fc.integer({ min: 0, max: 10 }),
         }),
         async (statusCounts) => {
           let userId: string | null = null;
@@ -307,10 +312,10 @@ describe('Dashboard Metrics Properties', () => {
             });
 
             // Create leads with different statuses
-            const statuses: Array<{ status: 'ongoing' | 'interested' | 'closed'; count: number }> = [
-              { status: 'ongoing', count: statusCounts.ongoingCount },
-              { status: 'interested', count: statusCounts.interestedCount },
-              { status: 'closed', count: statusCounts.closedCount },
+            const statuses: Array<{ status: LeadStatus; count: number }> = [
+              { status: 'inquiry', count: statusCounts.inquiryCount },
+              { status: 'in_progress', count: statusCounts.inProgressCount },
+              { status: 'completed', count: statusCounts.completedCount },
             ];
 
             for (const { status, count } of statuses) {
@@ -329,15 +334,15 @@ describe('Dashboard Metrics Properties', () => {
             }
 
             // Calculate expected conversion rates
-            const totalLeads = statusCounts.ongoingCount + statusCounts.interestedCount + statusCounts.closedCount;
-            const expectedOngoingToInterested = totalLeads > 0
-              ? ((statusCounts.interestedCount + statusCounts.closedCount) / totalLeads) * 100
+            const totalLeads = statusCounts.inquiryCount + statusCounts.inProgressCount + statusCounts.completedCount;
+            const expectedInquiryToInProgress = totalLeads > 0
+              ? ((statusCounts.inProgressCount + statusCounts.completedCount) / totalLeads) * 100
               : 0;
-            const expectedInterestedToClosed = (statusCounts.interestedCount + statusCounts.closedCount) > 0
-              ? (statusCounts.closedCount / (statusCounts.interestedCount + statusCounts.closedCount)) * 100
+            const expectedInProgressToCompleted = (statusCounts.inProgressCount + statusCounts.completedCount) > 0
+              ? (statusCounts.completedCount / (statusCounts.inProgressCount + statusCounts.completedCount)) * 100
               : 0;
             const expectedOverallConversion = totalLeads > 0
-              ? (statusCounts.closedCount / totalLeads) * 100
+              ? (statusCounts.completedCount / totalLeads) * 100
               : 0;
 
             // Fetch leads and calculate actual conversion rates
@@ -348,24 +353,24 @@ describe('Dashboard Metrics Properties', () => {
 
             if (!leads) return true;
 
-            const actualOngoing = leads.filter(l => l.status === 'ongoing').length;
-            const actualInterested = leads.filter(l => l.status === 'interested').length;
-            const actualClosed = leads.filter(l => l.status === 'closed').length;
+            const actualInquiry = leads.filter(l => l.status === 'inquiry').length;
+            const actualInProgress = leads.filter(l => l.status === 'in_progress').length;
+            const actualCompleted = leads.filter(l => l.status === 'completed').length;
             const actualTotal = leads.length;
 
-            const actualOngoingToInterested = actualTotal > 0
-              ? ((actualInterested + actualClosed) / actualTotal) * 100
+            const actualInquiryToInProgress = actualTotal > 0
+              ? ((actualInProgress + actualCompleted) / actualTotal) * 100
               : 0;
-            const actualInterestedToClosed = (actualInterested + actualClosed) > 0
-              ? (actualClosed / (actualInterested + actualClosed)) * 100
+            const actualInProgressToCompleted = (actualInProgress + actualCompleted) > 0
+              ? (actualCompleted / (actualInProgress + actualCompleted)) * 100
               : 0;
             const actualOverallConversion = actualTotal > 0
-              ? (actualClosed / actualTotal) * 100
+              ? (actualCompleted / actualTotal) * 100
               : 0;
 
             // Verify conversion rates match expected values (with small tolerance for floating point)
-            expect(Math.abs(actualOngoingToInterested - expectedOngoingToInterested)).toBeLessThan(0.01);
-            expect(Math.abs(actualInterestedToClosed - expectedInterestedToClosed)).toBeLessThan(0.01);
+            expect(Math.abs(actualInquiryToInProgress - expectedInquiryToInProgress)).toBeLessThan(0.01);
+            expect(Math.abs(actualInProgressToCompleted - expectedInProgressToCompleted)).toBeLessThan(0.01);
             expect(Math.abs(actualOverallConversion - expectedOverallConversion)).toBeLessThan(0.01);
 
             return true;
@@ -424,7 +429,7 @@ describe('Dashboard Metrics Properties', () => {
                 customer_name: `Customer ${i}`,
                 phone: `${Date.now()}${i}`,
                 address: `Address ${i}`,
-                status: 'ongoing',
+                status: 'inquiry',
                 created_by: userId,
                 source: 'office',
               }).select().single();
@@ -508,7 +513,7 @@ describe('Dashboard Metrics Properties', () => {
             }
 
             // Create leads with different status
-            const otherStatus = testData.filterStatus === 'ongoing' ? 'interested' : 'ongoing';
+            const otherStatus = LEAD_STATUSES.find(status => status !== testData.filterStatus) || 'withdrawn';
             for (let i = 0; i < testData.leadsWithoutStatus; i++) {
               const { data: lead } = await supabase.from('leads').insert({
                 customer_name: `Customer Without ${i}`,

@@ -98,9 +98,21 @@ async function cleanupStepMaster(stepId: string) {
 async function createTestUser(role: UserRole, email: string, phone: string, name: string) {
   const password = 'TestPassword123!';
 
+  const normalizedEmail = email.trim().toLowerCase();
+  const [localPart, domainPart] = normalizedEmail.includes('@')
+    ? normalizedEmail.split('@')
+    : [normalizedEmail || 'user', 'example.com'];
+  const uniqueEmail = `${localPart}+${Date.now()}-${Math.random().toString(36).slice(2, 8)}@${domainPart}`;
+
+  const digitsOnly = phone.replace(/\D/g, '') || '1000000000';
+  const uniquePhone =
+    digitsOnly.slice(0, 6).padEnd(6, '0') + Math.floor(100000 + Math.random() * 900000).toString();
+
+  const safeName = name.trim() || 'Test User';
+
   // Create auth user
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email,
+    email: uniqueEmail,
     password,
     email_confirm: true,
   });
@@ -114,9 +126,9 @@ async function createTestUser(role: UserRole, email: string, phone: string, name
     .from('users')
     .insert({
       id: authData.user.id,
-      email,
-      phone,
-      name,
+      email: uniqueEmail,
+      phone: uniquePhone,
+      name: safeName,
       role,
       status: 'active',
     })

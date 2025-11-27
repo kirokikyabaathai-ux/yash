@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       .insert({
         ...body,
         created_by: user.id,
-        status: 'ongoing',
+        status: 'inquiry',
       })
       .select()
       .single();

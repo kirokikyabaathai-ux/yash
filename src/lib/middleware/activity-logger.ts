@@ -27,7 +27,7 @@ export interface LogActivityParams {
  */
 export async function logActivity(params: LogActivityParams): Promise<void> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -130,29 +130,6 @@ export async function logStepOperation(
     entityId: stepId,
     oldValue,
     newValue,
-  });
-}
-
-/**
- * Log a PM Suryaghar form operation (submit, modify)
- * 
- * @param action - The action performed (submit, modify)
- * @param leadId - The lead ID
- * @param formId - The form ID
- * @param formData - The form data
- */
-export async function logFormOperation(
-  action: 'submit' | 'modify',
-  leadId: string,
-  formId: string,
-  formData?: Record<string, any>
-): Promise<void> {
-  await logActivity({
-    leadId,
-    action: `pm_form_${action}`,
-    entityType: 'pm_suryaghar_form',
-    entityId: formId,
-    newValue: formData,
   });
 }
 

@@ -24,6 +24,7 @@ interface LeadListProps {
   onFilterChange: (filters: LeadFilters) => void;
   filters?: LeadFilters;
   availableSteps?: Array<{ id: string; step_name: string }>;
+  baseUrl?: string; // Base URL for lead detail pages (e.g., '/office/leads', '/agent/leads')
 }
 
 export function LeadList({
@@ -35,6 +36,7 @@ export function LeadList({
   onFilterChange,
   filters = {},
   availableSteps = [],
+  baseUrl = '/leads', // Default to /leads for backward compatibility
 }: LeadListProps) {
   const totalPages = Math.ceil(total / pageSize);
 
@@ -160,9 +162,6 @@ export function LeadList({
                       Contact
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      KW
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -184,9 +183,6 @@ export function LeadList({
                         <div className="text-sm text-gray-900">{lead.phone}</div>
                         {lead.email && <div className="text-sm text-gray-500">{lead.email}</div>}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {lead.kw_requirement ? `${lead.kw_requirement} KW` : '-'}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <LeadStatusBadge status={lead.status} />
                       </td>
@@ -195,7 +191,7 @@ export function LeadList({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Link
-                          href={`/leads/${lead.id}`}
+                          href={`${baseUrl}/${lead.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           View
@@ -232,10 +228,6 @@ export function LeadList({
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-gray-500">KW:</span>
-                    <span className="text-gray-900">{lead.kw_requirement ? `${lead.kw_requirement} KW` : '-'}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-gray-500">Created:</span>
                     <span className="text-gray-900">{formatDate(lead.created_at)}</span>
                   </div>
@@ -243,7 +235,7 @@ export function LeadList({
 
                 <div className="mt-4 pt-3 border-t border-gray-200">
                   <Link
-                    href={`/leads/${lead.id}`}
+                    href={`${baseUrl}/${lead.id}`}
                     className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                   >
                     View Details

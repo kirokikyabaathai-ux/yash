@@ -58,13 +58,13 @@ export async function POST(
       );
     }
 
-    // Check if lead is closed - only admin can modify closed projects
-    if (lead.status === 'closed' && userData.role !== 'admin') {
+    // Check if lead is completed - only admin can modify completed projects
+    if (lead.status === 'lead_completed' && userData.role !== 'admin') {
       return NextResponse.json(
         {
           error: {
             code: 'PROJECT_CLOSED',
-            message: 'This project is closed. Only an admin can modify closed projects.',
+            message: 'This project is completed. Only an admin can modify completed projects.',
           },
         },
         { status: 403 }

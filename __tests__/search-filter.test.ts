@@ -45,30 +45,27 @@ describe('Search and Filter Functionality', () => {
         phone: '+15551234567',
         email: 'john@example.com',
         address: '123 Main St, New York, NY',
-        status: 'ongoing' as const,
+        status: 'inquiry' as const,
         created_by: testUserId,
         source: 'agent' as const,
-        kw_requirement: 5.5,
       },
       {
         customer_name: 'Jane Smith',
         phone: '+15559876543',
         email: 'jane@example.com',
         address: '456 Oak Ave, Los Angeles, CA',
-        status: 'interested' as const,
+        status: 'application_submitted' as const,
         created_by: testUserId,
         source: 'agent' as const,
-        kw_requirement: 7.0,
       },
       {
         customer_name: 'Bob Johnson',
         phone: '+15555555555',
         email: 'bob@example.com',
         address: '789 Pine Rd, Chicago, IL',
-        status: 'ongoing' as const,
+        status: 'inquiry' as const,
         created_by: testUserId,
         source: 'agent' as const,
-        kw_requirement: 10.0,
       },
     ];
 
@@ -158,19 +155,19 @@ describe('Search and Filter Functionality', () => {
     const { data: leads } = await supabase
       .from('leads')
       .select('*')
-      .eq('status', 'ongoing')
+      .eq('status', 'inquiry')
       .in('id', testLeadIds);
 
     expect(leads).toBeDefined();
     expect(leads!.length).toBe(2);
-    expect(leads!.every((l) => l.status === 'ongoing')).toBe(true);
+    expect(leads!.every((l) => l.status === 'inquiry')).toBe(true);
   });
 
   it('should filter by multiple statuses', async () => {
     const { data: leads } = await supabase
       .from('leads')
       .select('*')
-      .in('status', ['ongoing', 'interested'])
+      .in('status', ['inquiry', 'application_submitted'])
       .in('id', testLeadIds);
 
     expect(leads).toBeDefined();
@@ -178,14 +175,16 @@ describe('Search and Filter Functionality', () => {
   });
 
   it('should filter by date range', async () => {
-    const today = new Date().toISOString();
+    // Set date range to include all test leads created in beforeAll
+    // Use a wider range to account for test execution time
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     const { data: leads } = await supabase
       .from('leads')
       .select('*')
       .gte('created_at', yesterday)
-      .lte('created_at', today)
+      .lte('created_at', tomorrow)
       .in('id', testLeadIds);
 
     expect(leads).toBeDefined();
@@ -205,17 +204,22 @@ describe('Search and Filter Functionality', () => {
   });
 
   it('should combine multiple filters with AND logic', async () => {
+    // Filter by status AND search term
+    // This should find leads with status='inquiry' AND name contains 'Doe'
+    // Expected: Only "John Doe" (inquiry)
+    // Not: "Bob Johnson" (inquiry but doesn't contain 'Doe')
+    // Not: "Jane Smith" (contains neither 'Doe' nor is inquiry)
     const { data: leads } = await supabase
       .from('leads')
       .select('*')
-      .eq('status', 'ongoing')
-      .or('customer_name.ilike.%John%,phone.ilike.%John%,email.ilike.%John%,address.ilike.%John%')
-      .in('id', testLeadIds);
+      .in('id', testLeadIds)
+      .eq('status', 'inquiry')
+      .ilike('customer_name', '%Doe%');
 
     expect(leads).toBeDefined();
     expect(leads!.length).toBe(1);
     expect(leads![0].customer_name).toBe('John Doe');
-    expect(leads![0].status).toBe('ongoing');
+    expect(leads![0].status).toBe('inquiry');
   });
 
   it('should return empty results when no matches found', async () => {

@@ -20,7 +20,7 @@ export function validateSchema<T>(
     return { success: true, data: result.data };
   }
 
-  const errors: ValidationError[] = (result.error?.errors || []).map((err) => ({
+  const errors: ValidationError[] = (result.error?.issues || []).map((err) => ({
     field: err.path.join('.'),
     message: err.message,
   }));
@@ -32,7 +32,7 @@ export function validateSchema<T>(
  * Formats Zod errors into ValidationError array
  */
 export function formatZodErrors(error: z.ZodError): ValidationError[] {
-  return (error?.errors || []).map((err) => ({
+  return (error?.issues || []).map((err) => ({
     field: err.path.join('.'),
     message: err.message,
   }));
@@ -58,7 +58,7 @@ export async function validateSchemaAsync<T>(
     return { success: true, data: result.data };
   }
 
-  const errors: ValidationError[] = result.error.errors.map((err) => ({
+  const errors: ValidationError[] = result.error.issues.map((err) => ({
     field: err.path.join('.'),
     message: err.message,
   }));

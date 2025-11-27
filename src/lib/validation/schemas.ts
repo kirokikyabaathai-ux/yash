@@ -94,7 +94,13 @@ export const updateUserSchema = z.object({
 // Lead Management Schemas
 // ============================================================================
 
-export const leadStatusSchema = z.enum(['ongoing', 'interested', 'not_interested', 'closed']);
+export const leadStatusSchema = z.enum([
+  'lead',
+  'lead_interested',
+  'lead_processing',
+  'lead_completed',
+  'lead_cancelled'
+]);
 export const leadSourceSchema = z.enum(['agent', 'office', 'customer', 'self']);
 
 export const createLeadSchema = z.object({
@@ -117,17 +123,6 @@ export const createLeadSchema = z.object({
     .min(1, 'Address is required')
     .min(5, 'Address must be at least 5 characters')
     .max(500, 'Address must not exceed 500 characters'),
-  kw_requirement: z
-    .number()
-    .positive('KW requirement must be positive')
-    .max(1000, 'KW requirement must not exceed 1000')
-    .optional()
-    .or(z.string().transform((val) => (val ? parseFloat(val) : undefined))),
-  roof_type: z
-    .string()
-    .max(50, 'Roof type must not exceed 50 characters')
-    .optional()
-    .or(z.literal('')),
   notes: z
     .string()
     .max(1000, 'Notes must not exceed 1000 characters')
@@ -156,15 +151,7 @@ export const updateLeadSchema = z.object({
     .min(5, 'Address must be at least 5 characters')
     .max(500, 'Address must not exceed 500 characters')
     .optional(),
-  kw_requirement: z
-    .number()
-    .positive('KW requirement must be positive')
-    .max(1000, 'KW requirement must not exceed 1000')
-    .optional(),
-  roof_type: z
-    .string()
-    .max(50, 'Roof type must not exceed 50 characters')
-    .optional(),
+
   notes: z
     .string()
     .max(1000, 'Notes must not exceed 1000 characters')
@@ -300,70 +287,6 @@ export const completeStepSchema = z.object({
 });
 
 // ============================================================================
-// PM Suryaghar Form Schema
-// ============================================================================
-
-export const pmSuryagharFormSchema = z.object({
-  lead_id: z.string().uuid('Invalid lead ID'),
-  applicant_name: z
-    .string()
-    .min(1, 'Applicant name is required')
-    .min(2, 'Applicant name must be at least 2 characters')
-    .max(100, 'Applicant name must not exceed 100 characters'),
-  applicant_phone: z
-    .string()
-    .min(1, 'Phone number is required')
-    .regex(/^\+?[\d\s-()]{10,}$/, 'Invalid phone number format'),
-  applicant_email: z
-    .string()
-    .email('Invalid email address')
-    .optional()
-    .or(z.literal('')),
-  property_address: z
-    .string()
-    .min(1, 'Property address is required')
-    .min(5, 'Property address must be at least 5 characters')
-    .max(500, 'Property address must not exceed 500 characters'),
-  property_type: z
-    .string()
-    .min(1, 'Property type is required')
-    .max(50, 'Property type must not exceed 50 characters'),
-  roof_type: z
-    .string()
-    .min(1, 'Roof type is required')
-    .max(50, 'Roof type must not exceed 50 characters'),
-  roof_area: z
-    .number()
-    .positive('Roof area must be positive')
-    .max(10000, 'Roof area must not exceed 10000 sq ft')
-    .optional()
-    .or(z.string().transform((val) => (val ? parseFloat(val) : undefined))),
-  kw_requirement: z
-    .number()
-    .positive('KW requirement must be positive')
-    .max(1000, 'KW requirement must not exceed 1000')
-    .or(z.string().transform((val) => parseFloat(val))),
-  aadhar_number: z
-    .string()
-    .min(1, 'Aadhar number is required')
-    .regex(/^\d{12}$/, 'Aadhar number must be 12 digits'),
-  pan_number: z
-    .string()
-    .min(1, 'PAN number is required')
-    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN number format'),
-  bank_account_number: z
-    .string()
-    .min(1, 'Bank account number is required')
-    .regex(/^\d{9,18}$/, 'Bank account number must be 9-18 digits'),
-  bank_ifsc: z
-    .string()
-    .min(1, 'IFSC code is required')
-    .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC code format'),
-  additional_data: z.record(z.any()).optional(),
-});
-
-export const updatePMSuryagharFormSchema = pmSuryagharFormSchema.partial().omit({ lead_id: true });
-
 // ============================================================================
 // Search and Filter Schemas
 // ============================================================================
@@ -419,8 +342,6 @@ export type CreateStepMasterInput = z.infer<typeof createStepMasterSchema>;
 export type UpdateStepMasterInput = z.infer<typeof updateStepMasterSchema>;
 export type ReorderStepsInput = z.infer<typeof reorderStepsSchema>;
 export type CompleteStepInput = z.infer<typeof completeStepSchema>;
-export type PMSuryagharFormInput = z.infer<typeof pmSuryagharFormSchema>;
-export type UpdatePMSuryagharFormInput = z.infer<typeof updatePMSuryagharFormSchema>;
 export type LeadFiltersInput = z.infer<typeof leadFiltersSchema>;
 export type ActivityLogFiltersInput = z.infer<typeof activityLogFiltersSchema>;
 export type DashboardFiltersInput = z.infer<typeof dashboardFiltersSchema>;

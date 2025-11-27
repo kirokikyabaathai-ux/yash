@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/users
  * 
- * Creates a new user account.
+ * Creates a new user account via Edge Function.
  * Admin only.
  * 
  * Requirements: 1.2 (Role Assignment Uniqueness)
@@ -167,42 +167,59 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json();
 
-    // Validate required fields
-    const errors: Array<{ field: string; message: string }> = [];
-
-    if (!body.name?.trim()) {
-      errors.push({ field: 'name', message: 'Name is required' });
-    }
-
-    if (!body.email?.trim()) {
-      errors.push({ field: 'email', message: 'Email is required' });
-    }
-
-    if (!body.phone?.trim()) {
-      errors.push({ field: 'phone', message: 'Phone is required' });
-    }
-
-    if (!body.role) {
-      errors.push({ field: 'role', message: 'Role is required' });
-    }
-
-    if (!body.password || body.password.length < 8) {
-      errors.push({ field: 'password', message: 'Password must be at least 8 characters' });
-    }
-
-    // Validate role is one of the allowed values
-    const validRoles = ['admin', 'agent', 'office', 'installer', 'customer'];
-    if (body.role && !validRoles.includes(body.role)) {
-      errors.push({ field: 'role', message: 'Invalid role' });
-    }
-
-    if (errors.length > 0) {
+    // Get session token for edge function authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.access_token) {
       return NextResponse.json(
         {
           error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Validation failed',
-            details: { errors },
+            code: 'UNAUTHORIZED',
+            message: 'No valid session',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 401 }
+      );
+    }
+
+    // Call edge function to create user
+    const { data, error } = await supabase.functions.invoke('create-user', {
+      body: {
+        email: body.email,
+        password: body.password,
+        name: body.name,
+        phone: body.phone,
+        role: body.role,
+        status: body.status || 'active',
+        assigned_area: body.assigned_area || null,
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (error) {
+      console.error('Error calling create-user edge function:', error);
+      return NextResponse.json(
+        {
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: error.message || 'Failed to create user',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!data.success) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: data.error || 'Failed to create user',
+            details: data.details,
             timestamp: new Date().toISOString(),
           },
         },
@@ -210,44 +227,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create auth user using admin API
-    const { data: authUser, error: createAuthError } = await supabase.auth.admin.createUser({
-      email: body.email,
-      password: body.password,
-      email_confirm: true,
-    });
-
-    if (createAuthError) {
-      throw createAuthError;
-    }
-
-    if (!authUser.user) {
-      throw new Error('Failed to create auth user');
-    }
-
-    // Create user profile
-    // Requirement 1.2: Assign exactly one role from the valid role set
-    const { data: newUser, error: createUserError } = await supabase
-      .from('users')
-      .insert({
-        id: authUser.user.id,
-        email: body.email,
-        name: body.name,
-        phone: body.phone,
-        role: body.role, // Exactly one role assigned
-        status: body.status || 'active',
-        assigned_area: body.assigned_area || null,
-      })
-      .select()
-      .single();
-
-    if (createUserError) {
-      // Rollback: delete auth user if profile creation fails
-      await supabase.auth.admin.deleteUser(authUser.user.id);
-      throw createUserError;
-    }
-
-    return NextResponse.json(newUser, { status: 201 });
+    return NextResponse.json(data.user, { status: 201 });
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json(

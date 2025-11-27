@@ -153,15 +153,15 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="px-6 py-4 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <h2 className="text-xl font-semibold">
             {user ? 'Edit User' : 'Create User'}
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4">
+        <form onSubmit={handleSubmit} className="px-6 py-4 overflow-y-auto flex-1">
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
               {error}
@@ -288,7 +288,7 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
             )}
           </div>
 
-          <div className="mt-6 flex justify-end space-x-3">
+          <div className="mt-6 flex justify-end space-x-3 pt-4 border-t border-gray-200 sticky bottom-0 bg-white -mx-6 px-6 -mb-4 pb-4">
             <button
               type="button"
               onClick={onClose}

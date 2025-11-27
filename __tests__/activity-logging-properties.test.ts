@@ -95,7 +95,7 @@ describe('Activity Logging Properties', () => {
                 address: leadData.address,
                 created_by: userId,
                 source: 'agent',
-                status: 'ongoing'
+                status: 'inquiry'
               })
               .select()
               .single();
@@ -180,7 +180,7 @@ describe('Activity Logging Properties', () => {
                 address: testData.address,
                 created_by: userId,
                 source: 'agent',
-                status: 'ongoing'
+                status: 'inquiry'
               })
               .select()
               .single();

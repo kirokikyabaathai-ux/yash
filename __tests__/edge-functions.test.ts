@@ -74,7 +74,7 @@ describe('Edge Function Property Tests', () => {
                   customer_name: 'Test Customer',
                   phone: `+1${Math.floor(Math.random() * 10000000000)}`,
                   address: 'Test Address',
-                  status: 'ongoing',
+                status: 'inquiry',
                   created_by: userId,
                   source: 'agent',
                 })
@@ -195,7 +195,7 @@ describe('Edge Function Property Tests', () => {
                 customer_name: 'Test Customer',
                 phone: `+1${Math.floor(Math.random() * 10000000000)}`,
                 address: 'Test Address',
-                status: 'ongoing',
+                status: 'inquiry',
                 created_by: userId,
                 source: 'agent',
               });
@@ -325,7 +325,7 @@ describe('Edge Function Property Tests', () => {
                 customer_name: 'Test Customer',
                 phone: `+1${Math.floor(Math.random() * 10000000000)}`,
                 address: 'Test Address',
-                status: 'ongoing',
+                status: 'inquiry',
                 created_by: userId,
                 source: 'agent',
               });

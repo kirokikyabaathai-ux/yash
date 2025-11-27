@@ -17,18 +17,18 @@ interface LeadFormProps {
   onSubmit: (data: CreateLeadRequest | UpdateLeadRequest) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  hideSource?: boolean;
+  defaultSource?: LeadSource;
 }
 
-export function LeadForm({ lead, onSubmit, onCancel, isLoading = false }: LeadFormProps) {
+export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSource = false, defaultSource = 'agent' }: LeadFormProps) {
   const [formData, setFormData] = useState({
     customer_name: lead?.customer_name || '',
     phone: lead?.phone || '',
     email: lead?.email || '',
     address: lead?.address || '',
-    kw_requirement: lead?.kw_requirement?.toString() || '',
-    roof_type: lead?.roof_type || '',
     notes: lead?.notes || '',
-    source: (lead?.source || 'agent') as LeadSource,
+    source: (lead?.source || defaultSource) as LeadSource,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,10 +54,6 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false }: LeadFo
       newErrors.address = 'Address is required';
     }
 
-    if (formData.kw_requirement && isNaN(Number(formData.kw_requirement))) {
-      newErrors.kw_requirement = 'KW requirement must be a number';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -74,8 +70,6 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false }: LeadFo
       phone: formData.phone,
       email: formData.email || undefined,
       address: formData.address,
-      kw_requirement: formData.kw_requirement ? Number(formData.kw_requirement) : undefined,
-      roof_type: formData.roof_type || undefined,
       notes: formData.notes || undefined,
       ...(!lead && { source: formData.source }),
     };
@@ -100,6 +94,9 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false }: LeadFo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <p className="text-sm text-gray-600">
+        <span className="text-red-500">*</span> Indicates necessary fields
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Customer Name */}
         <div>
@@ -166,51 +163,8 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false }: LeadFo
           {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
         </div>
 
-        {/* KW Requirement */}
-        <div>
-          <label htmlFor="kw_requirement" className="block text-sm font-medium text-gray-700">
-            KW Requirement
-          </label>
-          <input
-            type="text"
-            inputMode="decimal"
-            id="kw_requirement"
-            name="kw_requirement"
-            value={formData.kw_requirement}
-            onChange={handleChange}
-            disabled={isLoading}
-            placeholder="e.g., 5.5"
-            className={`mt-1 block w-full rounded-md border ${
-              errors.kw_requirement ? 'border-red-300' : 'border-gray-300'
-            } px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed touch-manipulation`}
-          />
-          {errors.kw_requirement && (
-            <p className="mt-1 text-sm text-red-600">{errors.kw_requirement}</p>
-          )}
-        </div>
-
-        {/* Roof Type */}
-        <div>
-          <label htmlFor="roof_type" className="block text-sm font-medium text-gray-700">
-            Roof Type
-          </label>
-          <select
-            id="roof_type"
-            name="roof_type"
-            value={formData.roof_type}
-            onChange={handleChange}
-            disabled={isLoading}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            <option value="">Select roof type</option>
-            <option value="flat">Flat</option>
-            <option value="sloped">Sloped</option>
-            <option value="mixed">Mixed</option>
-          </select>
-        </div>
-
-        {/* Source (only for new leads) */}
-        {!lead && (
+        {/* Source (only for new leads and when not hidden) */}
+        {!lead && !hideSource && (
           <div>
             <label htmlFor="source" className="block text-sm font-medium text-gray-700">
               Source <span className="text-red-500">*</span>

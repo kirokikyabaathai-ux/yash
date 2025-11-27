@@ -90,7 +90,7 @@ export function ProjectClosureForm({
       type: 'project_closure',
       finalRemarks: closureDetails.finalRemarks,
       closureDate: new Date().toISOString(),
-      leadStatus: 'closed',
+      leadStatus: 'completed',
       recordedAt: new Date().toISOString(),
     });
   };
@@ -130,7 +130,7 @@ export function ProjectClosureForm({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: 'closed',
+          status: 'completed',
         }),
       });
 
@@ -155,7 +155,7 @@ export function ProjectClosureForm({
   };
 
   const isStepCompleted = closureStep.status === 'completed';
-  const isClosed = lead.status === 'closed';
+  const isClosed = lead.status === 'lead_completed';
 
   if (isStepCompleted || isClosed) {
     // Display closure details if already completed

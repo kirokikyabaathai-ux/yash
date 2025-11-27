@@ -43,10 +43,8 @@ const leadArbitrary = fc.record({
   phone: fc.string({ minLength: 10, maxLength: 15 }),
   email: fc.emailAddress(),
   address: fc.string({ minLength: 5, maxLength: 200 }),
-  kw_requirement: fc.double({ min: 1, max: 100 }),
-  roof_type: fc.constantFrom('flat', 'sloped', 'mixed'),
   notes: fc.string({ maxLength: 500 }),
-  status: fc.constant('ongoing'),
+  status: fc.constant('inquiry'),
   created_by: uuidArbitrary,
   source: fc.constantFrom('agent', 'office', 'customer', 'self'),
 });

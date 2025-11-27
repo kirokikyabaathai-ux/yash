@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import type { ErrorResponse, ValidationError } from '@/types/api';
+import type { ErrorResponse, ValidationError as ValidationErrorType } from '@/types/api';
 
 // ============================================================================
 // Error Codes
@@ -307,8 +307,8 @@ export async function logError(
 export function validateRequiredFields(
   data: Record<string, any>,
   requiredFields: Array<{ field: string; label: string }>
-): ValidationError[] {
-  const errors: ValidationError[] = [];
+): ValidationErrorType[] {
+  const errors: ValidationErrorType[] = [];
 
   for (const { field, label } of requiredFields) {
     const value = data[field];

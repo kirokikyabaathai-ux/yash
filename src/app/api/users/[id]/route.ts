@@ -346,22 +346,71 @@ export async function DELETE(
       );
     }
 
-    // Delete user profile
-    const { error: deleteError } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', id);
-
-    if (deleteError) {
-      throw deleteError;
+    // Prevent self-deletion
+    if (id === user.id) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Cannot delete your own account',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 400 }
+      );
     }
 
-    // Delete auth user
-    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(id);
+    // Get session token for edge function authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.access_token) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'No valid session',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 401 }
+      );
+    }
 
-    if (deleteAuthError) {
-      console.error('Error deleting auth user:', deleteAuthError);
-      // Continue even if auth deletion fails
+    // Call edge function to delete user
+    const { data, error } = await supabase.functions.invoke('delete-user', {
+      body: {
+        userId: id,
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (error) {
+      console.error('Error calling delete-user edge function:', error);
+      return NextResponse.json(
+        {
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: error.message || 'Failed to delete user',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!data.success) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: data.error || 'Failed to delete user',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });

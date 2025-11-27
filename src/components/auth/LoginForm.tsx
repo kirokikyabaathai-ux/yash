@@ -50,15 +50,34 @@ export function LoginForm() {
         return;
       }
 
+      // Create a fresh client instance with the new session
+      const freshClient = createClient();
+      
+      // Check if we have a session
+      const { data: sessionData } = await freshClient.auth.getSession();
+      console.log('Session after login:', sessionData.session ? 'EXISTS' : 'MISSING');
+      console.log('User ID from auth:', authData.user.id);
+      
       // Fetch user profile to get role and status
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await freshClient
         .from('users')
         .select('role, status')
         .eq('id', authData.user.id)
         .single();
 
+      console.log('Profile data:', profile);
+      console.log('Profile error:', profileError);
+
       if (profileError) {
-        setError('Failed to fetch user profile. Please try again.');
+        console.error('Profile fetch error:', profileError);
+        console.error('User ID:', authData.user.id);
+        setError(`Failed to fetch user profile: ${profileError.message || 'Unknown error'}`);
+        setLoading(false);
+        return;
+      }
+
+      if (!profile) {
+        setError('User profile not found. Please contact support.');
         setLoading(false);
         return;
       }

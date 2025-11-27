@@ -175,7 +175,7 @@ describe('Customer Registration and Lead Linking Properties', () => {
                 customer_name: testData.leadName,
                 phone: testData.phone,
                 address: testData.address,
-                status: 'ongoing',
+                status: 'inquiry',
                 source: 'agent',
               })
               .select()
@@ -344,7 +344,7 @@ describe('Customer Registration and Lead Linking Properties', () => {
             expect(newLead?.created_by).toBe(userId);
             expect(newLead?.customer_account_id).toBe(userId);
             expect(newLead?.source).toBe('self');
-            expect(newLead?.status).toBe('ongoing');
+            expect(newLead?.status).toBe('inquiry');
             expect(newLead?.customer_name).toBe(customerData.name);
             expect(newLead?.phone).toBe(customerData.phone);
 

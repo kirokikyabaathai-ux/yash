@@ -102,7 +102,7 @@ async function createTestLead(createdBy: string): Promise<string> {
       customer_name: 'Test Customer',
       phone: `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
       address: 'Test Address',
-      status: 'ongoing',
+      status: 'inquiry',
       created_by: createdBy,
       source: 'office',
     })
@@ -125,6 +125,10 @@ async function createTestStep(
   // Use a smaller unique value: base order + seconds since epoch (mod 1M) + random
   const uniqueOrderIndex = orderIndex * 1000000 + (Math.floor(Date.now() / 1000) % 1000000) + Math.floor(Math.random() * 1000);
   
+  const timestampSeed = Math.floor(Date.now() / 1000) % 1000000;
+  const randomSeed = Math.floor(Math.random() * 1000);
+  const uniqueOrderIndex = orderIndex * 1000000 + timestampSeed + randomSeed;
+
   const { data, error } = await supabase
     .from('step_master')
     .insert({
@@ -281,11 +285,15 @@ describe('Payment and Loan Workflow Properties', () => {
 
           try {
             // Create loan application step
+            const timestampSeed = Math.floor(Date.now() / 1000) % 1000000;
+            const randomSeed = Math.floor(Math.random() * 1000);
+            const applicationOrderIndex = 1000 * 1000000 + timestampSeed + randomSeed;
+
             const { data: applicationStep, error: appError } = await supabase
               .from('step_master')
               .insert({
                 step_name: `Loan Application - ${loanData.loanProvider}`,
-                order_index: 1000,
+                order_index: applicationOrderIndex,
                 allowed_roles: ['office', 'admin'],
                 remarks_required: true,
                 attachments_allowed: true,
@@ -299,11 +307,13 @@ describe('Payment and Loan Workflow Properties', () => {
             applicationStepId = applicationStep?.id || null;
 
             // Create loan approval step
+            const approvalOrderIndex = 1001 * 1000000 + timestampSeed + Math.floor(Math.random() * 1000);
+
             const { data: approvalStep, error: approvalError } = await supabase
               .from('step_master')
               .insert({
                 step_name: `Loan Approval - ${loanData.loanProvider}`,
-                order_index: 1001,
+                order_index: approvalOrderIndex,
                 allowed_roles: ['office', 'admin'],
                 remarks_required: true,
                 attachments_allowed: true,

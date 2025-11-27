@@ -98,9 +98,7 @@ async function createTestLead(createdBy: string): Promise<string> {
       phone: `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
       email: `test-${Date.now()}@example.com`,
       address: 'Test Address',
-      kw_requirement: 5,
-      roof_type: 'flat',
-      status: 'ongoing',
+      status: 'inquiry',
       created_by: createdBy,
       source: 'office',
     })
@@ -116,11 +114,15 @@ async function createTestLead(createdBy: string): Promise<string> {
 
 // Helper function to create a step master
 async function createTestStepMaster(orderIndex: number, stepName: string): Promise<string> {
+  const timestampSeed = Math.floor(Date.now() / 1000) % 1000000;
+  const randomSeed = Math.floor(Math.random() * 1000);
+  const uniqueOrderIndex = orderIndex * 1000000 + timestampSeed + randomSeed;
+
   const { data, error } = await supabase
     .from('step_master')
     .insert({
       step_name: stepName,
-      order_index: orderIndex,
+      order_index: uniqueOrderIndex,
       allowed_roles: ['office', 'admin'],
       remarks_required: false,
       attachments_allowed: false,
@@ -277,31 +279,31 @@ describe('Project Closure Properties', () => {
             // Create test lead
             leadId = await createTestLead(userId);
 
-            // Verify initial status is 'ongoing'
+            // Verify initial status is 'inquiry'
             const { data: initialLead } = await supabase
               .from('leads')
               .select('status')
               .eq('id', leadId)
               .single();
 
-            expect(initialLead?.status).toBe('ongoing');
+            expect(initialLead?.status).toBe('inquiry');
 
             // Close the project
             const { error: updateError } = await supabase
               .from('leads')
-              .update({ status: 'closed' })
+              .update({ status: 'completed' })
               .eq('id', leadId);
 
             expect(updateError).toBeNull();
 
-            // Verify status is now 'closed'
+            // Verify status is now 'completed'
             const { data: closedLead } = await supabase
               .from('leads')
               .select('status')
               .eq('id', leadId)
               .single();
 
-            expect(closedLead?.status).toBe('closed');
+            expect(closedLead?.status).toBe('completed');
           } finally {
             // Cleanup
             if (leadId) await cleanupLead(leadId);
@@ -412,7 +414,7 @@ describe('Project Closure Properties', () => {
             // Close the project
             await supabase
               .from('leads')
-              .update({ status: 'closed' })
+              .update({ status: 'completed' })
               .eq('id', leadId);
 
             // Try to complete step as non-admin (should fail or be restricted)
@@ -424,24 +426,24 @@ describe('Project Closure Properties', () => {
               .eq('id', leadId)
               .single();
 
-            expect(closedLead?.status).toBe('closed');
+            expect(closedLead?.status).toBe('completed');
 
             // Admin should be able to modify (reopen)
             const { error: reopenError } = await supabase
               .from('leads')
-              .update({ status: 'ongoing' })
+              .update({ status: 'in_progress' })
               .eq('id', leadId);
 
             expect(reopenError).toBeNull();
 
-            // Verify status is now 'ongoing'
+            // Verify status is now 'in_progress'
             const { data: reopenedLead } = await supabase
               .from('leads')
               .select('status')
               .eq('id', leadId)
               .single();
 
-            expect(reopenedLead?.status).toBe('ongoing');
+            expect(reopenedLead?.status).toBe('in_progress');
           } finally {
             // Cleanup
             if (leadId) await cleanupLead(leadId);
@@ -486,7 +488,7 @@ describe('Project Closure Properties', () => {
             // Close the project
             await supabase
               .from('leads')
-              .update({ status: 'closed' })
+              .update({ status: 'completed' })
               .eq('id', leadId);
 
             // Verify it's closed
@@ -496,24 +498,24 @@ describe('Project Closure Properties', () => {
               .eq('id', leadId)
               .single();
 
-            expect(closedLead?.status).toBe('closed');
+            expect(closedLead?.status).toBe('completed');
 
             // Reopen the project as admin
             const { error: reopenError } = await supabase
               .from('leads')
-              .update({ status: 'ongoing' })
+              .update({ status: 'in_progress' })
               .eq('id', leadId);
 
             expect(reopenError).toBeNull();
 
-            // Verify status is now 'ongoing'
+            // Verify status is now 'in_progress'
             const { data: reopenedLead } = await supabase
               .from('leads')
               .select('status')
               .eq('id', leadId)
               .single();
 
-            expect(reopenedLead?.status).toBe('ongoing');
+            expect(reopenedLead?.status).toBe('in_progress');
 
             // Verify step modifications are now allowed
             // Complete the step to verify modifications work

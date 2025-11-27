@@ -102,7 +102,7 @@ async function createTestLead(createdBy: string): Promise<string> {
       customer_name: 'Test Customer',
       phone: `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
       address: 'Test Address',
-      status: 'ongoing',
+      status: 'inquiry',
       created_by: createdBy,
       source: 'office',
     })

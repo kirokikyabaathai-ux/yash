@@ -46,8 +46,6 @@ const lead = createLeadSchema.parse({
   phone: '+1234567890',
   email: 'john@example.com',
   address: '123 Main St',
-  kw_requirement: 5.5,
-  roof_type: 'Flat',
   source: 'agent'
 });
 
@@ -108,9 +106,6 @@ const form = pmSuryagharFormSchema.parse({
   applicant_email: 'john@example.com',
   property_address: '123 Main St',
   property_type: 'Residential',
-  roof_type: 'Flat',
-  roof_area: 1000,
-  kw_requirement: 5.5,
   aadhar_number: '123456789012',
   pan_number: 'ABCDE1234F',
   bank_account_number: '1234567890',

@@ -22,7 +22,7 @@ import type { Database } from '@/types/database';
  * @returns Object containing Supabase client and response
  */
 export async function createMiddlewareClient(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request,
   });
 

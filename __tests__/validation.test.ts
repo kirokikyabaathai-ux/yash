@@ -146,8 +146,6 @@ describe('Lead Management Schemas', () => {
         phone: '+1234567890',
         email: 'john@example.com',
         address: '123 Main St, City',
-        kw_requirement: 5.5,
-        roof_type: 'Flat',
         notes: 'Some notes',
         source: 'agent',
       };
@@ -189,25 +187,13 @@ describe('Lead Management Schemas', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject negative kw_requirement', () => {
-      const data = {
-        customer_name: 'John Doe',
-        phone: '+1234567890',
-        address: '123 Main St',
-        kw_requirement: -5,
-        source: 'agent',
-      };
-
-      const result = createLeadSchema.safeParse(data);
-      expect(result.success).toBe(false);
-    });
   });
 
   describe('updateLeadSchema', () => {
     it('should validate partial updates', () => {
       const data = {
         customer_name: 'Jane Doe',
-        status: 'interested',
+        status: 'application_submitted',
       };
 
       const result = updateLeadSchema.safeParse(data);
@@ -334,9 +320,6 @@ describe('PM Suryaghar Form Schema', () => {
         applicant_email: 'john@example.com',
         property_address: '123 Main St, City',
         property_type: 'Residential',
-        roof_type: 'Flat',
-        roof_area: 1000,
-        kw_requirement: 5.5,
         aadhar_number: '123456789012',
         pan_number: 'ABCDE1234F',
         bank_account_number: '1234567890',
@@ -354,8 +337,6 @@ describe('PM Suryaghar Form Schema', () => {
         applicant_phone: '+1234567890',
         property_address: '123 Main St',
         property_type: 'Residential',
-        roof_type: 'Flat',
-        kw_requirement: 5.5,
         aadhar_number: '12345', // Invalid: not 12 digits
         pan_number: 'ABCDE1234F',
         bank_account_number: '1234567890',
@@ -373,8 +354,6 @@ describe('PM Suryaghar Form Schema', () => {
         applicant_phone: '+1234567890',
         property_address: '123 Main St',
         property_type: 'Residential',
-        roof_type: 'Flat',
-        kw_requirement: 5.5,
         aadhar_number: '123456789012',
         pan_number: 'INVALID', // Invalid format
         bank_account_number: '1234567890',
@@ -392,8 +371,6 @@ describe('PM Suryaghar Form Schema', () => {
         applicant_phone: '+1234567890',
         property_address: '123 Main St',
         property_type: 'Residential',
-        roof_type: 'Flat',
-        kw_requirement: 5.5,
         aadhar_number: '123456789012',
         pan_number: 'ABCDE1234F',
         bank_account_number: '1234567890',

@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { LeadStatus } from '@/types/database';
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,11 +53,12 @@ export async function GET(request: NextRequest) {
     const totalLeads = leads?.length || 0;
 
     // Calculate leads by status
-    const leadsByStatus = {
-      ongoing: 0,
-      interested: 0,
-      not_interested: 0,
-      closed: 0,
+    const leadsByStatus: Record<LeadStatus, number> = {
+      lead: 0,
+      lead_interested: 0,
+      lead_processing: 0,
+      lead_completed: 0,
+      lead_cancelled: 0,
     };
 
     leads?.forEach((lead) => {
@@ -95,20 +97,20 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate conversion rates
-    const ongoingCount = leadsByStatus.ongoing;
-    const interestedCount = leadsByStatus.interested;
-    const closedCount = leadsByStatus.closed;
-    const totalForConversion = ongoingCount + interestedCount + closedCount;
+    const leadCount = leadsByStatus.lead;
+    const processingCount = leadsByStatus.lead_processing;
+    const completedCount = leadsByStatus.lead_completed;
+    const totalForConversion = leadCount + processingCount + completedCount;
 
     const conversionRate = {
       ongoingToInterested: totalForConversion > 0 
-        ? ((interestedCount + closedCount) / totalForConversion) * 100 
+        ? ((processingCount + completedCount) / totalForConversion) * 100 
         : 0,
-      interestedToClosed: (interestedCount + closedCount) > 0 
-        ? (closedCount / (interestedCount + closedCount)) * 100 
+      interestedToClosed: (processingCount + completedCount) > 0 
+        ? (completedCount / (processingCount + completedCount)) * 100 
         : 0,
       overallConversion: totalForConversion > 0 
-        ? (closedCount / totalForConversion) * 100 
+        ? (completedCount / totalForConversion) * 100 
         : 0,
     };
 

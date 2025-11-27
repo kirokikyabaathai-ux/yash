@@ -1,45 +1,32 @@
 /**
  * Lead Status Badge Component
- * 
- * Displays a visual indicator for lead status with appropriate colors.
- * 
- * Requirements: 2.1, 2.4, 2.5
+ * Displays a styled badge for lead status with user-friendly labels
  */
 
 import type { LeadStatus } from '@/types/database';
+import { getStatusLabel, getStatusColor } from '@/lib/utils/status-labels';
+import { cn } from '@/lib/utils';
 
 interface LeadStatusBadgeProps {
   status: LeadStatus;
   className?: string;
+  showDescription?: boolean;
 }
 
-const statusConfig: Record<LeadStatus, { label: string; className: string }> = {
-  ongoing: {
-    label: 'Ongoing',
-    className: 'bg-blue-100 text-blue-800 border-blue-200',
-  },
-  interested: {
-    label: 'Interested',
-    className: 'bg-green-100 text-green-800 border-green-200',
-  },
-  not_interested: {
-    label: 'Not Interested',
-    className: 'bg-gray-100 text-gray-800 border-gray-200',
-  },
-  closed: {
-    label: 'Closed',
-    className: 'bg-purple-100 text-purple-800 border-purple-200',
-  },
-};
-
-export function LeadStatusBadge({ status, className = '' }: LeadStatusBadgeProps) {
-  const config = statusConfig[status];
+export function LeadStatusBadge({ status, className, showDescription = false }: LeadStatusBadgeProps) {
+  const label = getStatusLabel(status);
+  const colors = getStatusColor(status);
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.className} ${className}`}
+      className={cn(
+        'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
+        colors.badge,
+        className
+      )}
+      title={showDescription ? undefined : label}
     >
-      {config.label}
+      {label}
     </span>
   );
 }

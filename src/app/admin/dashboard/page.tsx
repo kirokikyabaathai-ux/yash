@@ -8,6 +8,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
@@ -284,19 +285,7 @@ export default async function AdminDashboardPage() {
                         <div className="text-sm text-gray-500">{lead.phone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            lead.status === 'ongoing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : lead.status === 'interested'
-                              ? 'bg-green-100 text-green-800'
-                              : lead.status === 'closed'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {lead.status}
-                        </span>
+                        <LeadStatusBadge status={lead.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">

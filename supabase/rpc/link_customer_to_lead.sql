@@ -75,7 +75,7 @@ BEGIN
       p_phone,
       p_email,
       p_address,
-      'ongoing',
+      'inquiry',
       p_customer_id,
       p_customer_id,
       'self'

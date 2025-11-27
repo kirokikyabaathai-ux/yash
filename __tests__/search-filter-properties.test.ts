@@ -13,6 +13,15 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import type { LeadStatus } from '@/types/database';
 
+const LEAD_STATUSES: LeadStatus[] = [
+  'inquiry',
+  'documentation_pending',
+  'application_submitted',
+  'in_progress',
+  'completed',
+  'withdrawn',
+];
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
@@ -22,8 +31,8 @@ fc.configureGlobal({ numRuns: 100 });
 describe('Search and Filter Properties', () => {
   let supabase: ReturnType<typeof createClient<Database>>;
   let testUserId: string;
-  let cleanupLeadIds: string[] = [];
-  let cleanupStepIds: string[] = [];
+  const cleanupLeadIds: string[] = [];
+  const cleanupStepIds: string[] = [];
 
   beforeAll(async () => {
     supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
@@ -85,7 +94,7 @@ describe('Search and Filter Properties', () => {
               phone: testData.phone,
               email: testData.email,
               address: testData.address,
-              status: 'ongoing',
+              status: 'inquiry',
               created_by: testUserId,
               source: 'agent',
             })
@@ -133,11 +142,11 @@ describe('Search and Filter Properties', () => {
           fc.record({
             customer_name: fc.string({ minLength: 5, maxLength: 20 }),
             phone: fc.string({ minLength: 10, maxLength: 15 }).map(s => '+1' + s.replace(/\D/g, '').slice(0, 10)),
-            status: fc.constantFrom<LeadStatus>('ongoing', 'interested', 'not_interested', 'closed'),
+            status: fc.constantFrom<LeadStatus>(...LEAD_STATUSES),
           }),
           { minLength: 3, maxLength: 5 }
         ),
-        fc.constantFrom<LeadStatus>('ongoing', 'interested', 'not_interested', 'closed'),
+        fc.constantFrom<LeadStatus>(...LEAD_STATUSES),
         async (leadsData, filterStatus) => {
           // Create leads with different statuses
           const createdLeads = [];
@@ -205,7 +214,7 @@ describe('Search and Filter Properties', () => {
               customer_name: leadData.customer_name,
               phone: leadData.phone,
               address: 'Test Address',
-              status: 'ongoing',
+              status: 'inquiry',
               created_by: testUserId,
               source: 'agent',
             })
@@ -290,7 +299,7 @@ describe('Search and Filter Properties', () => {
               customer_name: testData.customer_name,
               phone: testData.phone,
               address: 'Test Address',
-              status: 'ongoing',
+              status: 'inquiry',
               created_by: testUserId,
               source: 'agent',
             })
@@ -339,7 +348,7 @@ describe('Search and Filter Properties', () => {
           fc.record({
             customer_name: fc.string({ minLength: 5, maxLength: 20 }),
             phone: fc.string({ minLength: 10, maxLength: 15 }).map(s => '+1' + s.replace(/\D/g, '').slice(0, 10)),
-            status: fc.constantFrom<LeadStatus>('ongoing', 'interested'),
+            status: fc.constantFrom<LeadStatus>('inquiry', 'application_submitted'),
             address: fc.string({ minLength: 10, maxLength: 50 }),
           }),
           { minLength: 3, maxLength: 5 }
@@ -367,7 +376,7 @@ describe('Search and Filter Properties', () => {
           }
 
           // Apply combined filters: status AND search
-          const filterStatus: LeadStatus = 'ongoing';
+          const filterStatus: LeadStatus = 'inquiry';
           const searchTerm = leadsData[0].customer_name.slice(0, 3);
 
           const { data: filteredLeads } = await supabase

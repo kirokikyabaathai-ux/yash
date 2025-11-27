@@ -107,20 +107,6 @@ export function LeadDetail({
           </div>
 
           <div>
-            <dt className="text-sm font-medium text-gray-500">KW Requirement</dt>
-            <dd className="mt-1 text-sm text-gray-900">
-              {lead.kw_requirement ? `${lead.kw_requirement} KW` : 'Not specified'}
-            </dd>
-          </div>
-
-          <div>
-            <dt className="text-sm font-medium text-gray-500">Roof Type</dt>
-            <dd className="mt-1 text-sm text-gray-900 capitalize">
-              {lead.roof_type || 'Not specified'}
-            </dd>
-          </div>
-
-          <div>
             <dt className="text-sm font-medium text-gray-500">Source</dt>
             <dd className="mt-1 text-sm text-gray-900 capitalize">{lead.source}</dd>
           </div>

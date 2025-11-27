@@ -13,7 +13,6 @@ export {
   filterLeadDataForInstaller,
   filterStepRemarksForInstaller,
   filterDocumentsForInstaller,
-  canAccessPMSuryagharForm,
   canAccessFinancialDetails,
   canAccessSurveyInformation,
   useIsInstaller,

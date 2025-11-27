@@ -1,9 +1,9 @@
 import * as React from "react";
-import { Button, ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
-export interface LoadingButtonProps extends ButtonProps {
+export interface LoadingButtonProps extends React.ComponentProps<typeof Button> {
   loading?: boolean;
 }
 

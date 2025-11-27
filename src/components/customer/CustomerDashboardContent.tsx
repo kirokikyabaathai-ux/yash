@@ -9,6 +9,8 @@
 
 import { useState } from 'react';
 import { Database } from '@/types/database';
+import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
+import { StatusHistory } from './StatusHistory';
 
 type User = Database['public']['Tables']['users']['Row'];
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -108,27 +110,22 @@ export function CustomerDashboardContent({
               <div>
                 <p className="text-sm font-medium text-gray-500">Status</p>
                 <p className="mt-1">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    lead.status === 'ongoing' ? 'bg-blue-100 text-blue-800' :
-                    lead.status === 'interested' ? 'bg-green-100 text-green-800' :
-                    lead.status === 'closed' ? 'bg-gray-100 text-gray-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {lead.status.charAt(0).toUpperCase() + lead.status.slice(1).replace('_', ' ')}
-                  </span>
+                  <LeadStatusBadge status={lead.status} />
                 </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Address</p>
                 <p className="mt-1 text-sm text-gray-900">{lead.address}</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">KW Requirement</p>
-                <p className="mt-1 text-sm text-gray-900">
-                  {lead.kw_requirement ? `${lead.kw_requirement} KW` : 'Not specified'}
-                </p>
-              </div>
             </div>
+          </div>
+
+          {/* Status History */}
+          <div className="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Status Updates
+            </h2>
+            <StatusHistory leadId={lead.id} />
           </div>
 
           {/* Tabs */}
@@ -248,15 +245,12 @@ function TimelineView({ steps }: { steps: TimelineStep[] | null }) {
             {/* Show upload button if customer can upload for this step */}
             {isPending && stepMaster.customer_upload && (
               <div className="mt-4 ml-11">
-                <button
+                <a
+                  href="/customer/profile/new"
                   className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  onClick={() => {
-                    // TODO: Implement document upload
-                    alert('Document upload functionality will be implemented in the document management module');
-                  }}
                 >
-                  Upload Document
-                </button>
+                  Upload Documents
+                </a>
               </div>
             )}
           </div>
@@ -271,15 +265,12 @@ function DocumentsView({ documents, leadId }: { documents: Document[] | null; le
     return (
       <div className="text-center py-8">
         <p className="text-sm text-gray-500 mb-4">No documents uploaded yet.</p>
-        <button
+        <a
+          href="/customer/profile/new"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          onClick={() => {
-            // TODO: Implement document upload
-            alert('Document upload functionality will be implemented in the document management module');
-          }}
         >
-          Upload Document
-        </button>
+          Upload Documents
+        </a>
       </div>
     );
   }
@@ -288,15 +279,12 @@ function DocumentsView({ documents, leadId }: { documents: Document[] | null; le
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium text-gray-900">Uploaded Documents</h3>
-        <button
+        <a
+          href="/customer/profile/new"
           className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          onClick={() => {
-            // TODO: Implement document upload
-            alert('Document upload functionality will be implemented in the document management module');
-          }}
         >
-          Upload New Document
-        </button>
+          Upload New Documents
+        </a>
       </div>
 
       <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">

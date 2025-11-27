@@ -8,6 +8,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 
 export default async function AgentDashboardPage() {
   const supabase = await createClient();
@@ -35,41 +36,70 @@ export default async function AgentDashboardPage() {
     redirect('/login');
   }
 
-  // Fetch dashboard metrics (RLS will filter to agent's leads only)
-  const metricsResponse = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000'}/api/dashboard/metrics`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    }
-  );
+  // Fetch all data in parallel for better performance
+  const [
+    { data: allLeads },
+    { data: leads },
+    { data: pendingLeads }
+  ] = await Promise.all([
+    // Get all leads for metrics calculation (RLS will automatically filter to agent's leads)
+    supabase.from('leads').select('status, created_at'),
+    // Get recent leads for display
+    supabase
+      .from('leads')
+      .select(`
+        *,
+        customer_account:customer_account_id (
+          id,
+          name
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(10),
+    // Get pending leads
+    supabase
+      .from('leads')
+      .select('*')
+      .in('status', ['lead', 'lead_interested', 'lead_processing'])
+      .order('created_at', { ascending: false })
+  ]);
 
-  let metrics = null;
-  if (metricsResponse.ok) {
-    metrics = await metricsResponse.json();
-  }
+  // Calculate metrics from the data
+  const ongoingCount = allLeads?.filter(l => l.status === 'lead').length || 0;
+  const interestedCount = allLeads?.filter(l => l.status === 'lead_interested').length || 0;
+  const processingCount = allLeads?.filter(l => l.status === 'lead_processing').length || 0;
+  const completedCount = allLeads?.filter(l => l.status === 'lead_completed').length || 0;
+  const cancelledCount = allLeads?.filter(l => l.status === 'lead_cancelled').length || 0;
+  const totalCount = allLeads?.length || 0;
 
-  // Get agent's leads (RLS will automatically filter)
-  const { data: leads, error: leadsError } = await supabase
-    .from('leads')
-    .select(`
-      *,
-      customer_account:customer_account_id (
-        id,
-        name
-      )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
-  // Get agent's pending leads
-  const { data: pendingLeads, error: pendingError } = await supabase
-    .from('leads')
-    .select('*')
-    .in('status', ['ongoing', 'interested'])
-    .order('created_at', { ascending: false });
+  const metrics = allLeads ? {
+    totalLeads: totalCount,
+    leadsByStatus: {
+      ongoing: ongoingCount,
+      interested: interestedCount,
+      processing: processingCount,
+      closed: completedCount,
+      not_interested: cancelledCount,
+    },
+    conversionRate: {
+      // Overall conversion: completed leads / all leads (including cancelled)
+      overallConversion: totalCount > 0 
+        ? (completedCount / totalCount) * 100 
+        : 0,
+      // Conversion from new leads to interested
+      ongoingToInterested: ongoingCount > 0
+        ? (interestedCount / ongoingCount) * 100
+        : 0,
+      // Success rate: completed / (interested + processing) - how well you close interested leads
+      interestedToClosed: (interestedCount + processingCount) > 0
+        ? (completedCount / (interestedCount + processingCount)) * 100
+        : 0,
+    },
+    // Active leads = leads currently being processed/worked on
+    activeLeads: processingCount,
+    // Pending actions = leads that need immediate attention (ongoing + interested)
+    pendingActions: ongoingCount + interestedCount,
+  } : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -93,10 +123,11 @@ export default async function AgentDashboardPage() {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Ongoing</div>
+              <div className="text-sm font-medium text-gray-500">Inquired</div>
               <div className="mt-2 text-3xl font-bold text-blue-600">
                 {metrics.leadsByStatus.ongoing}
               </div>
+              <p className="mt-1 text-xs text-gray-500">New inquiries</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
@@ -107,24 +138,26 @@ export default async function AgentDashboardPage() {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Closed</div>
+              <div className="text-sm font-medium text-gray-500">Completed</div>
               <div className="mt-2 text-3xl font-bold text-purple-600">
                 {metrics.leadsByStatus.closed}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">My Conversion Rate</div>
+              <div className="text-sm font-medium text-gray-500">Conversion Rate</div>
               <div className="mt-2 text-3xl font-bold text-indigo-600">
                 {metrics.conversionRate.overallConversion.toFixed(1)}%
               </div>
+              <p className="mt-1 text-xs text-gray-500">Completed / Total leads</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Pending Actions</div>
+              <div className="text-sm font-medium text-gray-500">Processing</div>
               <div className="mt-2 text-3xl font-bold text-orange-600">
-                {metrics.pendingActions}
+                {metrics.leadsByStatus.processing}
               </div>
+              <p className="mt-1 text-xs text-gray-500">Being processed</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
@@ -132,16 +165,57 @@ export default async function AgentDashboardPage() {
               <div className="mt-2 text-3xl font-bold text-emerald-600">
                 {metrics.conversionRate.interestedToClosed.toFixed(1)}%
               </div>
+              <p className="mt-1 text-xs text-gray-500">Completed / In Progress</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-sm font-medium text-gray-500">Active Leads</div>
               <div className="mt-2 text-3xl font-bold text-teal-600">
-                {pendingLeads?.length || 0}
+                {metrics.activeLeads}
               </div>
+              <p className="mt-1 text-xs text-gray-500">Currently processing</p>
             </div>
           </div>
         )}
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Link
+            href="/agent/leads/new"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Create New Lead
+            </h3>
+            <p className="text-sm text-gray-600">
+              Add a new solar installation lead
+            </p>
+          </Link>
+
+          <Link
+            href="/agent/leads"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              My Leads
+            </h3>
+            <p className="text-sm text-gray-600">
+              View and manage all my leads
+            </p>
+          </Link>
+
+          <Link
+            href="/agent/performance"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              My Performance
+            </h3>
+            <p className="text-sm text-gray-600">
+              View detailed performance metrics
+            </p>
+          </Link>
+        </div>
 
         {/* Performance Summary */}
         {metrics && (
@@ -229,9 +303,6 @@ export default async function AgentDashboardPage() {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    KW
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created At
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -252,20 +323,7 @@ export default async function AgentDashboardPage() {
                         <div className="text-sm text-gray-500">{lead.phone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            lead.status === 'ongoing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
-                        >
-                          {lead.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {lead.kw_requirement || 'N/A'}
-                        </div>
+                        <LeadStatusBadge status={lead.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
@@ -342,19 +400,7 @@ export default async function AgentDashboardPage() {
                         <div className="text-sm text-gray-500">{lead.phone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            lead.status === 'ongoing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : lead.status === 'interested'
-                              ? 'bg-green-100 text-green-800'
-                              : lead.status === 'closed'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {lead.status}
-                        </span>
+                        <LeadStatusBadge status={lead.status} />
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-500 max-w-xs truncate">
@@ -388,44 +434,6 @@ export default async function AgentDashboardPage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link
-            href="/agent/leads/new"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Create New Lead
-            </h3>
-            <p className="text-sm text-gray-600">
-              Add a new solar installation lead
-            </p>
-          </Link>
-
-          <Link
-            href="/agent/leads"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              My Leads
-            </h3>
-            <p className="text-sm text-gray-600">
-              View and manage all my leads
-            </p>
-          </Link>
-
-          <Link
-            href="/agent/performance"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              My Performance
-            </h3>
-            <p className="text-sm text-gray-600">
-              View detailed performance metrics
-            </p>
-          </Link>
-        </div>
       </div>
     </div>
   );

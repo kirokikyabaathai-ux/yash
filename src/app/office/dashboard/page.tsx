@@ -8,6 +8,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 
 export default async function OfficeDashboardPage() {
   const supabase = await createClient();
@@ -35,50 +36,67 @@ export default async function OfficeDashboardPage() {
     redirect('/login');
   }
 
-  // Fetch dashboard metrics
-  const metricsResponse = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000'}/api/dashboard/metrics`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    }
-  );
+  // Fetch all data in parallel for better performance
+  const [
+    { data: allLeads },
+    { data: leads },
+    { data: pendingLeads }
+  ] = await Promise.all([
+    // Get all leads for metrics calculation
+    supabase.from('leads').select('status, created_at'),
+    // Get recent leads for display
+    supabase
+      .from('leads')
+      .select(`
+        *,
+        created_by_user:created_by (
+          id,
+          name
+        ),
+        customer_account:customer_account_id (
+          id,
+          name
+        ),
+        installer:installer_id (
+          id,
+          name
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(15),
+    // Get pending leads
+    supabase
+      .from('leads')
+      .select('*')
+      .in('status', ['lead', 'lead_interested', 'lead_processing'])
+      .order('created_at', { ascending: false })
+      .limit(10)
+  ]);
 
-  let metrics = null;
-  if (metricsResponse.ok) {
-    metrics = await metricsResponse.json();
-  }
-
-  // Get all leads (RLS will allow office to see all)
-  const { data: leads, error: leadsError } = await supabase
-    .from('leads')
-    .select(`
-      *,
-      created_by_user:created_by (
-        id,
-        name
-      ),
-      customer_account:customer_account_id (
-        id,
-        name
-      ),
-      installer:installer_id (
-        id,
-        name
-      )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(15);
-
-  // Get pending leads (ongoing or interested status)
-  const { data: pendingLeads, error: pendingError } = await supabase
-    .from('leads')
-    .select('*')
-    .in('status', ['ongoing', 'interested'])
-    .order('created_at', { ascending: false })
-    .limit(10);
+  // Calculate metrics from the data
+  const metrics = allLeads ? {
+    totalLeads: allLeads.length,
+    leadsByStatus: {
+      lead: allLeads.filter(l => l.status === 'lead').length,
+      lead_interested: allLeads.filter(l => l.status === 'lead_interested').length,
+      lead_processing: allLeads.filter(l => l.status === 'lead_processing').length,
+      lead_completed: allLeads.filter(l => l.status === 'lead_completed').length,
+      lead_cancelled: allLeads.filter(l => l.status === 'lead_cancelled').length,
+    },
+    conversionRate: {
+      overallConversion: allLeads.length > 0 
+        ? (allLeads.filter(l => l.status === 'lead_completed').length / allLeads.length) * 100 
+        : 0,
+      ongoingToInterested: allLeads.filter(l => l.status === 'lead').length > 0
+        ? (allLeads.filter(l => l.status === 'lead_interested').length / allLeads.filter(l => l.status === 'lead').length) * 100
+        : 0,
+      interestedToClosed: allLeads.filter(l => l.status === 'lead_interested').length > 0
+        ? (allLeads.filter(l => l.status === 'lead_completed').length / allLeads.filter(l => l.status === 'lead_interested').length) * 100
+        : 0,
+    },
+    pendingActions: pendingLeads?.length || 0,
+    leadsByStep: {},
+  } : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,23 +120,23 @@ export default async function OfficeDashboardPage() {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Ongoing</div>
+              <div className="text-sm font-medium text-gray-500">New Lead</div>
               <div className="mt-2 text-3xl font-bold text-blue-600">
-                {metrics.leadsByStatus.ongoing}
+                {metrics.leadsByStatus.lead || 0}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Interested</div>
+              <div className="text-sm font-medium text-gray-500">Lead Processing</div>
               <div className="mt-2 text-3xl font-bold text-green-600">
-                {metrics.leadsByStatus.interested}
+                {metrics.leadsByStatus.lead_processing || 0}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Closed</div>
+              <div className="text-sm font-medium text-gray-500">Completed</div>
               <div className="mt-2 text-3xl font-bold text-purple-600">
-                {metrics.leadsByStatus.closed}
+                {metrics.leadsByStatus.lead_completed || 0}
               </div>
             </div>
 
@@ -137,16 +155,16 @@ export default async function OfficeDashboardPage() {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Ongoing → Interested</div>
+              <div className="text-sm font-medium text-gray-500">Inquiry → Application</div>
               <div className="mt-2 text-3xl font-bold text-teal-600">
-                {metrics.conversionRate.ongoingToInterested.toFixed(1)}%
+                {metrics.conversionRate.ongoingToInterested?.toFixed(1) || 0}%
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm font-medium text-gray-500">Interested → Closed</div>
+              <div className="text-sm font-medium text-gray-500">Application → Completed</div>
               <div className="mt-2 text-3xl font-bold text-emerald-600">
-                {metrics.conversionRate.interestedToClosed.toFixed(1)}%
+                {metrics.conversionRate.interestedToClosed?.toFixed(1) || 0}%
               </div>
             </div>
           </div>
@@ -185,7 +203,7 @@ export default async function OfficeDashboardPage() {
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              Pending Leads (Ongoing/Interested)
+              Pending Leads (Active)
             </h2>
             <Link
               href="/office/leads"
@@ -208,9 +226,6 @@ export default async function OfficeDashboardPage() {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    KW
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created At
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -231,20 +246,7 @@ export default async function OfficeDashboardPage() {
                         <div className="text-sm text-gray-500">{lead.phone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            lead.status === 'ongoing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
-                        >
-                          {lead.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {lead.kw_requirement || 'N/A'}
-                        </div>
+                        <LeadStatusBadge status={lead.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
@@ -321,19 +323,7 @@ export default async function OfficeDashboardPage() {
                         <div className="text-sm text-gray-500">{lead.phone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            lead.status === 'ongoing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : lead.status === 'interested'
-                              ? 'bg-green-100 text-green-800'
-                              : lead.status === 'closed'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {lead.status}
-                        </span>
+                        <LeadStatusBadge status={lead.status} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">

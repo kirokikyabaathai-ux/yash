@@ -38,12 +38,10 @@ export async function createLead(
     phone: data.phone,
     email: data.email || null,
     address: data.address,
-    kw_requirement: data.kw_requirement || null,
-    roof_type: data.roof_type || null,
     notes: data.notes || null,
     source: data.source,
     created_by: userId,
-    status: 'ongoing', // Initial status as per Requirement 2.2
+    status: 'lead', // Initial status as per Requirement 2.2
   };
 
   const { data: lead, error } = await supabase
@@ -54,6 +52,21 @@ export async function createLead(
 
   if (error) {
     throw new Error(`Failed to create lead: ${error.message}`);
+  }
+
+  // Initialize timeline for the new lead
+  try {
+    const { error: timelineError } = await supabase.rpc('initialize_lead_timeline', {
+      p_lead_id: lead.id,
+    });
+
+    if (timelineError) {
+      console.error('Failed to initialize timeline:', timelineError);
+      // Don't throw - lead was created successfully, timeline can be initialized later
+    }
+  } catch (timelineErr) {
+    console.error('Error initializing timeline:', timelineErr);
+    // Don't throw - lead was created successfully
   }
 
   return lead as Lead;
@@ -176,15 +189,7 @@ export async function getLeads(
     .from('leads')
     .select('*', { count: 'exact' });
 
-  // Apply search filter (multi-field search)
-  if (filters.search) {
-    const searchTerm = `%${filters.search}%`;
-    query = query.or(
-      `customer_name.ilike.${searchTerm},phone.ilike.${searchTerm},email.ilike.${searchTerm},address.ilike.${searchTerm}`
-    );
-  }
-
-  // Apply status filter
+  // Apply status filter first (before search to ensure AND logic)
   if (filters.status && filters.status.length > 0) {
     query = query.in('status', filters.status);
   }
@@ -200,6 +205,17 @@ export async function getLeads(
   // Apply assigned user filter
   if (filters.assignedTo) {
     query = query.eq('created_by', filters.assignedTo);
+  }
+
+  // Apply search filter (multi-field search)
+  // Note: .or() in Supabase creates a separate OR condition
+  // When combined with other filters, they are ANDed together
+  // So this becomes: (status = X) AND (name LIKE Y OR phone LIKE Y OR ...)
+  if (filters.search) {
+    const searchTerm = `%${filters.search}%`;
+    query = query.or(
+      `customer_name.ilike.${searchTerm},phone.ilike.${searchTerm},email.ilike.${searchTerm},address.ilike.${searchTerm}`
+    );
   }
 
   // Apply current step filter (requires join with lead_steps)

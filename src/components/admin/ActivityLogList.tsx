@@ -34,8 +34,8 @@ export function ActivityLogList() {
   const [logs, setLogs] = useState<ActivityLogWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>({});
-  const [users, setUsers] = useState<User[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [users, setUsers] = useState<Pick<User, 'id' | 'name' | 'email' | 'role'>[]>([]);
+  const [leads, setLeads] = useState<Pick<Lead, 'id' | 'customer_name' | 'phone'>[]>([]);
 
   const supabase = createClient();
 

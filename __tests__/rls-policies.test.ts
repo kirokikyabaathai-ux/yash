@@ -33,7 +33,14 @@ const createUserClient = (userId: string, role: string) => {
 // Arbitraries for generating test data
 const roleArbitrary = fc.constantFrom('admin', 'agent', 'office', 'installer', 'customer');
 const uuidArbitrary = fc.uuid();
-const leadStatusArbitrary = fc.constantFrom('ongoing', 'interested', 'not_interested', 'closed');
+const leadStatusArbitrary = fc.constantFrom(
+  'inquiry',
+  'documentation_pending',
+  'application_submitted',
+  'in_progress',
+  'completed',
+  'withdrawn',
+);
 
 const userArbitrary = fc.record({
   id: uuidArbitrary,
@@ -50,8 +57,6 @@ const leadArbitrary = fc.record({
   phone: fc.string({ minLength: 10, maxLength: 15 }),
   email: fc.emailAddress(),
   address: fc.string({ minLength: 5, maxLength: 200 }),
-  kw_requirement: fc.double({ min: 1, max: 100 }),
-  roof_type: fc.constantFrom('flat', 'sloped', 'mixed'),
   notes: fc.string({ maxLength: 500 }),
   status: leadStatusArbitrary,
   created_by: uuidArbitrary,
