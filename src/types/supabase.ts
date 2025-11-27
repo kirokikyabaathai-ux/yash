@@ -685,17 +685,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
-// Type aliases for convenience
-export type UserRole = 'admin' | 'agent' | 'office' | 'installer' | 'customer';
-export type UserStatus = 'active' | 'disabled';
-export type LeadStatus = 
-  | 'lead'
-  | 'lead_interested'
-  | 'lead_processing'
-  | 'lead_completed'
-  | 'lead_cancelled';
-export type LeadSource = 'agent' | 'office' | 'customer' | 'self';
-export type DocumentType = 'mandatory' | 'optional' | 'installation' | 'customer' | 'admin';
-export type DocumentStatus = 'valid' | 'corrupted' | 'replaced';
-export type StepStatus = 'upcoming' | 'pending' | 'completed';

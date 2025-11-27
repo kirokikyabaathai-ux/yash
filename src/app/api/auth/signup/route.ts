@@ -85,13 +85,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch the created profile
-    const { data: profile } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single();
-
     return NextResponse.json({
       user: authData.user,
       profile,

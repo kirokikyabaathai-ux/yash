@@ -19,7 +19,7 @@ import type { TimelineStepData } from '@/components/timeline/TimelineStep';
 interface LeadDetailClientProps {
   lead: Lead & {
     created_by_user?: { id: string; name: string; email: string } | null;
-    customer_account?: { id: string; name: string; email: string; phone: string } | null;
+    customer_account?: { id: string; name: string; email: string; phone: string; customer_id: string | null } | null;
     installer?: { id: string; name: string; phone: string } | null;
   };
   userRole: string;
@@ -141,7 +141,7 @@ export function LeadDetailClient({
               <div>
                 <dt className="text-sm font-medium text-gray-500">Created At</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(lead.created_at).toLocaleString()}
+                  {lead.created_at ? new Date(lead.created_at).toLocaleString() : 'N/A'}
                 </dd>
               </div>
             </dl>

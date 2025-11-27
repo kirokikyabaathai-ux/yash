@@ -42,5 +42,5 @@ export default async function AgentEditLeadPage({
     notFound();
   }
 
-  return <EditLeadClient lead={lead} leadId={id} />;
+  return <EditLeadClient lead={lead as any} leadId={id} />;
 }

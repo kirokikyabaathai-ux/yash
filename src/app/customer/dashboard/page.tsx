@@ -95,9 +95,9 @@ export default async function CustomerDashboardPage() {
   return (
     <CustomerDashboardContent
       user={profile}
-      lead={lead}
-      timelineSteps={timelineSteps}
-      documents={documents}
+      lead={lead as any}
+      timelineSteps={timelineSteps as any}
+      documents={documents as any}
     />
   );
 }

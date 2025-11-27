@@ -116,7 +116,7 @@ export function CustomerDashboardContent({
               <div>
                 <p className="text-sm font-medium text-gray-500">Status</p>
                 <p className="mt-1">
-                  <LeadStatusBadge status={lead.status} />
+                  <LeadStatusBadge status={lead.status as any} />
                 </p>
               </div>
               <div className="md:col-span-2">
@@ -330,7 +330,7 @@ function DocumentsView({ documents, leadId }: { documents: Document[] | null; le
                   </span>
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {new Date(doc.uploaded_at).toLocaleDateString()}
+                  {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : 'N/A'}
                 </td>
               </tr>
             ))}

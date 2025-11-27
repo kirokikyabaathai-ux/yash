@@ -247,7 +247,7 @@ export function ActivityLogList() {
                     </span>
                   </div>
                   <span className="text-sm text-gray-500">
-                    {format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss')}
+                    {log.timestamp ? format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss') : 'N/A'}
                   </span>
                 </div>
 

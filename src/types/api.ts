@@ -98,8 +98,8 @@ export interface Lead {
   customer_account_id: string | null;
   installer_id: string | null;
   source: LeadSource;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface CreateLeadRequest {

@@ -70,7 +70,7 @@ export default async function NewCustomerProfilePage({ searchParams }: PageProps
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <CustomerProfileFormWrapper leadData={leadData} />
+          <CustomerProfileFormWrapper leadData={leadData as any} />
         </div>
       </div>
     </div>

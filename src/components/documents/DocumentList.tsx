@@ -97,15 +97,15 @@ export function DocumentList({
                 <h4 className="text-sm font-medium text-gray-900 truncate">
                   {doc.file_name}
                 </h4>
-                <DocumentStatusBadge status={doc.status} />
+                <DocumentStatusBadge status={doc.status as any} />
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500">
                 <span className="font-medium">{getCategoryLabel(doc.document_category)}</span>
                 <span className="hidden sm:inline">•</span>
                 <span>{formatFileSize(doc.file_size)}</span>
                 <span className="hidden sm:inline">•</span>
-                <span className="hidden sm:inline">{formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true })}</span>
-                <span className="sm:hidden">{new Date(doc.uploaded_at).toLocaleDateString()}</span>
+                <span className="hidden sm:inline">{doc.uploaded_at ? formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true }) : 'N/A'}</span>
+                <span className="sm:hidden">{doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : 'N/A'}</span>
               </div>
               <div className="mt-1 text-xs text-gray-400">
                 Type: {doc.type}

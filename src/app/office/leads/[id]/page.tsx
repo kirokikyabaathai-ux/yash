@@ -62,7 +62,7 @@ export default async function OfficeLeadDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <LeadDetailClient lead={lead} userRole="office" userId={user.id} />
+      <LeadDetailClient lead={lead as any} userRole="office" userId={user.id} />
     </div>
   );
 }

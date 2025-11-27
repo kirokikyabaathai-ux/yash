@@ -99,7 +99,7 @@ export function withAuth(handler: ApiHandler): ApiHandler {
 
     // Create context with user and supabase client
     const apiContext: ApiContext = {
-      user: profile,
+      user: profile as User,
       supabase,
       params: context?.params,
     };

@@ -45,7 +45,8 @@ export default async function AdminLeadDetailPage({
         id,
         name,
         email,
-        phone
+        phone,
+        customer_id
       ),
       installer:users!installer_id (
         id,
@@ -63,7 +64,7 @@ export default async function AdminLeadDetailPage({
   return (
     <div className="min-h-screen bg-gray-50">
       <LeadDetailClient 
-        lead={lead} 
+        lead={lead as any} 
         userRole="admin" 
         userId={user.id}
         backUrl="/admin/leads"

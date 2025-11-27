@@ -62,7 +62,9 @@ export async function GET(request: NextRequest) {
     };
 
     leads?.forEach((lead) => {
-      leadsByStatus[lead.status]++;
+      if (lead.status in leadsByStatus) {
+        leadsByStatus[lead.status as LeadStatus]++;
+      }
     });
 
     // Get all lead steps for current timeline step calculation

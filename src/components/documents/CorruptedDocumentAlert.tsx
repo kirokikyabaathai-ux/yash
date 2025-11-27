@@ -85,7 +85,7 @@ export function CorruptedDocumentAlert({
                 <div className="mt-2">
                   <DocumentUploader
                     leadId={document.lead_id}
-                    documentType={document.type}
+                    documentType={document.type as any}
                     documentCategory={document.document_category}
                     onUploadComplete={handleUploadComplete}
                     onUploadError={(error) => {

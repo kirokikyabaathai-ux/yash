@@ -51,6 +51,7 @@ export default async function AgentPerformancePage() {
   // Calculate monthly trends
   const monthlyData: { [key: string]: { total: number; closed: number } } = {};
   leads?.forEach((lead) => {
+    if (!lead.created_at) return;
     const month = new Date(lead.created_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
