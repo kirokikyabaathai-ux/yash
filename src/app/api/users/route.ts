@@ -183,29 +183,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call edge function to create user
-    const { data, error } = await supabase.functions.invoke('create-user', {
-      body: {
-        email: body.email,
-        password: body.password,
-        name: body.name,
-        phone: body.phone,
-        role: body.role,
-        status: body.status || 'active',
-        assigned_area: body.assigned_area || null,
-      },
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
-
-    if (error) {
-      console.error('Error calling create-user edge function:', error);
+    // Get the Supabase URL for edge functions
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    
+    if (!supabaseUrl) {
       return NextResponse.json(
         {
           error: {
-            code: 'INTERNAL_ERROR',
-            message: error.message || 'Failed to create user',
+            code: 'CONFIG_ERROR',
+            message: 'Supabase URL not configured',
             timestamp: new Date().toISOString(),
           },
         },
@@ -213,21 +199,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!data.success) {
+    // Call edge function directly with fetch to get proper error responses
+    const edgeFunctionUrl = `${supabaseUrl}/functions/v1/create-user`;
+    const edgeResponse = await fetch(edgeFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        email: body.email,
+        password: body.password,
+        name: body.name,
+        phone: body.phone,
+        role: body.role,
+        status: body.status || 'active',
+        assigned_area: body.assigned_area || null,
+      }),
+    });
+
+    const responseData = await edgeResponse.json();
+
+    // Handle non-2xx responses with specific error messages
+    if (!edgeResponse.ok) {
+      console.error('Error from create-user edge function:', responseData);
+      
+      return NextResponse.json(
+        {
+          error: {
+            code: edgeResponse.status === 409 ? 'CONFLICT' : 
+                  edgeResponse.status === 400 ? 'VALIDATION_ERROR' : 
+                  'EDGE_FUNCTION_ERROR',
+            message: responseData.error || 'Failed to create user',
+            details: responseData.details,
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: edgeResponse.status }
+      );
+    }
+
+    if (!responseData.success || !responseData.user) {
       return NextResponse.json(
         {
           error: {
             code: 'INTERNAL_ERROR',
-            message: data.error || 'Failed to create user',
-            details: data.details,
+            message: 'Failed to create user',
             timestamp: new Date().toISOString(),
           },
         },
-        { status: 400 }
+        { status: 500 }
       );
     }
 
-    return NextResponse.json(data.user, { status: 201 });
+    return NextResponse.json(responseData.user, { status: 201 });
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json(

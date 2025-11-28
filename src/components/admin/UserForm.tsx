@@ -96,7 +96,9 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to save user');
+        // Extract the error message from the response
+        const errorMessage = errorData.error?.message || errorData.message || 'Failed to save user';
+        throw new Error(errorMessage);
       }
 
       onSuccess();

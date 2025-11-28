@@ -180,47 +180,71 @@ serve(async (req) => {
       .single();
 
     if (createUserError) {
-      // Check if it's a duplicate key error (trigger already created the user)
+      console.error("Error creating user profile:", createUserError);
+      
+      // Check for specific constraint violations
+      let errorMessage = "Failed to create user profile";
+      let statusCode = 500;
+      
       if (createUserError.message?.includes("duplicate key")) {
-        // Fetch the existing user and update it
-        const { data: existingUser, error: fetchError } = await supabaseAdmin
-          .from("users")
-          .update({
-            email: email,
-            name: name,
-            phone: phone,
-            role: role,
-            status: status || "active",
-            assigned_area: assigned_area || null,
-          })
-          .eq("id", authUser.user.id)
-          .select()
-          .single();
+        // Check which field is duplicated
+        if (createUserError.message.includes("users_email_key")) {
+          errorMessage = "Email address is already registered";
+          statusCode = 409;
+        } else if (createUserError.message.includes("users_phone_key")) {
+          errorMessage = "Phone number is already registered";
+          statusCode = 409;
+        } else {
+          // Trigger already created the user, try to update it
+          const { data: existingUser, error: fetchError } = await supabaseAdmin
+            .from("users")
+            .update({
+              email: email,
+              name: name,
+              phone: phone,
+              role: role,
+              status: status || "active",
+              assigned_area: assigned_area || null,
+            })
+            .eq("id", authUser.user.id)
+            .select()
+            .single();
 
-        if (fetchError) {
-          console.error("Error updating user profile:", fetchError);
-          await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
-          return new Response(
-            JSON.stringify({
-              error: fetchError.message || "Failed to update user profile",
-            }),
-            {
-              status: 500,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            }
-          );
+          if (fetchError) {
+            console.error("Error updating user profile:", fetchError);
+            await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+            return new Response(
+              JSON.stringify({
+                error: fetchError.message || "Failed to update user profile",
+              }),
+              {
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+          newUser = existingUser;
         }
-        newUser = existingUser;
-      } else {
-        console.error("Error creating user profile:", createUserError);
-        // Rollback: delete auth user if profile creation fails
+      } else if (createUserError.message?.includes("check_phone_format")) {
+        errorMessage = "Phone number must be exactly 10 digits starting with 1-9";
+        statusCode = 400;
+      } else if (createUserError.message?.includes("users_role_check")) {
+        errorMessage = "Invalid role specified";
+        statusCode = 400;
+      } else if (createUserError.message?.includes("users_status_check")) {
+        errorMessage = "Invalid status specified";
+        statusCode = 400;
+      }
+      
+      // If we got a specific error, rollback and return it
+      if (statusCode !== 500 || !newUser) {
         await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
         return new Response(
           JSON.stringify({
-            error: createUserError.message || "Failed to create user profile",
+            error: errorMessage,
           }),
           {
-            status: 500,
+            status: statusCode,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
