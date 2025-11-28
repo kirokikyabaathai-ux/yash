@@ -122,10 +122,10 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
+      <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="h-5 w-5 text-destructive" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -134,7 +134,7 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
             </svg>
           </div>
           <div className="ml-3">
-            <p className="text-sm text-red-800">{error}</p>
+            <p className="text-sm text-destructive">{error}</p>
           </div>
         </div>
       </div>
@@ -143,9 +143,9 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
 
   if (steps.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+      <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-border">
         <svg
-          className="mx-auto h-12 w-12 text-gray-400"
+          className="mx-auto h-12 w-12 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -157,8 +157,8 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
           />
         </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No timeline steps</h3>
-        <p className="mt-1 text-sm text-gray-500">
+        <h3 className="mt-2 text-sm font-medium text-foreground">No timeline steps</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           Timeline steps have not been configured for this lead yet.
         </p>
       </div>
@@ -166,7 +166,7 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
   }
 
   const getStatusColor = (status: string) => {
-    return status === 'completed' ? 'bg-green-500' : 'bg-gray-300';
+    return status === 'completed' ? 'bg-green-500 dark:bg-green-600' : 'bg-muted';
   };
 
   const formatDate = (dateString: string) => {
@@ -186,16 +186,16 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
       {/* Timeline Header with Button */}
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Project Timeline</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Project Timeline</h2>
+          <p className="text-sm text-muted-foreground">
             Track the progress of your solar installation project through each step.
           </p>
           {isProjectClosed && (
-            <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded-md">
-              <p className="text-sm text-gray-700">
+            <div className="mt-3 p-3 bg-muted border border-border rounded-md">
+              <p className="text-sm text-foreground">
                 <strong>Project Status:</strong> Closed
                 {!canModifyClosedProject && (
-                  <span className="block mt-1 text-gray-600">
+                  <span className="block mt-1 text-muted-foreground">
                     This project is closed. Timeline modifications are restricted. Only an admin can reopen this project.
                   </span>
                 )}
@@ -222,7 +222,7 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
             <button
               onClick={() => handleCompleteClick(nextStep.id)}
               disabled={isActionLoading}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg text-sm font-semibold hover:bg-green-700 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg shadow-lg text-sm font-semibold hover:bg-primary/90 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
             >
               {isActionLoading ? 'Processing...' : `Complete: ${nextStep.step_name}`}
             </button>
@@ -254,16 +254,16 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
               </div>
 
               <div className="mt-4 text-center w-32 min-h-[80px]">
-                <div className="font-medium text-sm text-gray-900 mb-1">
+                <div className="font-medium text-sm text-foreground mb-1">
                   {step.step_name}
                 </div>
                 {step.completed_at && (
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     {formatDate(step.completed_at)}
                   </div>
                 )}
                 {step.remarks && (
-                  <div className="text-xs text-gray-400 mt-1 italic" title={step.remarks}>
+                  <div className="text-xs text-muted-foreground/70 mt-1 italic" title={step.remarks}>
                     {step.remarks}
                   </div>
                 )}
@@ -272,10 +272,10 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
 
             {index < steps.length - 1 && (
               <div
-                className={`flex-1 h-1 relative z-0 mt-3 ${
+                className={`flex-1 h-1 relative z-0 mt-3 transition-colors ${
                   step.status === 'completed'
-                    ? 'bg-green-500'
-                    : 'bg-gray-300'
+                    ? 'bg-green-500 dark:bg-green-600'
+                    : 'bg-muted'
                 }`}
               />
             )}
@@ -287,18 +287,18 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
 
 
       {/* Progress Summary */}
-      <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+      <div className="bg-muted/50 rounded-lg p-6 border border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-gray-700">Overall Progress</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-muted-foreground">Overall Progress</p>
+            <p className="text-2xl font-bold text-foreground">
               {steps.filter((s) => s.status === 'completed').length} / {steps.length} Steps
             </p>
           </div>
           <div className="flex-1 sm:ml-8">
-            <div className="w-full bg-gray-200 rounded-full h-4">
+            <div className="w-full bg-muted rounded-full h-4">
               <div
-                className="bg-green-600 h-4 rounded-full transition-all"
+                className="bg-primary h-4 rounded-full transition-all"
                 style={{
                   width: `${(steps.filter((s) => s.status === 'completed').length / steps.length) * 100}%`,
                 }}

@@ -52,13 +52,13 @@ export function TimelineStep({
   const getStatusColor = () => {
     switch (step.status) {
       case 'completed':
-        return 'bg-green-100 text-green-800 border-green-300';
+        return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+        return 'bg-accent text-accent-foreground border-accent-foreground/20';
       case 'upcoming':
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return 'bg-muted text-muted-foreground border-border';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -66,7 +66,7 @@ export function TimelineStep({
     switch (step.status) {
       case 'completed':
         return (
-          <svg className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -76,7 +76,7 @@ export function TimelineStep({
         );
       case 'pending':
         return (
-          <svg className="h-6 w-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-6 w-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
@@ -86,7 +86,7 @@ export function TimelineStep({
         );
       case 'upcoming':
         return (
-          <svg className="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-6 w-6 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z"
@@ -120,17 +120,17 @@ export function TimelineStep({
           {/* Step Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3">
-              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-white text-gray-800 text-sm font-medium border-2">
+              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-background text-foreground text-sm font-medium border-2 border-border">
                 {step.order_index}
               </span>
-              <h3 className="text-lg font-semibold text-gray-900">{step.step_name}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{step.step_name}</h3>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   step.status === 'completed'
-                    ? 'bg-green-200 text-green-900'
+                    ? 'bg-green-200 text-green-900 dark:bg-green-900/40 dark:text-green-300'
                     : step.status === 'pending'
-                    ? 'bg-yellow-200 text-yellow-900'
-                    : 'bg-gray-200 text-gray-900'
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {step.status.charAt(0).toUpperCase() + step.status.slice(1)}
@@ -141,27 +141,27 @@ export function TimelineStep({
             {step.status === 'completed' && (
               <div className="mt-3 space-y-1 text-sm">
                 {step.completed_at && (
-                  <p className="text-gray-700">
+                  <p className="text-foreground">
                     <span className="font-medium">Completed:</span> {formatDate(step.completed_at)}
                   </p>
                 )}
                 {step.completed_by_name && (
-                  <p className="text-gray-700">
+                  <p className="text-foreground">
                     <span className="font-medium">By:</span> {step.completed_by_name}
                   </p>
                 )}
                 {step.remarks && (
                   <div className="mt-2">
-                    <p className="font-medium text-gray-700">Remarks:</p>
-                    <p className="text-gray-600 mt-1 whitespace-pre-wrap">{step.remarks}</p>
+                    <p className="font-medium text-foreground">Remarks:</p>
+                    <p className="text-muted-foreground mt-1 whitespace-pre-wrap">{step.remarks}</p>
                   </div>
                 )}
                 {step.attachments && step.attachments.length > 0 && (
                   <div className="mt-2">
-                    <p className="font-medium text-gray-700">Attachments:</p>
+                    <p className="font-medium text-foreground">Attachments:</p>
                     <ul className="mt-1 space-y-1">
                       {step.attachments.map((attachment, index) => (
-                        <li key={index} className="text-blue-600 hover:underline">
+                        <li key={index} className="text-primary hover:underline">
                           <a href={attachment} target="_blank" rel="noopener noreferrer">
                             Attachment {index + 1}
                           </a>
@@ -177,12 +177,12 @@ export function TimelineStep({
             {step.status !== 'completed' && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {step.remarks_required && (
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-white text-gray-700 border">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-background text-foreground border border-border">
                     Remarks Required
                   </span>
                 )}
                 {step.attachments_allowed && (
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-white text-gray-700 border">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-background text-foreground border border-border">
                     Attachments Allowed
                   </span>
                 )}
@@ -197,7 +197,7 @@ export function TimelineStep({
             <button
               onClick={() => onUpload(step.step_id)}
               disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-blue-600 bg-white border border-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-primary bg-background border border-primary rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Upload
             </button>
@@ -207,7 +207,7 @@ export function TimelineStep({
             <button
               onClick={() => onComplete(step.id)}
               disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-primary-foreground bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Complete
             </button>
@@ -217,7 +217,7 @@ export function TimelineStep({
             <button
               onClick={() => onReopen(step.id)}
               disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-foreground bg-background border border-input rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Reopen
             </button>

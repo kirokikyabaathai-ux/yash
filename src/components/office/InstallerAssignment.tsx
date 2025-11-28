@@ -122,7 +122,7 @@ export function InstallerAssignment({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -130,7 +130,7 @@ export function InstallerAssignment({
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="installer-select" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="installer-select" className="block text-sm font-medium text-foreground mb-2">
           Assign Installer
         </label>
         <select
@@ -138,7 +138,7 @@ export function InstallerAssignment({
           value={selectedInstallerId}
           onChange={(e) => setSelectedInstallerId(e.target.value)}
           disabled={isSaving}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <option value="">Select an installer...</option>
           {installers.map((installer) => (
@@ -153,7 +153,7 @@ export function InstallerAssignment({
         <button
           onClick={handleAssign}
           disabled={isSaving || !selectedInstallerId || selectedInstallerId === lead.installer_id}
-          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
         >
           {isSaving ? 'Assigning...' : 'Assign Installer'}
         </button>
@@ -162,7 +162,7 @@ export function InstallerAssignment({
           <button
             onClick={handleUnassign}
             disabled={isSaving}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSaving ? 'Unassigning...' : 'Unassign'}
           </button>
@@ -170,8 +170,8 @@ export function InstallerAssignment({
       </div>
 
       {lead.installer_id && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-800">
+        <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
+          <p className="text-sm text-primary">
             <span className="font-medium">Currently assigned:</span>{' '}
             {installers.find((i) => i.id === lead.installer_id)?.name || 'Unknown'}
           </p>

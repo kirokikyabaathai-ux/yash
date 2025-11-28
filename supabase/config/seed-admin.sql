@@ -1,5 +1,5 @@
 -- Seed Script for Admin User
--- This script creates the initial admin account for the Solar CRM system
+-- This script creates the initial admin account for the YAS Natural system
 -- Requirements: 1.2
 
 -- IMPORTANT: This script assumes you have already created the admin user in Supabase Auth
@@ -25,7 +25,7 @@ INSERT INTO users (
 )
 VALUES (
   '4f585c02-1b1a-4c8a-b13e-9e36cac2afbb'::uuid,  -- Replace with actual admin UUID from Supabase Auth
-  'admin@solarcrm.com',                -- Admin email
+  'admin@yasnaturals.com',                -- Admin email
   'System Administrator',              -- Admin name
   '+919999999999',                     -- Admin phone (update as needed)
   'admin',                             -- Role
@@ -56,7 +56,7 @@ INSERT INTO users (
 VALUES 
   (
     'ADMIN_UUID_1'::uuid,
-    'admin1@solarcrm.com',
+    'admin1@yasnaturals.com',
     'Admin User 1',
     '+919999999991',
     'admin',
@@ -65,7 +65,7 @@ VALUES
   ),
   (
     'ADMIN_UUID_2'::uuid,
-    'admin2@solarcrm.com',
+    'admin2@yasnaturals.com',
     'Admin User 2',
     '+919999999992',
     'admin',
@@ -103,7 +103,7 @@ WHERE role = 'admin';
 -- 1. Create Admin User in Supabase Auth:
 --    - Go to Supabase Dashboard > Authentication > Users
 --    - Click "Add User" or use the Auth API
---    - Create user with email: admin@solarcrm.com
+--    - Create user with email: admin@yasnaturals.com
 --    - Set a strong password
 --    - Copy the generated UUID
 --

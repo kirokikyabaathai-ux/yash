@@ -1,7 +1,7 @@
 /**
  * Zod Validation Schemas
  * 
- * Defines validation schemas for all forms in the Solar CRM application.
+ * Defines validation schemas for all forms in the YAS Natural application.
  * These schemas are used for both client-side and server-side validation.
  */
 

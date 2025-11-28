@@ -137,46 +137,46 @@ export function NetMeterForm({
     }
 
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-green-800 mb-4">
+      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-green-800 dark:text-green-400 mb-4">
           Net Meter Application Submitted
         </h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">Application Reference:</span>
-            <span className="font-medium">
+            <span className="text-muted-foreground">Application Reference:</span>
+            <span className="font-medium text-foreground">
               {netMeterInfo.applicationReference || 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Submission Date:</span>
-            <span className="font-medium">
+            <span className="text-muted-foreground">Submission Date:</span>
+            <span className="font-medium text-foreground">
               {netMeterInfo.submissionDate
                 ? new Date(netMeterInfo.submissionDate).toLocaleDateString('en-IN')
                 : 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">DISCOM Name:</span>
-            <span className="font-medium">
+            <span className="text-muted-foreground">DISCOM Name:</span>
+            <span className="font-medium text-foreground">
               {netMeterInfo.discomName || 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Meter Capacity:</span>
-            <span className="font-medium">
+            <span className="text-muted-foreground">Meter Capacity:</span>
+            <span className="font-medium text-foreground">
               {netMeterInfo.meterCapacity || 'N/A'}
             </span>
           </div>
           {netMeterInfo.remarks && (
-            <div className="mt-3 pt-3 border-t border-green-200">
-              <span className="text-gray-600 block mb-1">Remarks:</span>
-              <p className="text-gray-800">{netMeterInfo.remarks}</p>
+            <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
+              <span className="text-muted-foreground block mb-1">Remarks:</span>
+              <p className="text-foreground">{netMeterInfo.remarks}</p>
             </div>
           )}
-          <div className="mt-3 pt-3 border-t border-green-200">
-            <span className="text-gray-600 block mb-1">Completed:</span>
-            <p className="text-gray-800">
+          <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
+            <span className="text-muted-foreground block mb-1">Completed:</span>
+            <p className="text-foreground">
               {netMeterStep.completed_at
                 ? new Date(netMeterStep.completed_at).toLocaleString('en-IN')
                 : 'N/A'}
@@ -188,17 +188,17 @@ export function NetMeterForm({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+      <h3 className="text-lg font-semibold text-foreground mb-4">
         Submit Net Meter Application
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="applicationReference"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
-            Application Reference Number <span className="text-red-500">*</span>
+            Application Reference Number <span className="text-destructive">*</span>
           </label>
           <input
             type="text"
@@ -206,7 +206,7 @@ export function NetMeterForm({
             value={netMeterDetails.applicationReference}
             onChange={(e) => handleInputChange('applicationReference', e.target.value)}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             placeholder="Enter application reference number"
             required
           />
@@ -215,9 +215,9 @@ export function NetMeterForm({
         <div>
           <label
             htmlFor="submissionDate"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
-            Submission Date <span className="text-red-500">*</span>
+            Submission Date <span className="text-destructive">*</span>
           </label>
           <input
             type="date"
@@ -226,7 +226,7 @@ export function NetMeterForm({
             onChange={(e) => handleInputChange('submissionDate', e.target.value)}
             max={new Date().toISOString().split('T')[0]}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             required
           />
         </div>
@@ -234,9 +234,9 @@ export function NetMeterForm({
         <div>
           <label
             htmlFor="discomName"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
-            DISCOM Name <span className="text-red-500">*</span>
+            DISCOM Name <span className="text-destructive">*</span>
           </label>
           <input
             type="text"
@@ -244,7 +244,7 @@ export function NetMeterForm({
             value={netMeterDetails.discomName}
             onChange={(e) => handleInputChange('discomName', e.target.value)}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             placeholder="Enter DISCOM name"
             required
           />
@@ -253,9 +253,9 @@ export function NetMeterForm({
         <div>
           <label
             htmlFor="meterCapacity"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
-            Meter Capacity <span className="text-red-500">*</span>
+            Meter Capacity <span className="text-destructive">*</span>
           </label>
           <input
             type="text"
@@ -263,7 +263,7 @@ export function NetMeterForm({
             value={netMeterDetails.meterCapacity}
             onChange={(e) => handleInputChange('meterCapacity', e.target.value)}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             placeholder="e.g., 5 kW"
             required
           />
@@ -272,7 +272,7 @@ export function NetMeterForm({
         <div>
           <label
             htmlFor="remarks"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Additional Remarks
           </label>
@@ -282,7 +282,7 @@ export function NetMeterForm({
             onChange={(e) => handleInputChange('remarks', e.target.value)}
             disabled={isSubmitting}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             placeholder="Any additional notes about the net meter application..."
           />
         </div>
@@ -291,7 +291,7 @@ export function NetMeterForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
           >
             {isSubmitting ? 'Submitting Application...' : 'Submit Net Meter Application'}
           </button>

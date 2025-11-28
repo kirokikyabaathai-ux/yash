@@ -271,7 +271,7 @@ export function LoanWorkflow({
   if (isLoadingSteps) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -280,15 +280,15 @@ export function LoanWorkflow({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-foreground">
             Loan Workflow
           </h3>
           {!hasLoanSteps && !showLoanForm && (
             <button
               onClick={() => setShowLoanForm(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm font-medium"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors text-sm font-medium shadow-sm"
             >
               Initiate Loan
             </button>
@@ -296,7 +296,7 @@ export function LoanWorkflow({
         </div>
 
         {!hasLoanSteps && !showLoanForm && (
-          <p className="text-gray-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             No loan workflow initiated for this lead. Click "Initiate Loan" to
             start the loan application process.
           </p>
@@ -308,9 +308,9 @@ export function LoanWorkflow({
               <div>
                 <label
                   htmlFor="loanProvider"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Loan Provider <span className="text-red-500">*</span>
+                  Loan Provider <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -320,7 +320,7 @@ export function LoanWorkflow({
                     handleInputChange('loanProvider', e.target.value)
                   }
                   disabled={isSubmitting || isCreatingSteps}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   placeholder="e.g., HDFC Bank, SBI, etc."
                   required
                 />
@@ -329,9 +329,9 @@ export function LoanWorkflow({
               <div>
                 <label
                   htmlFor="loanAmount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Loan Amount (₹) <span className="text-red-500">*</span>
+                  Loan Amount (₹) <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="number"
@@ -343,7 +343,7 @@ export function LoanWorkflow({
                   min="0"
                   step="0.01"
                   disabled={isSubmitting || isCreatingSteps}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   placeholder="Enter loan amount"
                   required
                 />
@@ -352,9 +352,9 @@ export function LoanWorkflow({
               <div>
                 <label
                   htmlFor="interestRate"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Interest Rate (%) <span className="text-red-500">*</span>
+                  Interest Rate (%) <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="number"
@@ -366,7 +366,7 @@ export function LoanWorkflow({
                   min="0"
                   step="0.01"
                   disabled={isSubmitting || isCreatingSteps}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   placeholder="e.g., 8.5"
                   required
                 />
@@ -375,9 +375,9 @@ export function LoanWorkflow({
               <div>
                 <label
                   htmlFor="tenure"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Tenure (months) <span className="text-red-500">*</span>
+                  Tenure (months) <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="number"
@@ -386,7 +386,7 @@ export function LoanWorkflow({
                   onChange={(e) => handleInputChange('tenure', e.target.value)}
                   min="1"
                   disabled={isSubmitting || isCreatingSteps}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   placeholder="e.g., 60"
                   required
                 />
@@ -395,9 +395,9 @@ export function LoanWorkflow({
               <div>
                 <label
                   htmlFor="applicationDate"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Application Date <span className="text-red-500">*</span>
+                  Application Date <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="date"
@@ -408,7 +408,7 @@ export function LoanWorkflow({
                   }
                   max={new Date().toISOString().split('T')[0]}
                   disabled={isSubmitting || isCreatingSteps}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   required
                 />
               </div>
@@ -416,9 +416,9 @@ export function LoanWorkflow({
               <div>
                 <label
                   htmlFor="applicationReference"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Application Reference <span className="text-red-500">*</span>
+                  Application Reference <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -428,7 +428,7 @@ export function LoanWorkflow({
                     handleInputChange('applicationReference', e.target.value)
                   }
                   disabled={isSubmitting || isCreatingSteps}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   placeholder="Enter application number"
                   required
                 />
@@ -438,7 +438,7 @@ export function LoanWorkflow({
             <div>
               <label
                 htmlFor="remarks"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Additional Remarks
               </label>
@@ -448,7 +448,7 @@ export function LoanWorkflow({
                 onChange={(e) => handleInputChange('remarks', e.target.value)}
                 disabled={isSubmitting || isCreatingSteps}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 placeholder="Any additional notes about the loan..."
               />
             </div>
@@ -457,7 +457,7 @@ export function LoanWorkflow({
               <button
                 type="submit"
                 disabled={isSubmitting || isCreatingSteps}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
               >
                 {isSubmitting || isCreatingSteps
                   ? 'Initiating Loan...'
@@ -467,7 +467,7 @@ export function LoanWorkflow({
                 type="button"
                 onClick={() => setShowLoanForm(false)}
                 disabled={isSubmitting || isCreatingSteps}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Cancel
               </button>
@@ -494,21 +494,21 @@ export function LoanWorkflow({
             return (
               <div
                 key={loanStep.step.id}
-                className={`border rounded-lg p-4 ${
+                className={`border rounded-lg p-4 transition-colors ${
                   isCompleted
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-yellow-50 border-yellow-200'
+                    ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
+                    : 'bg-accent border-accent-foreground/20'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-gray-900">
+                  <h4 className="font-semibold text-foreground">
                     {loanStep.step.step_name}
                   </h4>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded ${
                       isCompleted
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-primary/10 text-primary'
                     }`}
                   >
                     {isCompleted ? 'Completed' : 'Pending'}
@@ -519,28 +519,28 @@ export function LoanWorkflow({
                   <div className="space-y-2 text-sm">
                     {stepInfo.loanProvider && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Provider:</span>
-                        <span className="font-medium">
+                        <span className="text-muted-foreground">Provider:</span>
+                        <span className="font-medium text-foreground">
                           {stepInfo.loanProvider}
                         </span>
                       </div>
                     )}
                     {stepInfo.loanAmount && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Amount:</span>
-                        <span className="font-medium">
+                        <span className="text-muted-foreground">Amount:</span>
+                        <span className="font-medium text-foreground">
                           ₹{stepInfo.loanAmount.toLocaleString('en-IN')}
                         </span>
                       </div>
                     )}
                     {stepInfo.status && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Status:</span>
+                        <span className="text-muted-foreground">Status:</span>
                         <span
                           className={`font-medium capitalize ${
                             stepInfo.status === 'approved'
-                              ? 'text-green-600'
-                              : 'text-red-600'
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-destructive'
                           }`}
                         >
                           {stepInfo.status}
@@ -548,11 +548,11 @@ export function LoanWorkflow({
                       </div>
                     )}
                     {stepInfo.remarks && (
-                      <div className="mt-2 pt-2 border-t border-gray-200">
-                        <span className="text-gray-600 block mb-1">
+                      <div className="mt-2 pt-2 border-t border-border">
+                        <span className="text-muted-foreground block mb-1">
                           Remarks:
                         </span>
-                        <p className="text-gray-800">{stepInfo.remarks}</p>
+                        <p className="text-foreground">{stepInfo.remarks}</p>
                       </div>
                     )}
                   </div>

@@ -1,6 +1,6 @@
-# Accessibility Guidelines for Solar CRM
+# Accessibility Guidelines for YAS Natural
 
-This document outlines the accessibility features and best practices implemented in the Solar CRM application.
+This document outlines the accessibility features and best practices implemented in the YAS Natural application.
 
 ## WCAG 2.1 Level AA Compliance
 

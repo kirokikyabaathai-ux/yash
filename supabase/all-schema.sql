@@ -1,4 +1,4 @@
--- Solar CRM Complete Database Schema
+-- YAS Natural Complete Database Schema
 -- This file combines all table schemas in proper dependency order
 -- Requirements: All database requirements
 
@@ -430,7 +430,7 @@ BEGIN
       NEW.id,
       'lead_assigned',
       'New Installation Assigned',
-      'You have been assigned to install solar panels for ' || v_lead_name || '.',
+      'You have been assigned to install for ' || v_lead_name || '.',
       false,
       NOW()
     );

@@ -22,15 +22,15 @@ export default function NotificationItem({
   const getIcon = () => {
     switch (notification.type) {
       case 'step_completed':
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return <CheckCircle2 className="h-5 w-5 text-green-500 dark:text-green-400" />;
       case 'document_corrupted':
-        return <FileWarning className="h-5 w-5 text-red-500" />;
+        return <FileWarning className="h-5 w-5 text-destructive" />;
       case 'remark_added':
-        return <MessageSquare className="h-5 w-5 text-blue-500" />;
+        return <MessageSquare className="h-5 w-5 text-primary" />;
       case 'lead_assigned':
-        return <AlertCircle className="h-5 w-5 text-orange-500" />;
+        return <AlertCircle className="h-5 w-5 text-accent-foreground" />;
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
+        return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -50,7 +50,7 @@ export default function NotificationItem({
       onClick={handleClick}
       className={cn(
         'p-4 cursor-pointer hover:bg-accent transition-colors',
-        !notification.read && 'bg-blue-50 dark:bg-blue-950/20'
+        !notification.read && 'bg-primary/5'
       )}
     >
       <div className="flex gap-3">
@@ -59,14 +59,14 @@ export default function NotificationItem({
           <div className="flex items-start justify-between gap-2">
             <h4
               className={cn(
-                'text-sm font-medium',
+                'text-sm font-medium text-foreground',
                 !notification.read && 'font-semibold'
               )}
             >
               {notification.title}
             </h4>
             {!notification.read && (
-              <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-1" />
+              <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1" />
             )}
           </div>
           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">

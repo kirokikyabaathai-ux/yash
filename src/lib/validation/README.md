@@ -1,6 +1,6 @@
 # Validation System
 
-This directory contains the validation schemas and helpers for the Solar CRM application.
+This directory contains the validation schemas and helpers for the YAS Natural application.
 
 ## Overview
 

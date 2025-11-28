@@ -2,7 +2,7 @@
  * API Request and Response Type Definitions
  * 
  * These types define the structure of API requests and responses
- * for the Solar CRM application.
+ * for the YAS Natural application.
  */
 
 import type {

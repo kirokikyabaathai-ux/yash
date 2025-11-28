@@ -1,6 +1,6 @@
 # Supabase Configuration
 
-This directory contains Row-Level Security (RLS) policy definitions and seed data scripts for the Solar CRM system.
+This directory contains Row-Level Security (RLS) policy definitions and seed data scripts for the YAS Natural system.
 
 ## Files
 
@@ -17,7 +17,7 @@ This directory contains Row-Level Security (RLS) policy definitions and seed dat
 
 ## Initial Setup Order
 
-When setting up a new Solar CRM instance, apply configurations in this order:
+When setting up a new YAS Natural instance, apply configurations in this order:
 
 1. **Database Schema** - Apply `supabase/all-schema.sql` first
 2. **RLS Policies** - Apply RLS policy files
@@ -32,7 +32,7 @@ If you have the Supabase CLI installed and configured:
 
 ```bash
 # Navigate to project root
-cd /path/to/solar-crm
+cd /path/to/yasnaturals
 
 # Apply all RLS policies
 supabase db push
@@ -109,7 +109,7 @@ The `seed-admin.sql` script creates the initial admin account. **Important:** Yo
 1. Create admin user in Supabase Auth:
    - Go to Supabase Dashboard > Authentication > Users
    - Click "Add User"
-   - Email: `admin@solarcrm.com` (or your preferred email)
+   - Email: `admin@yasnaturals.com` (or your preferred email)
    - Set a strong password
    - Copy the generated UUID
 

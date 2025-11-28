@@ -66,7 +66,7 @@ export default function NotificationList({ onNotificationRead }: NotificationLis
 
   if (loading) {
     return (
-      <div className="p-4 text-center text-sm text-gray-500">
+      <div className="p-4 text-center text-sm text-muted-foreground">
         Loading notifications...
       </div>
     );
@@ -74,7 +74,7 @@ export default function NotificationList({ onNotificationRead }: NotificationLis
 
   if (notifications.length === 0) {
     return (
-      <div className="p-8 text-center text-sm text-gray-500">
+      <div className="p-8 text-center text-sm text-muted-foreground">
         No notifications yet
       </div>
     );
@@ -82,11 +82,11 @@ export default function NotificationList({ onNotificationRead }: NotificationLis
 
   return (
     <div className="flex flex-col">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold">Notifications</h3>
+      <div className="p-4 border-b border-border">
+        <h3 className="font-semibold text-foreground">Notifications</h3>
       </div>
       <div className="max-h-[400px] overflow-y-auto">
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="divide-y divide-border">
           {notifications.map((notification) => (
             <NotificationItem
               key={notification.id}

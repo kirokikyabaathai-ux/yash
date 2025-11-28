@@ -83,20 +83,20 @@ export function StepCompletionModal({
       <div className="flex items-center justify-center min-h-screen px-4 py-6">
         {/* Background overlay */}
         <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
           onClick={handleClose}
           aria-hidden="true"
         ></div>
 
         {/* Modal panel */}
-        <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-lg z-10">
+        <div className="relative bg-card rounded-lg text-left overflow-hidden shadow-xl border border-border transform transition-all w-full max-w-lg z-10">
           <form onSubmit={handleSubmit}>
             {/* Header */}
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="bg-card px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div className="sm:flex sm:items-start">
-                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 sm:mx-0 sm:h-10 sm:w-10">
                   <svg
-                    className="h-6 w-6 text-green-600"
+                    className="h-6 w-6 text-green-600 dark:text-green-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -110,11 +110,11 @@ export function StepCompletionModal({
                   </svg>
                 </div>
                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  <h3 className="text-lg leading-6 font-medium text-foreground">
                     Complete Step: {step.step_name}
                   </h3>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Mark this step as completed. {step.remarks_required && 'Remarks are required.'}
                     </p>
                   </div>
@@ -125,18 +125,18 @@ export function StepCompletionModal({
               <div className="mt-6 space-y-4">
                 {/* Installer Assignment Warning */}
                 {step.requires_installer_assignment && !leadInstallerId && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                  <div className="bg-accent border border-accent-foreground/20 rounded-md p-4">
                     <div className="flex">
                       <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg className="h-5 w-5 text-accent-foreground" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
                       </div>
                       <div className="ml-3">
-                        <h3 className="text-sm font-medium text-yellow-800">
+                        <h3 className="text-sm font-medium text-accent-foreground">
                           Installer Assignment Required
                         </h3>
-                        <p className="mt-1 text-sm text-yellow-700">
+                        <p className="mt-1 text-sm text-accent-foreground/90">
                           This step requires an installer to be assigned to the lead before it can be completed.
                           {leadId && (
                             <span className="block mt-2">
@@ -151,8 +151,8 @@ export function StepCompletionModal({
 
                 {/* Installer Assignment Success */}
                 {step.requires_installer_assignment && leadInstallerId && (
-                  <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                    <p className="text-sm text-green-800">
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-3">
+                    <p className="text-sm text-green-800 dark:text-green-400">
                       <svg className="inline h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
@@ -163,8 +163,8 @@ export function StepCompletionModal({
 
                 {/* Remarks */}
                 <div>
-                  <label htmlFor="remarks" className="block text-sm font-medium text-gray-700">
-                    Remarks {step.remarks_required && <span className="text-red-500">*</span>}
+                  <label htmlFor="remarks" className="block text-sm font-medium text-foreground">
+                    Remarks {step.remarks_required && <span className="text-destructive">*</span>}
                   </label>
                   <textarea
                     id="remarks"
@@ -183,18 +183,18 @@ export function StepCompletionModal({
                     rows={4}
                     placeholder="Enter any notes or comments about this step..."
                     className={`mt-1 block w-full rounded-md border ${
-                      errors.remarks ? 'border-red-300' : 'border-gray-300'
-                    } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                      errors.remarks ? 'border-destructive' : 'border-input'
+                    } bg-background px-3 py-2 shadow-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring disabled:bg-muted disabled:cursor-not-allowed transition-colors`}
                   />
                   {errors.remarks && (
-                    <p className="mt-1 text-sm text-red-600">{errors.remarks}</p>
+                    <p className="mt-1 text-sm text-destructive">{errors.remarks}</p>
                   )}
                 </div>
 
                 {/* Attachments Info */}
                 {step.attachments_allowed && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                    <p className="text-sm text-blue-800">
+                  <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
+                    <p className="text-sm text-primary">
                       <strong>Note:</strong> Attachments can be uploaded separately through the
                       document management section.
                     </p>
@@ -204,11 +204,11 @@ export function StepCompletionModal({
             </div>
 
             {/* Footer */}
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <div className="bg-muted/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-border">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? 'Completing...' : 'Complete Step'}
               </button>
@@ -216,7 +216,7 @@ export function StepCompletionModal({
                 type="button"
                 onClick={handleClose}
                 disabled={isLoading}
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-input shadow-sm px-4 py-2 bg-background text-base font-medium text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Cancel
               </button>

@@ -17,15 +17,15 @@ export function DocumentStatusBadge({ status, className = '' }: DocumentStatusBa
   const statusConfig = {
     valid: {
       label: 'Valid',
-      className: 'bg-green-100 text-green-800 border-green-200',
+      className: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
     },
     corrupted: {
       label: 'Corrupted',
-      className: 'bg-red-100 text-red-800 border-red-200',
+      className: 'bg-destructive/10 text-destructive border-destructive/20',
     },
     replaced: {
       label: 'Replaced',
-      className: 'bg-gray-100 text-gray-800 border-gray-200',
+      className: 'bg-muted text-muted-foreground border-border',
     },
   };
 

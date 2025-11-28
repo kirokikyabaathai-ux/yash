@@ -2,7 +2,7 @@
  * Error Handling Utilities
  * 
  * Provides consistent error handling, formatting, and logging
- * across the Solar CRM application.
+ * across the YAS Natural application.
  */
 
 import { NextResponse } from 'next/server';

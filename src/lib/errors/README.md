@@ -1,6 +1,6 @@
 # Error Handling System
 
-This directory contains the error handling utilities for the Solar CRM application.
+This directory contains the error handling utilities for the YAS Natural application.
 
 ## Overview
 

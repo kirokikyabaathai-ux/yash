@@ -1,0 +1,401 @@
+/**
+ * Office Dashboard Page
+ * 
+ * Displays all leads with filtering, pending actions, and metrics.
+ * Requirements: 17.1, 17.3, 17.4, 17.5
+ */
+
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
+import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
+
+export default async function OfficeDashboardPage() {
+  const supabase = await createClient();
+
+  // Get the current user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    redirect('/login');
+  }
+
+  // Get user profile to verify role
+  const { data: profile, error: profileError } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    redirect('/login');
+  }
+
+  // Verify user is office team
+  if (profile.role !== 'office') {
+    redirect('/login');
+  }
+
+  // Fetch all data in parallel for better performance
+  const [
+    { data: allLeads },
+    { data: leads },
+    { data: pendingLeads }
+  ] = await Promise.all([
+    // Get all leads for metrics calculation
+    supabase.from('leads').select('status, created_at'),
+    // Get recent leads for display
+    supabase
+      .from('leads')
+      .select(`
+        *,
+        created_by_user:created_by (
+          id,
+          name
+        ),
+        customer_account:customer_account_id (
+          id,
+          name
+        ),
+        installer:installer_id (
+          id,
+          name
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(15),
+    // Get pending leads
+    supabase
+      .from('leads')
+      .select('*')
+      .in('status', ['lead', 'lead_interested', 'lead_processing'])
+      .order('created_at', { ascending: false })
+      .limit(10)
+  ]);
+
+  // Calculate metrics from the data
+  const metrics = allLeads ? {
+    totalLeads: allLeads.length,
+    leadsByStatus: {
+      lead: allLeads.filter(l => l.status === 'lead').length,
+      lead_interested: allLeads.filter(l => l.status === 'lead_interested').length,
+      lead_processing: allLeads.filter(l => l.status === 'lead_processing').length,
+      lead_completed: allLeads.filter(l => l.status === 'lead_completed').length,
+      lead_cancelled: allLeads.filter(l => l.status === 'lead_cancelled').length,
+    },
+    conversionRate: {
+      overallConversion: allLeads.length > 0 
+        ? (allLeads.filter(l => l.status === 'lead_completed').length / allLeads.length) * 100 
+        : 0,
+      ongoingToInterested: allLeads.filter(l => l.status === 'lead').length > 0
+        ? (allLeads.filter(l => l.status === 'lead_interested').length / allLeads.filter(l => l.status === 'lead').length) * 100
+        : 0,
+      interestedToClosed: allLeads.filter(l => l.status === 'lead_interested').length > 0
+        ? (allLeads.filter(l => l.status === 'lead_completed').length / allLeads.filter(l => l.status === 'lead_interested').length) * 100
+        : 0,
+    },
+    pendingActions: pendingLeads?.length || 0,
+    leadsByStep: {},
+  } : null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Office Dashboard</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Welcome back, {profile.name}
+          </p>
+        </div>
+
+        {/* Metrics Grid */}
+        {metrics && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">Total Leads</div>
+              <div className="mt-2 text-3xl font-bold text-foreground">
+                {metrics.totalLeads}
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">New Lead</div>
+              <div className="mt-2 text-3xl font-bold text-primary">
+                {metrics.leadsByStatus.lead || 0}
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">Lead Processing</div>
+              <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
+                {metrics.leadsByStatus.lead_processing || 0}
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">Completed</div>
+              <div className="mt-2 text-3xl font-bold text-primary">
+                {metrics.leadsByStatus.lead_completed || 0}
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">Conversion Rate</div>
+              <div className="mt-2 text-3xl font-bold text-primary">
+                {metrics.conversionRate.overallConversion.toFixed(1)}%
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">Pending Actions</div>
+              <div className="mt-2 text-3xl font-bold text-accent-foreground">
+                {metrics.pendingActions}
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">Inquiry → Application</div>
+              <div className="mt-2 text-3xl font-bold text-primary">
+                {metrics.conversionRate.ongoingToInterested?.toFixed(1) || 0}%
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+              <div className="text-sm font-medium text-muted-foreground">Application → Completed</div>
+              <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
+                {metrics.conversionRate.interestedToClosed?.toFixed(1) || 0}%
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Leads by Current Step */}
+        {metrics && Object.keys(metrics.leadsByStep).length > 0 && (
+          <div className="bg-card border border-border rounded-lg shadow-sm mb-8 p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
+              Leads by Current Step
+            </h2>
+            <div className="space-y-3">
+              {Object.entries(metrics.leadsByStep).map(([stepName, count]: [string, any]) => (
+                <div key={stepName} className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">{stepName}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-48 bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all"
+                        style={{
+                          width: `${metrics.totalLeads > 0 ? (count / metrics.totalLeads) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-foreground w-12 text-right">
+                      {count}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pending Leads */}
+        <div className="bg-card border border-border rounded-lg shadow-sm mb-8">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">
+              Pending Leads (Active)
+            </h2>
+            <Link
+              href="/office/leads"
+              className="text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Phone
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Created At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {pendingLeads && pendingLeads.length > 0 ? (
+                  pendingLeads.map((lead: any) => (
+                    <tr key={lead.id} className="hover:bg-accent/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-foreground">
+                          {lead.customer_name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <LeadStatusBadge status={lead.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(lead.created_at).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <Link
+                          href={`/office/leads/${lead.id}`}
+                          className="text-primary hover:text-primary/80 transition-colors"
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-muted-foreground">
+                      No pending leads
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* All Leads */}
+        <div className="bg-card border border-border rounded-lg shadow-sm">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">All Leads</h2>
+            <Link
+              href="/office/leads"
+              className="text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Phone
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Created By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Created At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {leads && leads.length > 0 ? (
+                  leads.map((lead: any) => (
+                    <tr key={lead.id} className="hover:bg-accent/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-foreground">
+                          {lead.customer_name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <LeadStatusBadge status={lead.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-muted-foreground">
+                          {lead.created_by_user?.name || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(lead.created_at).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <Link
+                          href={`/office/leads/${lead.id}`}
+                          className="text-primary hover:text-primary/80 transition-colors"
+                        >
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-muted-foreground">
+                      No leads found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link
+            href="/office/leads/new"
+            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
+          >
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Create New Lead
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Add a new solar installation lead
+            </p>
+          </Link>
+
+          <Link
+            href="/office/leads"
+            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
+          >
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Manage Leads
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              View and manage all leads
+            </p>
+          </Link>
+
+          <Link
+            href="/office/reports"
+            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
+          >
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              View Reports
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Generate and view reports
+            </p>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
-# UI Components - Solar CRM
+# UI Components - YAS Natural
 
-This directory contains all reusable UI components for the Solar CRM application, with a focus on accessibility, user experience, and consistency.
+This directory contains all reusable UI components for the YAS Natural application, with a focus on accessibility, user experience, and consistency.
 
 ## Component Categories
 

@@ -199,7 +199,7 @@ BEGIN
       NEW.id,
       'lead_assigned',
       'New Installation Assigned',
-      'You have been assigned to install solar panels for ' || v_lead_name || '.',
+      'You have been assigned to install for ' || v_lead_name || '.',
       false,
       NOW()
     );

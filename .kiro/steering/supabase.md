@@ -13,7 +13,7 @@ use supabase mcp
     "ref": "gqalreoyglltniepgnnr",
     "organization_id": "ommnvbhaevcwxumliojo",
     "organization_slug": "ommnvbhaevcwxumliojo",
-    "name": "Solar",
+    "name": "YAS Natural",
 
 
 

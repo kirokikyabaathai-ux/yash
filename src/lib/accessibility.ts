@@ -1,5 +1,5 @@
 /**
- * Accessibility utilities for the Solar CRM application
+ * Accessibility utilities for the YAS Natural application
  */
 
 /**

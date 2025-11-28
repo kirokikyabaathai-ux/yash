@@ -1,6 +1,6 @@
 # Supabase Deployment Summary
 
-**Project:** Solar CRM  
+**Project:** YAS Natural  
 **Project ID:** gqalreoyglltniepgnnr  
 **Region:** ap-south-1  
 **Deployment Date:** November 23, 2025
@@ -145,4 +145,4 @@ All 3 Edge Functions have been successfully deployed and are ACTIVE:
 
 ## ✨ Deployment Status: SUCCESS
 
-All database schemas, RLS policies, RPC functions, and Edge Functions have been successfully deployed to the Solar Supabase project.
+All database schemas, RLS policies, RPC functions, and Edge Functions have been successfully deployed to the YAS Natural Supabase project.
