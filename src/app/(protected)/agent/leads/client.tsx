@@ -85,12 +85,12 @@ export function AgentLeadsClient() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4 max-w-md">
-          <p className="text-sm text-red-800">{error}</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 max-w-md">
+          <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
           <button
             onClick={fetchLeads}
-            className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
+            className="mt-3 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 underline"
           >
             Try again
           </button>
@@ -100,18 +100,18 @@ export function AgentLeadsClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Leads</h1>
-            <p className="mt-2 text-sm text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground">My Leads</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
               Manage and track your solar installation leads
             </p>
           </div>
           <Link
             href="/agent/leads/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors"
           >
             Create New Lead
           </Link>
@@ -119,7 +119,7 @@ export function AgentLeadsClient() {
 
         {isLoading && leads.length === 0 ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         ) : (
           <LeadList

@@ -47,22 +47,22 @@ export function EditLeadClient({ lead, leadId }: EditLeadClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <Link
             href={`/agent/leads/${leadId}`}
-            className="text-sm text-blue-600 hover:text-blue-700 mb-4 inline-block"
+            className="text-sm text-primary hover:text-primary/80 mb-4 inline-block transition-colors"
           >
             ← Back to Lead Details
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Lead</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Edit Lead</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Update lead information for {lead.customer_name}
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
           <LeadForm
             lead={lead}
             onSubmit={handleSubmit}
