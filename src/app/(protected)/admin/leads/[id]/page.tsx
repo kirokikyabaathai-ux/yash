@@ -18,7 +18,7 @@ export default async function AdminLeadDetailPage({
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   const { data: profile } = await supabase
@@ -28,7 +28,7 @@ export default async function AdminLeadDetailPage({
     .single();
 
   if (!profile || profile.role !== 'admin') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch lead data - admin can see all leads

@@ -46,7 +46,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      router.push('/login');
+      router.push('/');
       router.refresh();
     } catch (error) {
       console.error('Error logging out:', error);

@@ -21,8 +21,8 @@ export async function middleware(request: NextRequest) {
   const { supabase, response, user } = await createMiddlewareClient(request);
   const pathname = request.nextUrl.pathname;
 
-  // If user is authenticated and trying to access login/signup, redirect to dashboard
-  if (user && (pathname === '/login' || pathname === '/signup')) {
+  // If user is authenticated and on homepage, redirect to dashboard
+  if (user && pathname === '/') {
     // Get user profile to determine role
     const { data: profile } = await supabase
       .from('users')
@@ -43,9 +43,9 @@ export async function middleware(request: NextRequest) {
 
   // If route is protected, check authentication
   if (isProtectedRoute(pathname)) {
-    // If not authenticated, redirect to login
+    // If not authenticated, redirect to homepage
     if (!user) {
-      const redirectUrl = new URL('/login', request.url);
+      const redirectUrl = new URL('/', request.url);
       redirectUrl.searchParams.set('redirectTo', pathname);
       return Response.redirect(redirectUrl);
     }
@@ -57,9 +57,9 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    // If user account is disabled, redirect to login with error
+    // If user account is disabled, redirect to homepage with error
     if (profile?.status === 'disabled') {
-      const redirectUrl = new URL('/login', request.url);
+      const redirectUrl = new URL('/', request.url);
       redirectUrl.searchParams.set('error', 'account_disabled');
       return Response.redirect(redirectUrl);
     }

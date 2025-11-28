@@ -13,7 +13,7 @@ export default async function AdminLeadsPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   const { data: profile } = await supabase
@@ -23,7 +23,7 @@ export default async function AdminLeadsPage() {
     .single();
 
   if (!profile || profile.role !== 'admin') {
-    redirect('/login');
+    redirect('/');
   }
 
   return <AdminLeadsClient />;

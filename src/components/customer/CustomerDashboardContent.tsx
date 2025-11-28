@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Database } from '@/types/database';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { StatusHistory } from './StatusHistory';
@@ -50,9 +51,7 @@ export function CustomerDashboardContent({
   user,
   lead,
   timelineSteps,
-  documents,
 }: CustomerDashboardContentProps) {
-  const [selectedTab, setSelectedTab] = useState<'timeline' | 'documents'>('timeline');
 
   if (!lead) {
     return (
@@ -124,6 +123,21 @@ export function CustomerDashboardContent({
                 <p className="mt-1 text-sm text-foreground">{lead.address}</p>
               </div>
             </div>
+
+            {/* Fill Customer Form Button */}
+            {(lead.status === 'lead' || lead.status === 'lead_interested') && (
+              <div className="mt-6 pt-4 border-t border-border">
+                <Link
+                  href={`/customer/profile/new?leadId=${lead.id}`}
+                  className="block w-full text-center px-4 py-2 bg-primary text-primary-foreground rounded-md shadow-sm text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Fill Customer Profile Form
+                </Link>
+                <p className="mt-2 text-xs text-muted-foreground text-center">
+                  Complete your profile to proceed with the installation process
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Status History */}
@@ -134,41 +148,12 @@ export function CustomerDashboardContent({
             <StatusHistory leadId={lead.id} />
           </div>
 
-          {/* Tabs */}
-          <div className="bg-card shadow-md rounded-lg border border-border">
-            <div className="border-b border-border">
-              <nav className="-mb-px flex" aria-label="Tabs">
-                <button
-                  onClick={() => setSelectedTab('timeline')}
-                  className={`${
-                    selectedTab === 'timeline'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
-                  } w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors`}
-                >
-                  Timeline
-                </button>
-                <button
-                  onClick={() => setSelectedTab('documents')}
-                  className={`${
-                    selectedTab === 'documents'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
-                  } w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors`}
-                >
-                  Documents
-                </button>
-              </nav>
-            </div>
-
-            <div className="p-6">
-              {selectedTab === 'timeline' && (
-                <TimelineView steps={timelineSteps} />
-              )}
-              {selectedTab === 'documents' && (
-                <DocumentsView documents={documents} leadId={lead.id} />
-              )}
-            </div>
+          {/* Timeline */}
+          <div className="bg-card shadow-md rounded-lg border border-border p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
+              Project Timeline
+            </h2>
+            <TimelineView steps={timelineSteps} />
           </div>
         </div>
       </div>
@@ -193,7 +178,6 @@ function TimelineView({ steps }: { steps: TimelineStep[] | null }) {
 
         const isCompleted = step.status === 'completed';
         const isPending = step.status === 'pending';
-        const isUpcoming = step.status === 'upcoming';
 
         return (
           <div
@@ -266,77 +250,4 @@ function TimelineView({ steps }: { steps: TimelineStep[] | null }) {
   );
 }
 
-function DocumentsView({ documents, leadId }: { documents: Document[] | null; leadId: string }) {
-  if (!documents || documents.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-sm text-muted-foreground mb-4">No documents uploaded yet.</p>
-        <a
-          href="/customer/profile/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring shadow-sm transition-colors"
-        >
-          Upload Documents
-        </a>
-      </div>
-    );
-  }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium text-foreground">Uploaded Documents</h3>
-        <a
-          href="/customer/profile/new"
-          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring shadow-sm transition-colors"
-        >
-          Upload New Documents
-        </a>
-      </div>
-
-      <div className="overflow-hidden shadow-md ring-1 ring-border rounded-lg">
-        <table className="min-w-full divide-y divide-border">
-          <thead className="bg-muted/50">
-            <tr>
-              <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground sm:pl-6">
-                Document Name
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
-                Category
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
-                Status
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-foreground">
-                Uploaded
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border bg-card">
-            {documents.map((doc) => (
-              <tr key={doc.id} className="hover:bg-muted/30 transition-colors">
-                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">
-                  {doc.file_name}
-                </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
-                  {doc.document_category.replace('_', ' ').toUpperCase()}
-                </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    doc.status === 'valid' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                    doc.status === 'corrupted' ? 'bg-destructive/10 text-destructive' :
-                    'bg-muted text-muted-foreground'
-                  }`}>
-                    {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                  </span>
-                </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
-                  {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : 'N/A'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}

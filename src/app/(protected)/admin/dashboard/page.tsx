@@ -17,7 +17,7 @@ export default async function AdminDashboardPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Get user profile to verify role
@@ -28,12 +28,12 @@ export default async function AdminDashboardPage() {
     .single();
 
   if (profileError || !profile) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Verify user is an admin
   if (profile.role !== 'admin') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch dashboard metrics

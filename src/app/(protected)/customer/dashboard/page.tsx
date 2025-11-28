@@ -16,7 +16,7 @@ export default async function CustomerDashboardPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Get user profile to verify role
@@ -27,12 +27,12 @@ export default async function CustomerDashboardPage() {
     .single();
 
   if (profileError || !profile) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Verify user is a customer
   if (profile.role !== 'customer') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Get the customer's linked lead with customer_id

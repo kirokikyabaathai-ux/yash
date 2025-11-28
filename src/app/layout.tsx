@@ -17,6 +17,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "YAS Natural",
   description: "YAS Natural management system",
+  icons: {
+    icon: [
+      {
+        url: "/yas_logo.jpeg",
+        type: "image/jpeg",
+      },
+    ],
+    apple: [
+      {
+        url: "/yas_logo.jpeg",
+        type: "image/jpeg",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

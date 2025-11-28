@@ -18,7 +18,7 @@ export default async function AgentEditLeadPage({
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   const { data: profile } = await supabase
@@ -28,7 +28,7 @@ export default async function AgentEditLeadPage({
     .single();
 
   if (!profile || profile.role !== 'agent') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch lead (RLS ensures agent can only access their own leads)

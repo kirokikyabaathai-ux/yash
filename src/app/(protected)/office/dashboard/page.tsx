@@ -17,7 +17,7 @@ export default async function OfficeDashboardPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Get user profile to verify role
@@ -28,12 +28,12 @@ export default async function OfficeDashboardPage() {
     .single();
 
   if (profileError || !profile) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Verify user is office team
   if (profile.role !== 'office') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch all data in parallel for better performance

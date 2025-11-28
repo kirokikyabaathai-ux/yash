@@ -21,7 +21,7 @@ export default async function NewCustomerProfilePage({ searchParams }: PageProps
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch user role

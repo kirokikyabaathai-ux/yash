@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     
     if (error) {
       console.error('Auth callback error:', error);
-      return NextResponse.redirect(new URL('/login?error=auth_failed', request.url));
+      return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
     }
 
     // Get user profile to determine dashboard route

@@ -7,6 +7,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { CustomerProfileFormData, Gender } from '@/types/customer';
 import type { Lead } from '@/types/api';
 
@@ -19,6 +20,7 @@ interface CustomerProfileFormProps {
 }
 
 export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, leadId, leadData }: CustomerProfileFormProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState<Partial<CustomerProfileFormData>>({
     name: '',
     gender: undefined,
@@ -599,6 +601,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
 
                 if (response.ok) {
                   alert('Draft saved successfully! You can continue filling the form later.');
+                  router.push('/customer/dashboard');
                 } else {
                   const error = await response.json();
                   alert(`Failed to save draft: ${error.error || 'Unknown error'}`);

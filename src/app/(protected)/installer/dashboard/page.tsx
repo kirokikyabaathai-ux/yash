@@ -17,7 +17,7 @@ export default async function InstallerDashboardPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Get user profile to verify role
@@ -28,12 +28,12 @@ export default async function InstallerDashboardPage() {
     .single();
 
   if (profileError || !profile) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Verify user is an installer
   if (profile.role !== 'installer') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Get assigned leads (RLS will filter to installer's assigned leads)

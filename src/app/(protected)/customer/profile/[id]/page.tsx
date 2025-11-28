@@ -21,7 +21,7 @@ export default async function CustomerProfileViewPage({
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Get user role
@@ -32,7 +32,7 @@ export default async function CustomerProfileViewPage({
     .single();
 
   if (!userData) {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch customer profile

@@ -18,7 +18,7 @@ export default async function AgentLeadDetailPage({
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   const { data: profile } = await supabase
@@ -28,7 +28,7 @@ export default async function AgentLeadDetailPage({
     .single();
 
   if (!profile || profile.role !== 'agent') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch lead data - RLS ensures agent can only see leads they created

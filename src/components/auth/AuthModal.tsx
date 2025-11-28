@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,6 +22,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
 
   // Sync mode with initialMode when it changes
   useEffect(() => {
@@ -27,10 +33,67 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle authentication logic here
-    console.log('Auth submit:', { mode, email, password, name, phone });
+    setIsLoading(true);
+
+    try {
+      if (mode === 'signup') {
+        // Validate passwords match
+        if (password !== confirmPassword) {
+          toast.error('Passwords do not match');
+          setIsLoading(false);
+          return;
+        }
+
+        // Validate password length
+        if (password.length < 8) {
+          toast.error('Password must be at least 8 characters long');
+          setIsLoading(false);
+          return;
+        }
+
+        // Call signup API
+        const response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          toast.error(data.error?.message || 'Signup failed');
+          setIsLoading(false);
+          return;
+        }
+
+        toast.success('Account created successfully!');
+        onClose();
+        router.push('/customer/dashboard');
+      } else {
+        // Login
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          toast.error(error.message);
+          setIsLoading(false);
+          return;
+        }
+
+        toast.success('Logged in successfully!');
+        onClose();
+        router.push('/customer/dashboard');
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -145,8 +208,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
             <Button 
               type="submit" 
               className="w-full font-semibold py-5 sm:py-6 text-base sm:text-lg mt-6 touch-manipulation"
+              disabled={isLoading}
             >
-              {mode === 'login' ? 'Sign In' : 'Create Account'}
+              {isLoading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
 

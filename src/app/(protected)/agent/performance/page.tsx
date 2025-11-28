@@ -13,7 +13,7 @@ export default async function AgentPerformancePage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect('/');
   }
 
   const { data: profile } = await supabase
@@ -23,7 +23,7 @@ export default async function AgentPerformancePage() {
     .single();
 
   if (!profile || profile.role !== 'agent') {
-    redirect('/login');
+    redirect('/');
   }
 
   // Fetch metrics
