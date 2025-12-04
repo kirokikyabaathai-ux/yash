@@ -41,6 +41,16 @@ interface CustomerProfileViewProps {
 export function CustomerProfileView({ profile, userRole }: CustomerProfileViewProps) {
   const canEdit = userRole === 'admin';
 
+  // Format date consistently for SSR/CSR
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -48,7 +58,7 @@ export function CustomerProfileView({ profile, userRole }: CustomerProfileViewPr
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Customer Profile</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Submitted on {new Date(profile.created_at).toLocaleDateString()}
+            Submitted on {formatDate(profile.created_at)}
           </p>
         </div>
         {canEdit && (
@@ -181,12 +191,12 @@ export function CustomerProfileView({ profile, userRole }: CustomerProfileViewPr
 
       {/* Back Button */}
       <div className="flex justify-start">
-        <Link
+        { userRole != "customer" &&  <Link
           href={profile.lead_id ? `/office/leads/${profile.lead_id}` : '/office/dashboard'}
           className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
         >
           Back to Lead
-        </Link>
+        </Link>}
       </div>
     </div>
   );

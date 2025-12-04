@@ -22,7 +22,20 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
     setIsLoading(true);
 
     try {
-      // Upload documents to Supabase Storage
+      const leadId = data.lead_id || leadData?.id || '';
+      
+      // Get existing documents to check what's already uploaded
+      const docsResponse = await fetch(`/api/documents?leadId=${leadId}`);
+      const existingDocs: Record<string, any> = {};
+      
+      if (docsResponse.ok) {
+        const { documents } = await docsResponse.json();
+        documents.forEach((doc: any) => {
+          existingDocs[doc.document_category] = doc;
+        });
+      }
+
+      // Upload only new documents to Supabase Storage
       const documentPaths: Record<string, string> = {};
       const documentMetadata: Record<string, any> = {};
       
@@ -38,11 +51,22 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
 
       for (const field of documentFields) {
         const file = data[field];
-        if (file) {
+        
+        // Check if document already exists
+        if (existingDocs[field]) {
+          // Use existing document path
+          documentPaths[`${field}_path`] = existingDocs[field].file_path;
+          documentMetadata[field] = {
+            fileName: existingDocs[field].file_name,
+            fileSize: existingDocs[field].file_size,
+            mimeType: existingDocs[field].mime_type,
+          };
+        } else if (file) {
+          // Upload new file
           const formData = new FormData();
           formData.append('file', file);
           formData.append('field', field);
-          formData.append('leadId', data.lead_id || leadData?.id || '');
+          formData.append('leadId', leadId);
 
           const uploadResponse = await fetch('/api/customer-profiles/upload', {
             method: 'POST',
@@ -99,8 +123,8 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
       
       alert('Customer profile created successfully!');
       
-      // Redirect to profile view page
-      router.push(`/customer/profile/${result.id}`);
+      // Redirect to dashboard to see updated status
+      router.push('/customer/dashboard');
       router.refresh();
     } catch (error) {
       console.error('Error creating customer profile:', error);

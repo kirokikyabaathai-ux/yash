@@ -7,11 +7,12 @@
  * Requirements: 3.5
  */
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { Database } from '@/types/database';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { StatusHistory } from './StatusHistory';
+import { Timeline } from '@/components/timeline/Timeline';
+import type { TimelineStepData } from '@/components/timeline/TimelineStep';
 
 type User = Database['public']['Tables']['users']['Row'];
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -150,10 +151,25 @@ export function CustomerDashboardContent({
 
           {/* Timeline */}
           <div className="bg-card shadow-md rounded-lg border border-border p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Project Timeline
-            </h2>
-            <TimelineView steps={timelineSteps} />
+            {timelineSteps && timelineSteps.length > 0 ? (
+              <Timeline
+                leadId={lead.id}
+                userRole="customer"
+                userId={user.id}
+                leadStatus={lead.status}
+                leadInstallerId={lead.installer_id}
+                initialSteps={transformTimelineSteps(timelineSteps)}
+              />
+            ) : (
+              <>
+                <h2 className="text-lg font-semibold text-foreground mb-4">
+                  Project Timeline
+                </h2>
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No timeline steps available yet.</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -161,93 +177,25 @@ export function CustomerDashboardContent({
   );
 }
 
-function TimelineView({ steps }: { steps: TimelineStep[] | null }) {
-  if (!steps || steps.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-sm text-muted-foreground">No timeline steps available yet.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {steps.map((step, index) => {
-        const stepMaster = step.step_master;
-        if (!stepMaster) return null;
-
-        const isCompleted = step.status === 'completed';
-        const isPending = step.status === 'pending';
-
-        return (
-          <div
-            key={step.id}
-            className={`border rounded-lg p-4 transition-colors ${
-              isCompleted ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' :
-              isPending ? 'border-accent bg-accent/50' :
-              'border-border bg-muted/50'
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center">
-                  <span className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium shadow-sm ${
-                    isCompleted ? 'bg-green-500 text-white dark:bg-green-600' :
-                    isPending ? 'bg-primary text-primary-foreground' :
-                    'bg-muted text-muted-foreground'
-                  }`}>
-                    {index + 1}
-                  </span>
-                  <h3 className="ml-3 text-base font-medium text-foreground">
-                    {stepMaster.step_name}
-                  </h3>
-                </div>
-                
-                {step.remarks && (
-                  <div className="mt-2 ml-11">
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">Remarks:</span> {step.remarks}
-                    </p>
-                  </div>
-                )}
-
-                {isCompleted && step.completed_at && (
-                  <div className="mt-2 ml-11 text-sm text-muted-foreground">
-                    <p>
-                      Completed on {new Date(step.completed_at).toLocaleDateString()} 
-                      {step.completed_by_user && ` by ${step.completed_by_user.name}`}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  isCompleted ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                  isPending ? 'bg-primary/10 text-primary' :
-                  'bg-muted text-muted-foreground'
-                }`}>
-                  {step.status.charAt(0).toUpperCase() + step.status.slice(1)}
-                </span>
-              </div>
-            </div>
-
-            {/* Show upload button if customer can upload for this step */}
-            {isPending && stepMaster.customer_upload && (
-              <div className="mt-4 ml-11">
-                <a
-                  href="/customer/profile/new"
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring shadow-sm transition-colors"
-                >
-                  Upload Documents
-                </a>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+// Transform timeline steps from database format to Timeline component format
+function transformTimelineSteps(steps: TimelineStep[]): TimelineStepData[] {
+  return steps.map((step) => ({
+    id: step.id,
+    step_id: step.step_id,
+    step_name: step.step_master?.step_name || 'Unknown Step',
+    order_index: step.step_master?.order_index || 0,
+    status: step.status,
+    completed_by: step.completed_by,
+    completed_by_name: step.completed_by_user?.name || null,
+    completed_at: step.completed_at,
+    remarks: step.remarks,
+    attachments: step.attachments,
+    allowed_roles: (step.step_master?.allowed_roles || []) as any[],
+    remarks_required: step.step_master?.remarks_required || false,
+    attachments_allowed: step.step_master?.attachments_allowed || false,
+    customer_upload: step.step_master?.customer_upload || false,
+    requires_installer_assignment: false,
+  }));
 }
 
 

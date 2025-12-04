@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,33 +64,98 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert customer profile
-    const { data, error } = await supabase
+    // Check if a draft exists for this lead
+    const { data: existingDraft } = await supabase
       .from('customer_profiles')
-      .insert({
-        user_id: targetUserId,
-        lead_id: body.lead_id,
-        name: body.name,
-        gender: body.gender,
-        address_line_1: body.address_line_1,
-        address_line_2: body.address_line_2,
-        pin_code: body.pin_code,
-        state: body.state,
-        district: body.district,
-        account_holder_name: body.account_holder_name,
-        bank_account_number: body.bank_account_number,
-        bank_name: body.bank_name,
-        ifsc_code: body.ifsc_code,
-        aadhaar_front_path: body.aadhaar_front_path,
-        aadhaar_back_path: body.aadhaar_back_path,
-        electricity_bill_path: body.electricity_bill_path,
-        bank_passbook_path: body.bank_passbook_path,
-        cancelled_cheque_path: body.cancelled_cheque_path,
-        pan_card_path: body.pan_card_path,
-        itr_documents_path: body.itr_documents_path,
-      })
-      .select()
+      .select('id, status')
+      .eq('user_id', targetUserId)
+      .eq('lead_id', body.lead_id)
+      .eq('status', 'draft')
       .single();
+
+    let data, error;
+
+    if (existingDraft) {
+      // Update existing draft and mark as submitted
+      const result = await supabase
+        .from('customer_profiles')
+        .update({
+          name: body.name,
+          gender: body.gender,
+          address_line_1: body.address_line_1,
+          address_line_2: body.address_line_2,
+          pin_code: body.pin_code,
+          state: body.state,
+          district: body.district,
+          account_holder_name: body.account_holder_name,
+          bank_account_number: body.bank_account_number,
+          bank_name: body.bank_name,
+          ifsc_code: body.ifsc_code,
+          aadhaar_front_path: body.aadhaar_front_path,
+          aadhaar_back_path: body.aadhaar_back_path,
+          electricity_bill_path: body.electricity_bill_path,
+          bank_passbook_path: body.bank_passbook_path,
+          cancelled_cheque_path: body.cancelled_cheque_path,
+          pan_card_path: body.pan_card_path,
+          itr_documents_path: body.itr_documents_path,
+          status: 'submitted',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingDraft.id)
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    } else {
+      // Check if already submitted profile exists
+      const { data: submittedProfile } = await supabase
+        .from('customer_profiles')
+        .select('id')
+        .eq('user_id', targetUserId)
+        .eq('lead_id', body.lead_id)
+        .eq('status', 'submitted')
+        .single();
+
+      if (submittedProfile) {
+        return NextResponse.json(
+          { error: 'Customer profile already submitted for this lead' },
+          { status: 400 }
+        );
+      }
+
+      // Insert new customer profile as submitted
+      const result = await supabase
+        .from('customer_profiles')
+        .insert({
+          user_id: targetUserId,
+          lead_id: body.lead_id,
+          name: body.name,
+          gender: body.gender,
+          address_line_1: body.address_line_1,
+          address_line_2: body.address_line_2,
+          pin_code: body.pin_code,
+          state: body.state,
+          district: body.district,
+          account_holder_name: body.account_holder_name,
+          bank_account_number: body.bank_account_number,
+          bank_name: body.bank_name,
+          ifsc_code: body.ifsc_code,
+          aadhaar_front_path: body.aadhaar_front_path,
+          aadhaar_back_path: body.aadhaar_back_path,
+          electricity_bill_path: body.electricity_bill_path,
+          bank_passbook_path: body.bank_passbook_path,
+          cancelled_cheque_path: body.cancelled_cheque_path,
+          pan_card_path: body.pan_card_path,
+          itr_documents_path: body.itr_documents_path,
+          status: 'submitted',
+        })
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error('Error creating customer profile:', error);
@@ -141,27 +207,46 @@ export async function POST(request: NextRequest) {
     }
 
     // Update lead status to 'lead_processing' if it's still in 'lead' or 'lead_interested' status
+    // Use service role client to bypass RLS policies (customers can't update leads)
     if (body.lead_id) {
       try {
-        const { data: leadData } = await supabase
+        console.log('Checking lead status for lead_id:', body.lead_id);
+        const serviceClient = createServiceRoleClient();
+        
+        const { data: leadData, error: leadError } = await serviceClient
           .from('leads')
           .select('status')
           .eq('id', body.lead_id)
           .single();
 
-        if (leadData && (leadData.status === 'lead' || leadData.status === 'lead_interested')) {
-          await supabase
+        console.log('Current lead status:', leadData?.status);
+
+        if (leadError) {
+          console.error('Error fetching lead status:', leadError);
+        } else if (leadData && (leadData.status === 'lead' || leadData.status === 'lead_interested')) {
+          console.log('Updating lead status to lead_processing');
+          const { error: updateError } = await serviceClient
             .from('leads')
             .update({ 
               status: 'lead_processing' as const,
               updated_at: new Date().toISOString()
             })
             .eq('id', body.lead_id);
+
+          if (updateError) {
+            console.error('Error updating lead status:', updateError);
+          } else {
+            console.log('Lead status updated successfully to lead_processing');
+          }
+        } else {
+          console.log('Lead status not updated. Current status:', leadData?.status);
         }
       } catch (statusErr) {
         console.error('Error updating lead status:', statusErr);
         // Don't fail the request
       }
+    } else {
+      console.log('No lead_id provided, skipping lead status update');
     }
 
     return NextResponse.json(data, { status: 201 });

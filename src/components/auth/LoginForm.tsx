@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Eye, EyeOff } from 'lucide-react';
 
 export function LoginForm() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export function LoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
     errorParam === 'account_disabled' ? 'Your account has been disabled. Please contact support.' : null
@@ -151,22 +153,37 @@ export function LoginForm() {
               disabled={loading}
             />
           </div>
-          <div>
+          <div className="relative">
             <label htmlFor="password" className="sr-only">
               Password
             </label>
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               required
-              className="relative block w-full rounded-b-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+              className="relative block w-full rounded-b-md border-0 py-1.5 px-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              disabled={loading}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Eye className="h-5 w-5" aria-hidden="true" />
+              )}
+              <span className="sr-only">
+                {showPassword ? 'Hide password' : 'Show password'}
+              </span>
+            </button>
           </div>
         </div>
 

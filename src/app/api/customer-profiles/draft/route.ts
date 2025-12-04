@@ -34,12 +34,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get draft
+    // Get draft from customer_profiles with status = 'draft'
     const { data: draft, error } = await supabase
-      .from('customer_profile_drafts')
+      .from('customer_profiles')
       .select('*')
       .eq('user_id', user.id)
       .eq('lead_id', leadId)
+      .eq('status', 'draft')
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/customer-profiles/draft
- * Save or update draft
+ * Save or update draft (JSON only)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -83,24 +84,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if draft exists
+    // Check if draft exists in customer_profiles
     const { data: existingDraft } = await supabase
-      .from('customer_profile_drafts')
-      .select('id')
+      .from('customer_profiles')
+      .select('id, status')
       .eq('user_id', user.id)
       .eq('lead_id', leadId)
+      .eq('status', 'draft')
       .single();
 
     let result;
 
     if (existingDraft) {
-      // Update existing draft
+      // Check if already submitted - cannot edit submitted profiles
+      if (existingDraft.status === 'submitted') {
+        return NextResponse.json(
+          { error: 'Cannot edit submitted profile' },
+          { status: 403 }
+        );
+      }
+
+      // Update existing draft - only update provided fields
+      const updateData: any = {
+        status: 'draft',
+        updated_at: new Date().toISOString(),
+      };
+
+      // Only include fields that are provided
+      if (draftData.name !== undefined) updateData.name = draftData.name || '';
+      if (draftData.gender !== undefined) updateData.gender = draftData.gender;
+      if (draftData.address_line_1 !== undefined)
+        updateData.address_line_1 = draftData.address_line_1 || '';
+      if (draftData.address_line_2 !== undefined)
+        updateData.address_line_2 = draftData.address_line_2;
+      if (draftData.pin_code !== undefined)
+        updateData.pin_code = draftData.pin_code || '';
+      if (draftData.state !== undefined) updateData.state = draftData.state || '';
+      if (draftData.district !== undefined)
+        updateData.district = draftData.district || '';
+      if (draftData.account_holder_name !== undefined)
+        updateData.account_holder_name = draftData.account_holder_name || '';
+      if (draftData.bank_account_number !== undefined)
+        updateData.bank_account_number = draftData.bank_account_number || '';
+      if (draftData.bank_name !== undefined)
+        updateData.bank_name = draftData.bank_name || '';
+      if (draftData.ifsc_code !== undefined)
+        updateData.ifsc_code = draftData.ifsc_code || '';
+
       const { data, error } = await supabase
-        .from('customer_profile_drafts')
-        .update({
-          draft_data: draftData,
-          updated_at: new Date().toISOString(),
-        })
+        .from('customer_profiles')
+        .update(updateData)
         .eq('id', existingDraft.id)
         .select()
         .single();
@@ -112,13 +145,24 @@ export async function POST(request: NextRequest) {
 
       result = data;
     } else {
-      // Create new draft
+      // Create new draft with required fields having default values
       const { data, error } = await supabase
-        .from('customer_profile_drafts')
+        .from('customer_profiles')
         .insert({
           user_id: user.id,
           lead_id: leadId,
-          draft_data: draftData,
+          name: draftData.name || '',
+          gender: draftData.gender || null,
+          address_line_1: draftData.address_line_1 || '',
+          address_line_2: draftData.address_line_2 || null,
+          pin_code: draftData.pin_code || '',
+          state: draftData.state || '',
+          district: draftData.district || '',
+          account_holder_name: draftData.account_holder_name || '',
+          bank_account_number: draftData.bank_account_number || '',
+          bank_name: draftData.bank_name || '',
+          ifsc_code: draftData.ifsc_code || '',
+          status: 'draft',
         })
         .select()
         .single();
@@ -168,10 +212,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { error } = await supabase
-      .from('customer_profile_drafts')
+      .from('customer_profiles')
       .delete()
       .eq('user_id', user.id)
-      .eq('lead_id', leadId);
+      .eq('lead_id', leadId)
+      .eq('status', 'draft');
 
     if (error) {
       console.error('Error deleting draft:', error);

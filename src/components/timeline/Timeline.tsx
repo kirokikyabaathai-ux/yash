@@ -8,7 +8,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { type TimelineStepData } from './TimelineStep';
 import { StepCompletionModal } from './StepCompletionModal';
 
@@ -22,15 +22,37 @@ interface TimelineProps {
   onStepComplete?: () => void;
 }
 
-export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initialSteps = [], onStepComplete }: TimelineProps) {
-  const steps = initialSteps;
+export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId, initialSteps = [], onStepComplete }: TimelineProps) {
+  const [steps, setSteps] = useState<TimelineStepData[]>(initialSteps);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completingStep, setCompletingStep] = useState<TimelineStepData | null>(null);
+  const timelineContainerRef = useRef<HTMLDivElement>(null);
+  const stepRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   
   // Check if project is closed
   const isProjectClosed = leadStatus === 'completed';
   const canModifyClosedProject = userRole === 'admin';
+
+  // Scroll to the latest completed step on mount and when steps change
+  useEffect(() => {
+    const lastCompletedIndex = steps.map(s => s.status).lastIndexOf('completed');
+    if (lastCompletedIndex >= 0 && timelineContainerRef.current) {
+      const stepId = steps[lastCompletedIndex].id;
+      const stepElement = stepRefs.current.get(stepId);
+      
+      if (stepElement) {
+        // Smooth scroll to center the latest completed step
+        setTimeout(() => {
+          stepElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center'
+          });
+        }, 100);
+      }
+    }
+  }, [steps]);
 
   const canEditStep = (step: TimelineStepData): boolean => {
     // If project is closed, only admin can edit
@@ -80,6 +102,25 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
         throw new Error(errorData.error?.message || 'Failed to complete step');
       }
 
+      const result = await response.json();
+
+      // Update the local state with the completed step
+      setSteps((prevSteps) =>
+        prevSteps.map((step) =>
+          step.id === completingStep.id
+            ? {
+                ...step,
+                status: 'completed' as const,
+                completed_by: userId,
+                completed_by_name: result.data?.completed_by_name || null,
+                completed_at: result.data?.completed_at || new Date().toISOString(),
+                remarks: data.remarks || null,
+                attachments: data.attachments || null,
+              }
+            : step
+        )
+      );
+
       setCompletingStep(null);
       
       if (onStepComplete) {
@@ -109,6 +150,23 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
         const errorData = await response.json();
         throw new Error(errorData.error?.message || 'Failed to reopen step');
       }
+
+      // Update the local state with the reopened step
+      setSteps((prevSteps) =>
+        prevSteps.map((step) =>
+          step.id === stepId
+            ? {
+                ...step,
+                status: 'pending' as const,
+                completed_by: null,
+                completed_by_name: null,
+                completed_at: null,
+                remarks: null,
+                attachments: null,
+              }
+            : step
+        )
+      );
 
       if (onStepComplete) {
         onStepComplete();
@@ -231,11 +289,20 @@ export function Timeline({ leadId, userRole, leadStatus, leadInstallerId, initia
       </div>
 
       {/* Horizontal Timeline - Scrollable */}
-      <div className="overflow-x-auto pb-4 pt-2">
+      <div ref={timelineContainerRef} className="overflow-x-auto pb-4 pt-2">
         <div className="relative flex items-start justify-between min-w-max">
           {steps.map((step, index) => (
           <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center relative z-10 flex-shrink-0">
+            <div 
+              ref={(el) => {
+                if (el) {
+                  stepRefs.current.set(step.id, el);
+                } else {
+                  stepRefs.current.delete(step.id);
+                }
+              }}
+              className="flex flex-col items-center relative z-10 flex-shrink-0"
+            >
               <div
                 className={`w-6 h-6 rounded-full ${getStatusColor(
                   step.status

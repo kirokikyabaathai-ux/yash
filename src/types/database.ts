@@ -130,6 +130,7 @@ export type Database = {
           pan_card_path: string | null
           pin_code: string
           state: string
+          status: 'draft' | 'submitted'
           updated_at: string | null
           user_id: string | null
         }
@@ -155,6 +156,7 @@ export type Database = {
           pan_card_path?: string | null
           pin_code: string
           state: string
+          status?: 'draft' | 'submitted'
           updated_at?: string | null
           user_id?: string | null
         }
@@ -180,6 +182,7 @@ export type Database = {
           pan_card_path?: string | null
           pin_code?: string
           state?: string
+          status?: 'draft' | 'submitted'
           updated_at?: string | null
           user_id?: string | null
         }
@@ -555,7 +558,7 @@ export type Database = {
       update_lead_status: { Args: { p_lead_id: string }; Returns: Json }
     }
     Enums: {
-      [_ in never]: never
+      customer_profile_status: 'draft' | 'submitted'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -682,7 +685,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      customer_profile_status: ['draft', 'submitted'] as const,
+    },
   },
 } as const
 
@@ -699,3 +704,4 @@ export type LeadSource = 'agent' | 'office' | 'customer' | 'self';
 export type DocumentType = 'mandatory' | 'optional' | 'installation' | 'customer' | 'admin';
 export type DocumentStatus = 'valid' | 'corrupted' | 'replaced';
 export type StepStatus = 'upcoming' | 'pending' | 'completed';
+export type CustomerProfileStatus = 'draft' | 'submitted';

@@ -49,12 +49,12 @@ export default async function NewCustomerProfilePage({ searchParams }: PageProps
     // Check if profile already exists for this lead
     const { data: existingProfile } = await supabase
       .from('customer_profiles')
-      .select('id')
+      .select('id, status')
       .eq('lead_id', params.leadId)
       .single();
 
-    // If profile exists, redirect to view page (unless admin)
-    if (existingProfile && userData.role !== 'admin') {
+    // If submitted profile exists, redirect to view page (unless admin)
+    if (existingProfile && existingProfile.status === 'submitted' && userData.role !== 'admin') {
       redirect(`/customer/profile/${existingProfile.id}`);
     }
   }
