@@ -17,7 +17,7 @@ export async function POST(
     const supabase = await createClient();
     const { id: leadId, stepId: leadStepId } = await params;
 
-    // Check authentication
+    // Check authentication - Supabase Auth cookies are set during NextAuth login
     const {
       data: { user },
       error: authError,

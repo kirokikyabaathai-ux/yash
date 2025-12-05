@@ -2,7 +2,9 @@
  * Lead Detail Client Component
  * 
  * Client-side wrapper for lead detail page with timeline and forms.
- * Used by office team to manage leads.
+ * Uses PageLayout and Card components for consistent structure.
+ * 
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 6.3
  */
 
 'use client';
@@ -12,6 +14,9 @@ import Link from 'next/link';
 import { Timeline } from '@/components/timeline/Timeline';
 import { DocumentListContainer } from '@/components/documents/DocumentListContainer';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { Lead } from '@/types/api';
 import { useRouter } from 'next/navigation';
 import type { TimelineStepData } from '@/components/timeline/TimelineStep';
@@ -64,119 +69,113 @@ export function LeadDetailClient({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <Link
-          href={backUrl}
-          className="text-sm text-blue-600 hover:text-blue-700 mb-4 inline-block"
-        >
-          ← {backLabel}
-        </Link>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {lead.customer_name}
-            </h1>
-            <p className="mt-2 text-sm text-gray-600">
-              {lead.customer_account?.customer_id ? (
-                <>Customer ID: {lead.customer_account.customer_id}</>
-              ) : (
-                <>Lead ID: {lead.id}</>
-              )}
-            </p>
-          </div>
-          <LeadStatusBadge status={lead.status} className="text-sm px-3 py-1" />
-        </div>
-      </div>
+    <PageLayout
+      title={lead.customer_name}
+      description={
+        lead.customer_account?.customer_id
+          ? `Customer ID: ${lead.customer_account.customer_id}`
+          : `Lead ID: ${lead.id}`
+      }
+      breadcrumbs={[
+        { label: backLabel, href: backUrl },
+        { label: lead.customer_name },
+      ]}
+      actions={<LeadStatusBadge status={lead.status} />}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Lead Information */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Lead Information
-            </h2>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Customer Name</dt>
-                <dd className="mt-1 text-sm text-gray-900">{lead.customer_name}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                <dd className="mt-1 text-sm text-gray-900">{lead.phone}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Email</dt>
-                <dd className="mt-1 text-sm text-gray-900">{lead.email || 'N/A'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Source</dt>
-                <dd className="mt-1 text-sm text-gray-900 capitalize">{lead.source}</dd>
-              </div>
-              <div className="md:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Address</dt>
-                <dd className="mt-1 text-sm text-gray-900">{lead.address}</dd>
-              </div>
-              {lead.notes && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Lead Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Customer Name</dt>
+                  <dd className="mt-1 text-sm">{lead.customer_name}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
+                  <dd className="mt-1 text-sm">{lead.phone}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Email</dt>
+                  <dd className="mt-1 text-sm">{lead.email || 'N/A'}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Source</dt>
+                  <dd className="mt-1 text-sm capitalize">{lead.source}</dd>
+                </div>
                 <div className="md:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Notes</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{lead.notes}</dd>
+                  <dt className="text-sm font-medium text-muted-foreground">Address</dt>
+                  <dd className="mt-1 text-sm">{lead.address}</dd>
                 </div>
-              )}
-              {lead.created_by_user && (
+                {lead.notes && (
+                  <div className="md:col-span-2">
+                    <dt className="text-sm font-medium text-muted-foreground">Notes</dt>
+                    <dd className="mt-1 text-sm">{lead.notes}</dd>
+                  </div>
+                )}
+                {lead.created_by_user && (
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">Created By</dt>
+                    <dd className="mt-1 text-sm">{lead.created_by_user.name}</dd>
+                  </div>
+                )}
+                {lead.installer && (
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">Assigned Installer</dt>
+                    <dd className="mt-1 text-sm">
+                      {lead.installer.name} ({lead.installer.phone})
+                    </dd>
+                  </div>
+                )}
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Created By</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{lead.created_by_user.name}</dd>
-                </div>
-              )}
-              {lead.installer && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Assigned Installer</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {lead.installer.name} ({lead.installer.phone})
+                  <dt className="text-sm font-medium text-muted-foreground">Created At</dt>
+                  <dd className="mt-1 text-sm">
+                    {lead.created_at ? new Date(lead.created_at).toLocaleString() : 'N/A'}
                   </dd>
                 </div>
-              )}
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Created At</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {lead.created_at ? new Date(lead.created_at).toLocaleString() : 'N/A'}
-                </dd>
-              </div>
-            </dl>
-          </div>
+              </dl>
+            </CardContent>
+          </Card>
 
           {/* Documents */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Documents
-            </h2>
-            <DocumentListContainer leadId={lead.id} userRole={userRole} />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Documents</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DocumentListContainer leadId={lead.id} userRole={userRole} />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Quick Actions
-            </h2>
-            <div className="space-y-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
               {/* Edit Lead Button - For agents editing their own leads */}
               {userRole === 'agent' && (
-                <Link
-                  href={`/agent/leads/${lead.id}/edit`}
-                  className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-blue-700"
-                >
-                  Edit Lead
-                </Link>
+                <Button asChild className="w-full">
+                  <Link href={`/agent/leads/${lead.id}/edit`}>
+                    Edit Lead
+                  </Link>
+                </Button>
               )}
 
               {/* Mark as Interested Button */}
               {lead.status === 'lead' && ['admin', 'office', 'agent'].includes(userRole) && (
-                <button
+                <Button
+                  variant="default"
+                  className="w-full bg-green-600 hover:bg-green-700"
                   onClick={async () => {
                     if (confirm('Mark this lead as interested? This means the customer has agreed to proceed.')) {
                       try {
@@ -198,63 +197,60 @@ export function LeadDetailClient({
                       }
                     }
                   }}
-                  className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-green-700"
                 >
                   Mark as Interested
-                </button>
+                </Button>
               )}
               
               {/* Fill Customer Form Button */}
               {(lead.status === 'lead' || lead.status === 'lead_interested') && (
-                <Link
-                  href={`/customer/profile/new?leadId=${lead.id}`}
-                  className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-blue-700"
-                >
-                  Fill Customer Profile Form
-                </Link>
+                <Button asChild className="w-full">
+                  <Link href={`/customer/profile/new?leadId=${lead.id}`}>
+                    Fill Customer Profile Form
+                  </Link>
+                </Button>
               )}
               
-              <a
-                href={`tel:${lead.phone}`}
-                className="block w-full text-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Call Customer
-              </a>
-              {lead.email && (
-                <a
-                  href={`mailto:${lead.email}`}
-                  className="block w-full text-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Email Customer
+              <Button asChild variant="outline" className="w-full">
+                <a href={`tel:${lead.phone}`}>
+                  Call Customer
                 </a>
+              </Button>
+              
+              {lead.email && (
+                <Button asChild variant="outline" className="w-full">
+                  <a href={`mailto:${lead.email}`}>
+                    Email Customer
+                  </a>
+                </Button>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Customer Account Info */}
           {lead.customer_account && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Customer Account
-              </h2>
-              <dl className="space-y-3">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Name</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{lead.customer_account.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{lead.customer_account.email}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{lead.customer_account.phone}</dd>
-                </div>
-              </dl>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Customer Account</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="space-y-3">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">Name</dt>
+                    <dd className="mt-1 text-sm">{lead.customer_account.name}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">Email</dt>
+                    <dd className="mt-1 text-sm">{lead.customer_account.email}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
+                    <dd className="mt-1 text-sm">{lead.customer_account.phone}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
           )}
-
-
         </div>
       </div>
 
@@ -262,7 +258,7 @@ export function LeadDetailClient({
       <div className="mt-8">
         {isLoadingSteps ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         ) : (
           <Timeline 
@@ -275,6 +271,6 @@ export function LeadDetailClient({
           />
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }

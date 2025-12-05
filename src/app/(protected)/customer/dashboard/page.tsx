@@ -18,6 +18,9 @@ export default async function CustomerDashboardPage() {
     redirect('/');
   }
 
+  // createClient() automatically handles Supabase Auth session
+  // It reads cookies OR restores from NextAuth tokens
+  // RLS policies will work correctly
   const supabase = await createClient();
 
   // Get user profile from Supabase using session user ID
@@ -36,8 +39,8 @@ export default async function CustomerDashboardPage() {
     redirect('/');
   }
 
-  // Get the customer's linked lead with customer_id
-  const { data: lead, error: leadError } = await supabase
+  // Get the customer's linked lead
+  const { data: lead } = await supabase
     .from('leads')
     .select(`
       *,
@@ -46,7 +49,7 @@ export default async function CustomerDashboardPage() {
       )
     `)
     .eq('customer_account_id', session.user.id)
-    .single();
+    .maybeSingle();
 
   // Get timeline steps if lead exists
   let timelineSteps = null;

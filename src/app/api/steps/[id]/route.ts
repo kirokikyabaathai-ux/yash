@@ -9,48 +9,44 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
     const { id: stepId } = await params;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    // Check authentication using NextAuth
+    const session = await auth();
+    const user = session?.user;
 
-    if (authError || !user) {
+    if (!session || !user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    // Check if user is admin
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (userError || !userData) {
+    // Check if user account is disabled
+    if (user.status === 'disabled') {
       return NextResponse.json(
-        { error: { code: 'USER_NOT_FOUND', message: 'User not found' } },
-        { status: 404 }
+        { error: { code: 'FORBIDDEN', message: 'Account disabled' } },
+        { status: 403 }
       );
     }
 
-    if (userData.role !== 'admin') {
+    // Check if user is admin
+    if (user.role !== 'admin') {
       return NextResponse.json(
         { error: { code: 'FORBIDDEN', message: 'Admin access required' } },
         { status: 403 }
       );
     }
+
+    // Use regular client - RLS policies handle admin-only write access
+    const supabase = await createClient();
 
     // Parse request body
     const body = await request.json();
@@ -113,55 +109,58 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
     const { id: stepId } = await params;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    // Check authentication using NextAuth
+    const session = await auth();
+    const user = session?.user;
 
-    if (authError || !user) {
+    if (!session || !user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    // Check if user is admin
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (userError || !userData) {
+    // Check if user account is disabled
+    if (user.status === 'disabled') {
       return NextResponse.json(
-        { error: { code: 'USER_NOT_FOUND', message: 'User not found' } },
-        { status: 404 }
+        { error: { code: 'FORBIDDEN', message: 'Account disabled' } },
+        { status: 403 }
       );
     }
 
-    if (userData.role !== 'admin') {
+    // Check if user is admin
+    if (user.role !== 'admin') {
       return NextResponse.json(
         { error: { code: 'FORBIDDEN', message: 'Admin access required' } },
         { status: 403 }
       );
     }
 
+    // Use regular client - RLS policies handle admin-only write access
+    const supabase = await createClient();
+
     // Delete step (cascade will handle lead_steps)
     // No need to update order_index of other steps - gaps are fine
-    const { error: deleteError } = await supabase
+    const { data, error: deleteError } = await supabase
       .from('step_master')
       .delete()
-      .eq('id', stepId);
+      .eq('id', stepId)
+      .select();
 
     if (deleteError) {
       console.error('Error deleting step:', deleteError);
       return NextResponse.json(
         { error: { code: 'DATABASE_ERROR', message: 'Failed to delete step' } },
         { status: 500 }
+      );
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Step not found' } },
+        { status: 404 }
       );
     }
 

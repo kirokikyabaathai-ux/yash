@@ -10,6 +10,8 @@
 
 import React, { useState } from 'react';
 import type { Lead, LeadStep, StepMaster } from '@/types/api';
+import { getPolishedInputClasses, standardTransitions } from '@/lib/design-system';
+import { cn } from '@/lib/utils';
 
 interface SubsidyFormProps {
   lead: Lead;
@@ -217,7 +219,7 @@ export function SubsidyForm({
             value={subsidyDetails.applicationReference}
             onChange={(e) => handleInputChange('applicationReference', e.target.value)}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={getPolishedInputClasses('w-full px-3 py-2 text-sm')}
             placeholder="Enter application reference number"
             required
           />
@@ -237,7 +239,7 @@ export function SubsidyForm({
             onChange={(e) => handleInputChange('submissionDate', e.target.value)}
             max={new Date().toISOString().split('T')[0]}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={getPolishedInputClasses('w-full px-3 py-2 text-sm')}
             required
           />
         </div>
@@ -257,7 +259,7 @@ export function SubsidyForm({
             min="0"
             step="0.01"
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={getPolishedInputClasses('w-full px-3 py-2 text-sm')}
             placeholder="Enter subsidy amount"
             required
           />
@@ -276,7 +278,7 @@ export function SubsidyForm({
             value={subsidyDetails.subsidyScheme}
             onChange={(e) => handleInputChange('subsidyScheme', e.target.value)}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={getPolishedInputClasses('w-full px-3 py-2 text-sm')}
             placeholder="e.g., PM Surya Ghar"
             required
           />
@@ -295,7 +297,7 @@ export function SubsidyForm({
             value={subsidyDetails.expectedReleaseDate}
             onChange={(e) => handleInputChange('expectedReleaseDate', e.target.value)}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={getPolishedInputClasses('w-full px-3 py-2 text-sm')}
           />
         </div>
 
@@ -312,7 +314,7 @@ export function SubsidyForm({
             onChange={(e) => handleInputChange('remarks', e.target.value)}
             disabled={isSubmitting}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={getPolishedInputClasses('w-full px-3 py-2 text-sm')}
             placeholder="Any additional notes about the subsidy application..."
           />
         </div>
@@ -321,7 +323,12 @@ export function SubsidyForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            className={cn(
+              'flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium',
+              standardTransitions.button,
+              'hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              'disabled:opacity-50 disabled:cursor-not-allowed'
+            )}
           >
             {isSubmitting ? 'Submitting Application...' : 'Submit Subsidy Application'}
           </button>

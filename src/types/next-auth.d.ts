@@ -27,5 +27,7 @@ declare module "next-auth/jwt" {
     name: string;
     role: string;
     status: string;
+    supabaseAccessToken?: string;
+    supabaseRefreshToken?: string;
   }
 }

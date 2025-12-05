@@ -11,6 +11,16 @@ import { useRouter } from 'next/navigation';
 import type { CustomerProfileFormData } from '@/types/customer';
 import type { Lead } from '@/types/api';
 import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { LoadingButton } from '@/components/ui/loading-button';
 
 interface CustomerProfileFormProps {
   onSubmit: (data: CustomerProfileFormData) => Promise<void>;
@@ -376,37 +386,37 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Name <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={`mt-1 block w-full rounded-md border ${
-                errors.name ? 'border-red-300' : 'border-gray-300'
-              } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+              className={errors.name ? 'border-destructive' : ''}
+              aria-invalid={!!errors.name}
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
           </div>
 
           <div>
             <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
               Gender
             </label>
-            <select
-              id="gender"
-              name="gender"
+            <Select
               value={formData.gender || ''}
-              onChange={handleChange}
+              onValueChange={(value) => handleChange({ target: { name: 'gender', value } } as any)}
               disabled={isLoading || isSubmitted}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value="">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -419,19 +429,18 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             <label htmlFor="address_line_1" className="block text-sm font-medium text-gray-700">
               Address Line 1 <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               type="text"
               id="address_line_1"
               name="address_line_1"
               value={formData.address_line_1}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={`mt-1 block w-full rounded-md border ${
-                errors.address_line_1 ? 'border-red-300' : 'border-gray-300'
-              } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+              className={errors.address_line_1 ? 'border-destructive' : ''}
+              aria-invalid={!!errors.address_line_1}
             />
             {errors.address_line_1 && (
-              <p className="mt-1 text-sm text-red-600">{errors.address_line_1}</p>
+              <p className="mt-1 text-sm text-destructive">{errors.address_line_1}</p>
             )}
           </div>
 
@@ -439,14 +448,13 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             <label htmlFor="address_line_2" className="block text-sm font-medium text-gray-700">
               Address Line 2
             </label>
-            <input
+            <Input
               type="text"
               id="address_line_2"
               name="address_line_2"
               value={formData.address_line_2}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -455,7 +463,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               <label htmlFor="pin_code" className="block text-sm font-medium text-gray-700">
                 Pin Code <span className="text-red-500">*</span>
               </label>
-              <input
+              <Input
                 type="text"
                 inputMode="numeric"
                 id="pin_code"
@@ -465,47 +473,44 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                 disabled={isLoading || isSubmitted}
                 maxLength={6}
                 placeholder="123456"
-                className={`mt-1 block w-full rounded-md border ${
-                  errors.pin_code ? 'border-red-300' : 'border-gray-300'
-                } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                className={errors.pin_code ? 'border-destructive' : ''}
+                aria-invalid={!!errors.pin_code}
               />
-              {errors.pin_code && <p className="mt-1 text-sm text-red-600">{errors.pin_code}</p>}
+              {errors.pin_code && <p className="mt-1 text-sm text-destructive">{errors.pin_code}</p>}
             </div>
 
             <div>
               <label htmlFor="state" className="block text-sm font-medium text-gray-700">
                 State <span className="text-red-500">*</span>
               </label>
-              <input
+              <Input
                 type="text"
                 id="state"
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
                 disabled={isLoading || isSubmitted}
-                className={`mt-1 block w-full rounded-md border ${
-                  errors.state ? 'border-red-300' : 'border-gray-300'
-                } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                className={errors.state ? 'border-destructive' : ''}
+                aria-invalid={!!errors.state}
               />
-              {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state}</p>}
+              {errors.state && <p className="mt-1 text-sm text-destructive">{errors.state}</p>}
             </div>
 
             <div>
               <label htmlFor="district" className="block text-sm font-medium text-gray-700">
                 District <span className="text-red-500">*</span>
               </label>
-              <input
+              <Input
                 type="text"
                 id="district"
                 name="district"
                 value={formData.district}
                 onChange={handleChange}
                 disabled={isLoading || isSubmitted}
-                className={`mt-1 block w-full rounded-md border ${
-                  errors.district ? 'border-red-300' : 'border-gray-300'
-                } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                className={errors.district ? 'border-destructive' : ''}
+                aria-invalid={!!errors.district}
               />
-              {errors.district && <p className="mt-1 text-sm text-red-600">{errors.district}</p>}
+              {errors.district && <p className="mt-1 text-sm text-destructive">{errors.district}</p>}
             </div>
           </div>
         </div>
@@ -519,19 +524,18 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             <label htmlFor="account_holder_name" className="block text-sm font-medium text-gray-700">
               Account Holder Name <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               type="text"
               id="account_holder_name"
               name="account_holder_name"
               value={formData.account_holder_name}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={`mt-1 block w-full rounded-md border ${
-                errors.account_holder_name ? 'border-red-300' : 'border-gray-300'
-              } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+              className={errors.account_holder_name ? 'border-destructive' : ''}
+              aria-invalid={!!errors.account_holder_name}
             />
             {errors.account_holder_name && (
-              <p className="mt-1 text-sm text-red-600">{errors.account_holder_name}</p>
+              <p className="mt-1 text-sm text-destructive">{errors.account_holder_name}</p>
             )}
           </div>
 
@@ -539,7 +543,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             <label htmlFor="bank_account_number" className="block text-sm font-medium text-gray-700">
               Bank Account Number <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               type="text"
               inputMode="numeric"
               id="bank_account_number"
@@ -547,12 +551,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               value={formData.bank_account_number}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={`mt-1 block w-full rounded-md border ${
-                errors.bank_account_number ? 'border-red-300' : 'border-gray-300'
-              } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+              className={errors.bank_account_number ? 'border-destructive' : ''}
+              aria-invalid={!!errors.bank_account_number}
             />
             {errors.bank_account_number && (
-              <p className="mt-1 text-sm text-red-600">{errors.bank_account_number}</p>
+              <p className="mt-1 text-sm text-destructive">{errors.bank_account_number}</p>
             )}
           </div>
 
@@ -560,25 +563,24 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             <label htmlFor="bank_name" className="block text-sm font-medium text-gray-700">
               Bank Name <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               type="text"
               id="bank_name"
               name="bank_name"
               value={formData.bank_name}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={`mt-1 block w-full rounded-md border ${
-                errors.bank_name ? 'border-red-300' : 'border-gray-300'
-              } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+              className={errors.bank_name ? 'border-destructive' : ''}
+              aria-invalid={!!errors.bank_name}
             />
-            {errors.bank_name && <p className="mt-1 text-sm text-red-600">{errors.bank_name}</p>}
+            {errors.bank_name && <p className="mt-1 text-sm text-destructive">{errors.bank_name}</p>}
           </div>
 
           <div>
             <label htmlFor="ifsc_code" className="block text-sm font-medium text-gray-700">
               IFSC Code <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               type="text"
               id="ifsc_code"
               name="ifsc_code"
@@ -587,11 +589,10 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               disabled={isLoading || isSubmitted}
               maxLength={11}
               placeholder="ABCD0123456"
-              className={`mt-1 block w-full rounded-md border ${
-                errors.ifsc_code ? 'border-red-300' : 'border-gray-300'
-              } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+              className={errors.ifsc_code ? 'border-destructive' : ''}
+              aria-invalid={!!errors.ifsc_code}
             />
-            {errors.ifsc_code && <p className="mt-1 text-sm text-red-600">{errors.ifsc_code}</p>}
+            {errors.ifsc_code && <p className="mt-1 text-sm text-destructive">{errors.ifsc_code}</p>}
           </div>
         </div>
       </div>
@@ -632,10 +633,12 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                     <span className="text-sm text-green-700 truncate">{uploadedDocuments[id].name}</span>
                   </div>
                   <div className="flex items-center gap-2 ml-2">
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => handleViewDocument(uploadedDocuments[id].id)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
+                      className="flex items-center gap-1"
                       title="View document"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -643,31 +646,21 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                       View
-                    </button>
-                    <button
+                    </Button>
+                    <LoadingButton
                       type="button"
+                      variant="destructive"
+                      size="sm"
                       onClick={() => handleDeleteDocument(id, uploadedDocuments[id].id)}
-                      disabled={deletingDocuments[id]}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      loading={deletingDocuments[id]}
+                      className="flex items-center gap-1"
                       title="Delete document"
                     >
-                      {deletingDocuments[id] ? (
-                        <>
-                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Deleting...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Delete
-                        </>
-                      )}
-                    </button>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </LoadingButton>
                   </div>
                 </div>
               ) : (
@@ -694,18 +687,19 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
 
       {/* Form Actions */}
       <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-3 pt-6 border-t">
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={onCancel}
           disabled={isLoading || isSubmitted}
-          className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto"
         >
           {isSubmitted ? 'Back' : 'Cancel'}
-        </button>
+        </Button>
         
         {!isSubmitted && (
           <div className="flex flex-col-reverse sm:flex-row gap-3">
-            <button
+            <Button
               type="button"
               onClick={async () => {
                 if (!leadId) {
@@ -746,17 +740,19 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                 }
               }}
               disabled={isLoading || isSubmitted}
-              className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="secondary"
+              className="w-full sm:w-auto"
             >
               Save as Draft
-            </button>
-            <button
+            </Button>
+            <LoadingButton
               type="submit"
-              disabled={isLoading || isSubmitted}
-              className="w-full sm:w-auto px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={isLoading}
+              disabled={isSubmitted}
+              className="w-full sm:w-auto"
             >
-              {isLoading ? 'Submitting...' : 'Submit Customer Profile'}
-            </button>
+              Submit Customer Profile
+            </LoadingButton>
           </div>
         )}
       </div>

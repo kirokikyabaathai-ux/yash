@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { Lead, LeadStep, StepMaster } from '@/types/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface LoanWorkflowProps {
   lead: Lead;
@@ -280,11 +281,9 @@ export function LoanWorkflow({
 
   return (
     <div className="space-y-6">
-      <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">
-            Loan Workflow
-          </h3>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>Loan Workflow</CardTitle>
           {!hasLoanSteps && !showLoanForm && (
             <button
               onClick={() => setShowLoanForm(true)}
@@ -293,8 +292,8 @@ export function LoanWorkflow({
               Initiate Loan
             </button>
           )}
-        </div>
-
+        </CardHeader>
+        <CardContent>
         {!hasLoanSteps && !showLoanForm && (
           <p className="text-muted-foreground text-sm">
             No loan workflow initiated for this lead. Click "Initiate Loan" to
@@ -474,7 +473,8 @@ export function LoanWorkflow({
             </div>
           </form>
         )}
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Display loan steps */}
       {hasLoanSteps && (

@@ -89,13 +89,13 @@ export const authConfig: NextAuthConfig = {
       // Log successful sign in
       console.log(`User signed in: ${user.email}`);
     },
-    async signOut({ session }) {
+    async signOut() {
       // Log sign out
-      console.log(`User signed out: ${session?.user?.email}`);
+      console.log('User signed out');
     },
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       // Add user info to token on sign in
       if (user) {
         token.id = user.id;
@@ -103,7 +103,38 @@ export const authConfig: NextAuthConfig = {
         token.name = user.name;
         token.role = (user as any).role;
         token.status = (user as any).status;
+        
+        // Store Supabase auth session in NextAuth token
+        // This allows us to maintain Supabase Auth session for RLS
+        if (account) {
+          // Get the current Supabase session that was created during authorize()
+          const { data: { session: supabaseSession } } = await supabase.auth.getSession();
+          if (supabaseSession) {
+            token.supabaseAccessToken = supabaseSession.access_token;
+            token.supabaseRefreshToken = supabaseSession.refresh_token;
+          }
+        }
       }
+      
+      // Refresh Supabase token if needed (every hour)
+      if (token.supabaseRefreshToken) {
+        const tokenAge = Date.now() - (token.iat || 0) * 1000;
+        // Refresh if token is older than 50 minutes (before 1 hour expiry)
+        if (tokenAge > 50 * 60 * 1000) {
+          try {
+            const { data, error } = await supabase.auth.refreshSession({
+              refresh_token: token.supabaseRefreshToken as string,
+            });
+            if (data.session) {
+              token.supabaseAccessToken = data.session.access_token;
+              token.supabaseRefreshToken = data.session.refresh_token;
+            }
+          } catch (error) {
+            console.error('Failed to refresh Supabase session:', error);
+          }
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {
@@ -112,6 +143,10 @@ export const authConfig: NextAuthConfig = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.status = token.status as string;
+        
+        // Pass Supabase tokens to session (for client-side Supabase client)
+        (session as any).supabaseAccessToken = token.supabaseAccessToken;
+        (session as any).supabaseRefreshToken = token.supabaseRefreshToken;
       }
       return session;
     },

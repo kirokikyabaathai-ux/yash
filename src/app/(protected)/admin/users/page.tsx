@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { UserList } from '@/components/admin/UserList';
 import { UserForm } from '@/components/admin/UserForm';
+import { Button } from '@/components/ui/button';
 import type { Database } from '@/types/database';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -91,16 +92,13 @@ export default function UsersPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">User Management</h1>
-        <button
-          onClick={handleCreateUser}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
+        <Button onClick={handleCreateUser}>
           Create User
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
+        <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-md text-destructive">
           {error}
         </div>
       )}

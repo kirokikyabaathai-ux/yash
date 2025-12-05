@@ -1,11 +1,26 @@
 /**
  * Quick Status Update Component
- * Simple status change with comments for office team
+ * Simple status change with comments for office team.
+ * Uses shadcn/ui Dialog for consistent modal behavior.
+ * 
+ * Requirements: 2.4, 9.1, 9.2, 9.3, 9.4, 9.5
  */
 
 'use client';
 
 import { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { LeadStatusBadge } from './LeadStatusBadge';
 import type { LeadStatus } from '@/types/database';
 
@@ -95,97 +110,84 @@ export function QuickStatusUpdate({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-medium text-gray-900">Current Status</h3>
+          <h3 className="text-sm font-medium">Current Status</h3>
           <div className="mt-1">
             <LeadStatusBadge status={currentStatus} />
           </div>
         </div>
-        <button
-          onClick={() => setIsOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
-        >
+        <Button onClick={() => setIsOpen(true)}>
           Update Status
-        </button>
+        </Button>
       </div>
 
-      {/* Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <div
-              className="fixed inset-0 bg-gray-500 bg-opacity-75"
-              onClick={() => !isSubmitting && setIsOpen(false)}
-            />
+      <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && setIsOpen(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Lead Status</DialogTitle>
+            <DialogDescription>
+              Select a new status and add any relevant comments.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Update Lead Status
-              </h3>
-
-              {error && (
-                <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select New Status
-                  </label>
-                  <div className="space-y-2">
-                    {availableStatuses.map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={() => setSelectedStatus(status)}
-                        className={`w-full text-left px-4 py-3 border rounded-md ${
-                          selectedStatus === status
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <LeadStatusBadge status={status} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 mb-2">
-                    Comments / Remarks
-                  </label>
-                  <textarea
-                    id="remarks"
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    rows={3}
-                    placeholder="Add any comments about this status change..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+          <div className="space-y-4">
+            {error && (
+              <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-destructive font-medium">{error}</p>
               </div>
+            )}
 
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={() => setIsOpen(false)}
-                  disabled={isSubmitting}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={!selectedStatus || isSubmitting}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Updating...' : 'Update Status'}
-                </button>
+            <div className="space-y-2">
+              <Label>Select New Status</Label>
+              <div className="space-y-2">
+                {availableStatuses.map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setSelectedStatus(status)}
+                    className={`w-full text-left px-4 py-3 border rounded-md transition-colors ${
+                      selectedStatus === status
+                        ? 'border-primary bg-primary/10'
+                        : 'border-input hover:bg-accent'
+                    }`}
+                  >
+                    <LeadStatusBadge status={status} />
+                  </button>
+                ))}
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="remarks">Comments / Remarks</Label>
+              <Textarea
+                id="remarks"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                rows={3}
+                placeholder="Add any comments about this status change..."
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!selectedStatus || isSubmitting}
+            >
+              {isSubmitting ? 'Updating...' : 'Update Status'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

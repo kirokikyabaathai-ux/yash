@@ -1,11 +1,27 @@
 'use client';
 
+/**
+ * Auth Modal Component
+ * 
+ * Modal dialog for authentication (login/signup) using shadcn/ui Dialog.
+ * 
+ * Requirements: 2.4, 9.1, 9.2, 9.3, 9.4, 9.5, 14.1, 14.2, 14.3, 14.4, 14.5
+ */
+
 import { useState, useEffect } from 'react';
-import { X, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingButton } from '@/components/ui/loading-button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
 import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
@@ -26,6 +42,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   // Sync mode with initialMode when it changes
@@ -33,24 +50,23 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     setMode(initialMode);
   }, [initialMode]);
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       if (mode === 'signup') {
         // Validate passwords match
         if (password !== confirmPassword) {
-          toast.error('Passwords do not match');
+          setError('Passwords do not match');
           setIsLoading(false);
           return;
         }
 
         // Validate password length
         if (password.length < 8) {
-          toast.error('Password must be at least 8 characters long');
+          setError('Password must be at least 8 characters long');
           setIsLoading(false);
           return;
         }
@@ -58,7 +74,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
         // Validate phone number format (10 digits, cannot start with 0)
         const phoneRegex = /^[1-9][0-9]{9}$/;
         if (!phoneRegex.test(phone)) {
-          toast.error('Phone number must be exactly 10 digits and cannot start with 0');
+          setError('Phone number must be exactly 10 digits and cannot start with 0');
           setIsLoading(false);
           return;
         }
@@ -73,7 +89,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
         const data = await response.json();
 
         if (!response.ok) {
-          toast.error(data.error?.message || 'Signup failed');
+          setError(data.error?.message || 'Signup failed');
           setIsLoading(false);
           return;
         }
@@ -86,7 +102,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
         });
 
         if (signInResult?.error) {
-          toast.error('Account created but sign in failed. Please try logging in.');
+          setError('Account created but sign in failed. Please try logging in.');
           setIsLoading(false);
           return;
         }
@@ -109,7 +125,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
         });
 
         if (result?.error) {
-          toast.error('Invalid email or password');
+          setError('Invalid email or password');
           setIsLoading(false);
           return;
         }
@@ -126,173 +142,167 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
       }
     } catch (error) {
       console.error('Auth error:', error);
-      toast.error('An unexpected error occurred');
-    } finally {
+      setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      {/* Backdrop with blur */}
-      <div 
-        className="absolute inset-0 bg-background/80 backdrop-blur-md"
-        onClick={onClose}
-      />
-      
-      {/* Glass modal */}
-      <div className="relative w-full max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-        <div className="relative bg-card/95 backdrop-blur-xl border border-border rounded-t-3xl sm:rounded-2xl shadow-2xl p-6 sm:p-8">
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10 touch-manipulation"
-            aria-label="Close"
-          >
-            <X className="w-6 h-6" />
-          </button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl text-center">
+            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+          </DialogTitle>
+          <DialogDescription className="text-center">
+            {mode === 'login' 
+              ? 'Sign in to your account' 
+              : 'Join us for solar solutions'}
+          </DialogDescription>
+        </DialogHeader>
 
-          {/* Header */}
-          <div className="text-center mb-6 sm:mb-8 pt-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {mode === 'login' 
-                ? 'Sign in to your account' 
-                : 'Join us for solar solutions'}
-            </p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-destructive font-medium">{error}</p>
+            </div>
+          )}
+
+          {mode === 'signup' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                  placeholder="Enter your name"
+                  required
+                  autoComplete="name"
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+                  placeholder="10 digits (e.g., 9876543210)"
+                  required
+                  autoComplete="tel"
+                  disabled={isLoading}
+                />
+              </div>
+            </>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+              autoComplete="email"
+              disabled={isLoading}
+            />
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            {mode === 'signup' && (
-              <>
-                <div className="space-y-1.5 sm:space-y-2">
-                  <Label htmlFor="name" className="text-foreground text-sm">Full Name</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                    className="bg-background/50 backdrop-blur-sm h-11 sm:h-12 text-base"
-                    placeholder="Enter your name"
-                    required
-                    autoComplete="name"
-                  />
-                </div>
-                <div className="space-y-1.5 sm:space-y-2">
-                  <Label htmlFor="phone" className="text-foreground text-sm">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
-                    className="bg-background/50 backdrop-blur-sm h-11 sm:h-12 text-base"
-                    placeholder="Enter your phone number"
-                    required
-                    autoComplete="tel"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="email" className="text-foreground text-sm">Email</Label>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                className="bg-background/50 backdrop-blur-sm h-11 sm:h-12 text-base"
-                placeholder="Enter your email"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                placeholder={mode === 'signup' ? 'Min 8 characters' : 'Enter your password'}
                 required
-                autoComplete="email"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                disabled={isLoading}
+                className="pr-10"
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 h-full px-3 hover:bg-transparent"
+                disabled={isLoading}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
             </div>
+          </div>
 
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="password" className="text-foreground text-sm">Password</Label>
+          {mode === 'signup' && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
                 <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  className="bg-background/50 backdrop-blur-sm h-11 sm:h-12 text-base pr-10"
-                  placeholder="Enter your password"
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter your password"
                   required
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  autoComplete="new-password"
+                  disabled={isLoading}
+                  className="pr-10"
                 />
-                <button
+                <Button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 h-full px-3 hover:bg-transparent"
+                  disabled={isLoading}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-4 w-4 text-muted-foreground" />
                   )}
-                </button>
+                </Button>
               </div>
             </div>
+          )}
 
-            {mode === 'signup' && (
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="confirmPassword" className="text-foreground text-sm">Confirm Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-                    className="bg-background/50 backdrop-blur-sm h-11 sm:h-12 text-base pr-10"
-                    placeholder="Confirm your password"
-                    required
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
-                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
+          <LoadingButton
+            type="submit"
+            loading={isLoading}
+            className="w-full"
+          >
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
+          </LoadingButton>
+        </form>
 
-            <Button 
-              type="submit" 
-              className="w-full font-semibold py-5 sm:py-6 text-base sm:text-lg mt-6 touch-manipulation"
+        <div className="mt-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+            <button
+              type="button"
+              onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+              className="text-primary font-medium hover:underline"
               disabled={isLoading}
             >
-              {isLoading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
-            </Button>
-          </form>
-
-          {/* Toggle mode */}
-          <div className="mt-5 sm:mt-6 text-center pb-2">
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <button
-                type="button"
-                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                className="text-primary font-semibold hover:underline touch-manipulation"
-              >
-                {mode === 'login' ? 'Sign Up' : 'Sign In'}
-              </button>
-            </p>
-          </div>
+              {mode === 'login' ? 'Sign Up' : 'Sign In'}
+            </button>
+          </p>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

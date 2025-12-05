@@ -2,7 +2,7 @@
  * Activity Log List Component
  * 
  * Displays activity logs with filtering by lead, user, action type, and date range.
- * Requirements: 12.5
+ * Requirements: 2.1, 2.6, 12.5
  */
 
 'use client';
@@ -11,6 +11,26 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { format } from 'date-fns';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type ActivityLog = Database['public']['Tables']['activity_log']['Row'];
 type User = Database['public']['Tables']['users']['Row'];
@@ -122,186 +142,217 @@ export function ActivityLogList() {
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white border rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Lead Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Lead
-            </label>
-            <select
-              value={filters.leadId || ''}
-              onChange={(e) => handleFilterChange('leadId', e.target.value)}
-              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Leads</option>
-              {leads.map((lead) => (
-                <option key={lead.id} value={lead.id}>
-                  {lead.customer_name} ({lead.phone})
-                </option>
-              ))}
-            </select>
-          </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Lead Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="lead-filter">Lead</Label>
+              <Select
+                value={filters.leadId || 'all'}
+                onValueChange={(value) => handleFilterChange('leadId', value === 'all' ? '' : value)}
+              >
+                <SelectTrigger id="lead-filter" className="w-full">
+                  <SelectValue placeholder="All Leads" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Leads</SelectItem>
+                  {leads.map((lead) => (
+                    <SelectItem key={lead.id} value={lead.id}>
+                      {lead.customer_name} ({lead.phone})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* User Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              User
-            </label>
-            <select
-              value={filters.userId || ''}
-              onChange={(e) => handleFilterChange('userId', e.target.value)}
-              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Users</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.role})
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* User Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="user-filter">User</Label>
+              <Select
+                value={filters.userId || 'all'}
+                onValueChange={(value) => handleFilterChange('userId', value === 'all' ? '' : value)}
+              >
+                <SelectTrigger id="user-filter" className="w-full">
+                  <SelectValue placeholder="All Users" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name} ({user.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Action Type Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Action Type
-            </label>
-            <input
-              type="text"
-              value={filters.actionType || ''}
-              onChange={(e) => handleFilterChange('actionType', e.target.value)}
-              placeholder="e.g., lead, document, step"
-              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            {/* Action Type Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="action-filter">Action Type</Label>
+              <Input
+                id="action-filter"
+                type="text"
+                value={filters.actionType || ''}
+                onChange={(e) => handleFilterChange('actionType', e.target.value)}
+                placeholder="e.g., lead, document, step"
+              />
+            </div>
 
-          {/* Date From Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date From
-            </label>
-            <input
-              type="date"
-              value={filters.dateFrom || ''}
-              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            {/* Date From Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="date-from">Date From</Label>
+              <Input
+                id="date-from"
+                type="date"
+                value={filters.dateFrom || ''}
+                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              />
+            </div>
 
-          {/* Date To Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date To
-            </label>
-            <input
-              type="date"
-              value={filters.dateTo || ''}
-              onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            {/* Date To Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="date-to">Date To</Label>
+              <Input
+                id="date-to"
+                type="date"
+                value={filters.dateTo || ''}
+                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+              />
+            </div>
 
-          {/* Clear Filters Button */}
-          <div className="flex items-end">
-            <button
-              onClick={clearFilters}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors"
-            >
-              Clear Filters
-            </button>
+            {/* Clear Filters Button */}
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="w-full"
+              >
+                Clear Filters
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Activity Log List */}
-      <div className="bg-white border rounded-lg">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold">
-            Activity Log ({logs.length} entries)
-          </h2>
-        </div>
-
-        {loading ? (
-          <div className="p-6 text-center text-gray-500">Loading...</div>
-        ) : logs.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            No activity logs found
-          </div>
-        ) : (
-          <div className="divide-y">
-            {logs.map((log) => (
-              <div key={log.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getActionBadgeColor(
-                        log.action
-                      )}`}
-                    >
-                      {log.action}
-                    </span>
-                    <span className="text-sm text-gray-600">
+      <Card>
+        <CardHeader>
+          <CardTitle>Activity Log ({logs.length} entries)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="p-12 text-center">
+              <div className="text-muted-foreground">Loading activity logs...</div>
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-muted-foreground text-lg">No activity logs found</p>
+              <p className="text-muted-foreground text-sm mt-2">
+                Try adjusting your filter criteria
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-semibold">Action</TableHead>
+                  <TableHead className="font-semibold">Entity</TableHead>
+                  <TableHead className="font-semibold">User</TableHead>
+                  <TableHead className="font-semibold">Lead</TableHead>
+                  <TableHead className="font-semibold">Timestamp</TableHead>
+                  <TableHead className="font-semibold">Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={getActionBadgeColor(log.action)}
+                      >
+                        {log.action}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {log.entity_type}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {log.timestamp ? format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss') : 'N/A'}
-                  </span>
-                </div>
-
-                <div className="space-y-1 text-sm">
-                  {log.user && (
-                    <div className="text-gray-700">
-                      <span className="font-medium">User:</span> {log.user.name} (
-                      {log.user.email}) - {log.user.role}
-                    </div>
-                  )}
-
-                  {log.lead && (
-                    <div className="text-gray-700">
-                      <span className="font-medium">Lead:</span>{' '}
-                      {log.lead.customer_name} ({log.lead.phone})
-                    </div>
-                  )}
-
-                  {log.entity_id && (
-                    <div className="text-gray-700">
-                      <span className="font-medium">Entity ID:</span>{' '}
-                      <code className="bg-gray-100 px-1 rounded text-xs">
-                        {log.entity_id}
-                      </code>
-                    </div>
-                  )}
-
-                  {log.old_value && (
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
-                        Old Value
-                      </summary>
-                      <pre className="mt-1 p-2 bg-gray-100 rounded text-xs overflow-x-auto">
-                        {JSON.stringify(log.old_value, null, 2)}
-                      </pre>
-                    </details>
-                  )}
-
-                  {log.new_value && (
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
-                        New Value
-                      </summary>
-                      <pre className="mt-1 p-2 bg-gray-100 rounded text-xs overflow-x-auto">
-                        {JSON.stringify(log.new_value, null, 2)}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                    </TableCell>
+                    <TableCell>
+                      {log.user ? (
+                        <div className="text-sm">
+                          <div className="font-medium">{log.user.name}</div>
+                          <div className="text-muted-foreground text-xs">
+                            {log.user.email} • {log.user.role}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {log.lead ? (
+                        <div className="text-sm">
+                          <div className="font-medium">{log.lead.customer_name}</div>
+                          <div className="text-muted-foreground text-xs">
+                            {log.lead.phone}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {log.timestamp
+                        ? format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss')
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        {log.entity_id && (
+                          <div className="text-xs">
+                            <code className="bg-muted px-1 rounded">
+                              {log.entity_id}
+                            </code>
+                          </div>
+                        )}
+                        {(log.old_value || log.new_value) && (
+                          <details className="text-xs">
+                            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                              View Changes
+                            </summary>
+                            <div className="mt-2 space-y-2">
+                              {log.old_value && (
+                                <div>
+                                  <div className="font-medium mb-1">Old Value:</div>
+                                  <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
+                                    {JSON.stringify(log.old_value, null, 2)}
+                                  </pre>
+                                </div>
+                              )}
+                              {log.new_value && (
+                                <div>
+                                  <div className="font-medium mb-1">New Value:</div>
+                                  <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
+                                    {JSON.stringify(log.new_value, null, 2)}
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -11,6 +11,8 @@
 import { useState, useEffect } from 'react';
 import { StepMasterList } from '@/components/admin/StepMasterList';
 import { StepMasterForm, type StepMaster, type StepMasterFormData } from '@/components/admin/StepMasterForm';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function StepMasterPage() {
   const [steps, setSteps] = useState<StepMaster[]>([]);
@@ -157,35 +159,17 @@ export default function StepMasterPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
-              </div>
-            </div>
+          <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-md p-4">
+            <p className="text-sm text-destructive">{error}</p>
           </div>
         )}
 
         {/* Create Button */}
         {!showForm && (
           <div className="mb-6">
-            <button
+            <Button
               onClick={handleCreate}
               disabled={isLoading || isSaving}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <svg
                 className="h-5 w-5 mr-2"
@@ -201,23 +185,27 @@ export default function StepMasterPage() {
                 />
               </svg>
               Create New Step
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Form */}
         {showForm && (
-          <div className="mb-8 bg-card border border-border rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-foreground mb-6">
-              {editingStep ? 'Edit Step' : 'Create New Step'}
-            </h2>
-            <StepMasterForm
-              step={editingStep}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-              isLoading={isSaving}
-            />
-          </div>
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>
+                {editingStep ? 'Edit Step' : 'Create New Step'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StepMasterForm
+                step={editingStep}
+                onSubmit={handleSubmit}
+                onCancel={handleCancel}
+                isLoading={isSaving}
+              />
+            </CardContent>
+          </Card>
         )}
 
         {/* Loading State */}
@@ -229,18 +217,22 @@ export default function StepMasterPage() {
 
         {/* Step List */}
         {!isLoading && (
-          <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-foreground mb-6">
-              Timeline Steps ({steps.length})
-            </h2>
-            <StepMasterList
-              steps={steps}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onReorder={handleReorder}
-              isLoading={isSaving}
-            />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Timeline Steps ({steps.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StepMasterList
+                steps={steps}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onReorder={handleReorder}
+                isLoading={isSaving}
+              />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

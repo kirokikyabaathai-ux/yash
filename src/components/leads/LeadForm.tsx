@@ -3,7 +3,7 @@
  * 
  * Form for creating and editing leads with validation.
  * 
- * Requirements: 2.1, 2.4, 2.5
+ * Requirements: 2.1, 2.4, 2.5, 4.1, 4.2, 4.3, 4.4
  */
 
 'use client';
@@ -11,6 +11,17 @@
 import { useState } from 'react';
 import type { Lead, CreateLeadRequest, UpdateLeadRequest } from '@/types/api';
 import type { LeadSource } from '@/types/database';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/forms/FormField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface LeadFormProps {
   lead?: Lead;
@@ -94,150 +105,138 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSour
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <p className="text-sm text-gray-600">
-        <span className="text-red-500">*</span> Indicates necessary fields
+      <p className="text-sm text-muted-foreground">
+        <span className="text-destructive">*</span> Indicates necessary fields
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Customer Name */}
-        <div>
-          <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700">
-            Customer Name <span className="text-red-500">*</span>
-          </label>
-          <input
+        <FormField
+          label="Customer Name"
+          required
+          error={errors.customer_name}
+          htmlFor="customer_name"
+        >
+          <Input
             type="text"
-            id="customer_name"
             name="customer_name"
             value={formData.customer_name}
             onChange={handleChange}
             disabled={isLoading}
-            className={`mt-1 block w-full rounded-md border ${
-              errors.customer_name ? 'border-red-300' : 'border-gray-300'
-            } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
           />
-          {errors.customer_name && (
-            <p className="mt-1 text-sm text-red-600">{errors.customer_name}</p>
-          )}
-        </div>
+        </FormField>
 
         {/* Phone */}
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-            Phone Number <span className="text-red-500">*</span>
-          </label>
-          <input
+        <FormField
+          label="Phone Number"
+          required
+          error={errors.phone}
+          htmlFor="phone"
+          helpText="10 digits, cannot start with 0"
+        >
+          <Input
             type="tel"
             inputMode="tel"
-            id="phone"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
             disabled={isLoading}
             placeholder="9876543210"
             autoComplete="tel"
-            className={`mt-1 block w-full rounded-md border ${
-              errors.phone ? 'border-red-300' : 'border-gray-300'
-            } px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed touch-manipulation`}
           />
-          {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
-        </div>
+        </FormField>
 
         {/* Email */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
+        <FormField
+          label="Email"
+          error={errors.email}
+          htmlFor="email"
+        >
+          <Input
             type="email"
             inputMode="email"
-            id="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             disabled={isLoading}
             placeholder="example@email.com"
             autoComplete="email"
-            className={`mt-1 block w-full rounded-md border ${
-              errors.email ? 'border-red-300' : 'border-gray-300'
-            } px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed touch-manipulation`}
           />
-          {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-        </div>
+        </FormField>
 
         {/* Source (only for new leads and when not hidden) */}
         {!lead && !hideSource && (
-          <div>
-            <label htmlFor="source" className="block text-sm font-medium text-gray-700">
-              Source <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="source"
-              name="source"
+          <FormField
+            label="Source"
+            required
+            htmlFor="source"
+          >
+            <Select
               value={formData.source}
-              onChange={handleChange}
+              onValueChange={(value) => handleChange({ target: { name: 'source', value } } as any)}
               disabled={isLoading}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value="agent">Agent</option>
-              <option value="office">Office</option>
-              <option value="customer">Customer</option>
-              <option value="self">Self</option>
-            </select>
-          </div>
+              <SelectTrigger>
+                <SelectValue placeholder="Select source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="agent">Agent</SelectItem>
+                <SelectItem value="office">Office</SelectItem>
+                <SelectItem value="customer">Customer</SelectItem>
+                <SelectItem value="self">Self</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
         )}
       </div>
 
       {/* Address */}
-      <div>
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-          Address <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          id="address"
+      <FormField
+        label="Address"
+        required
+        error={errors.address}
+        htmlFor="address"
+      >
+        <Textarea
           name="address"
           value={formData.address}
           onChange={handleChange}
           disabled={isLoading}
           rows={3}
-          className={`mt-1 block w-full rounded-md border ${
-            errors.address ? 'border-red-300' : 'border-gray-300'
-          } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
         />
-        {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
-      </div>
+      </FormField>
 
       {/* Notes */}
-      <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-          Notes
-        </label>
-        <textarea
-          id="notes"
+      <FormField
+        label="Notes"
+        htmlFor="notes"
+      >
+        <Textarea
           name="notes"
           value={formData.notes}
           onChange={handleChange}
           disabled={isLoading}
           rows={4}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
-      </div>
+      </FormField>
 
       {/* Form Actions */}
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={onCancel}
           disabled={isLoading}
-          className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          className="w-full sm:w-auto"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           disabled={isLoading}
-          className="w-full sm:w-auto px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+          className="w-full sm:w-auto"
         >
           {isLoading ? 'Saving...' : lead ? 'Update Lead' : 'Create Lead'}
-        </button>
+        </Button>
       </div>
     </form>
   );

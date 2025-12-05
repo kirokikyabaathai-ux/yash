@@ -3,7 +3,7 @@
  * 
  * Main timeline display showing all steps for a lead.
  * 
- * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5
+ * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 15.1, 15.2, 15.3, 15.4, 15.5
  */
 
 'use client';
@@ -11,6 +11,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { type TimelineStepData } from './TimelineStep';
 import { StepCompletionModal } from './StepCompletionModal';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface TimelineProps {
   leadId: string;
@@ -242,138 +244,149 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
   return (
     <div className="space-y-6">
       {/* Timeline Header with Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Project Timeline</h2>
-          <p className="text-sm text-muted-foreground">
-            Track the progress of your solar installation project through each step.
-          </p>
-          {isProjectClosed && (
-            <div className="mt-3 p-3 bg-muted border border-border rounded-md">
-              <p className="text-sm text-foreground">
-                <strong>Project Status:</strong> Closed
-                {!canModifyClosedProject && (
-                  <span className="block mt-1 text-muted-foreground">
-                    This project is closed. Timeline modifications are restricted. Only an admin can reopen this project.
-                  </span>
-                )}
-              </p>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle>Project Timeline</CardTitle>
+              <CardDescription>
+                Track the progress of your solar installation project through each step.
+              </CardDescription>
+              {isProjectClosed && (
+                <div className="mt-3 p-3 bg-muted border border-border rounded-md">
+                  <p className="text-sm text-foreground">
+                    <strong>Project Status:</strong> Closed
+                    {!canModifyClosedProject && (
+                      <span className="block mt-1 text-muted-foreground">
+                        This project is closed. Timeline modifications are restricted. Only an admin can reopen this project.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Complete Next Step Button - Hidden for agents */}
-        {userRole !== 'agent' && (() => {
-          const nextStepIndex = steps.findIndex((s) => s.status === 'pending');
-          if (nextStepIndex === -1) return null;
-          
-          const nextStep = steps[nextStepIndex];
-          const allPreviousCompleted = steps
-            .slice(0, nextStepIndex)
-            .every((s) => s.status === 'completed');
-          
-          if (!allPreviousCompleted) return null;
-          if (!canEditStep(nextStep)) return null;
-          if (isProjectClosed && !canModifyClosedProject) return null;
+            {/* Complete Next Step Button - Hidden for agents */}
+            {userRole !== 'agent' && (() => {
+              const nextStepIndex = steps.findIndex((s) => s.status === 'pending');
+              if (nextStepIndex === -1) return null;
+              
+              const nextStep = steps[nextStepIndex];
+              const allPreviousCompleted = steps
+                .slice(0, nextStepIndex)
+                .every((s) => s.status === 'completed');
+              
+              if (!allPreviousCompleted) return null;
+              if (!canEditStep(nextStep)) return null;
+              if (isProjectClosed && !canModifyClosedProject) return null;
 
-          return (
-            <button
-              onClick={() => handleCompleteClick(nextStep.id)}
-              disabled={isActionLoading}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg shadow-lg text-sm font-semibold hover:bg-primary/90 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
-            >
-              {isActionLoading ? 'Processing...' : `Complete: ${nextStep.step_name}`}
-            </button>
-          );
-        })()}
-      </div>
+              return (
+                <Button
+                  onClick={() => handleCompleteClick(nextStep.id)}
+                  disabled={isActionLoading}
+                  size="lg"
+                  className="whitespace-nowrap"
+                >
+                  {isActionLoading ? 'Processing...' : `Complete: ${nextStep.step_name}`}
+                </Button>
+              );
+            })()}
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Horizontal Timeline - Scrollable */}
-      <div ref={timelineContainerRef} className="overflow-x-auto pb-4 pt-2">
-        <div className="relative flex items-start justify-between min-w-max">
-          {steps.map((step, index) => (
-          <React.Fragment key={step.id}>
-            <div 
-              ref={(el) => {
-                if (el) {
-                  stepRefs.current.set(step.id, el);
-                } else {
-                  stepRefs.current.delete(step.id);
-                }
-              }}
-              className="flex flex-col items-center relative z-10 flex-shrink-0"
-            >
-              <div
-                className={`w-6 h-6 rounded-full ${getStatusColor(
-                  step.status
-                )} flex items-center justify-center transition-transform duration-300 hover:scale-110 ${
-                  step.status === 'pending' && 
-                  steps.slice(0, index).every((s) => s.status === 'completed')
-                    ? 'animate-pulse ring-2 ring-blue-400 ring-offset-2'
-                    : ''
-                }`}
-              >
-                {step.status === 'completed' && (
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
+      <Card>
+        <CardContent className="pt-6">
+          <div ref={timelineContainerRef} className="overflow-x-auto pb-4">
+            <div className="relative flex items-start justify-between min-w-max">
+              {steps.map((step, index) => (
+              <React.Fragment key={step.id}>
+                <div 
+                  ref={(el) => {
+                    if (el) {
+                      stepRefs.current.set(step.id, el);
+                    } else {
+                      stepRefs.current.delete(step.id);
+                    }
+                  }}
+                  className="flex flex-col items-center relative z-10 flex-shrink-0 group"
+                >
+                  <div
+                    className={`w-6 h-6 rounded-full ${getStatusColor(
+                      step.status
+                    )} flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg cursor-pointer ${
+                      step.status === 'pending' && 
+                      steps.slice(0, index).every((s) => s.status === 'completed')
+                        ? 'animate-pulse ring-2 ring-primary ring-offset-2'
+                        : ''
+                    }`}
+                  >
+                    {step.status === 'completed' && (
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
 
-              <div className="mt-4 text-center w-32 min-h-[80px]">
-                <div className="font-medium text-sm text-foreground mb-1">
-                  {step.step_name}
+                  <div className="mt-4 text-center w-32 min-h-[80px] transition-transform duration-200 group-hover:scale-105">
+                    <div className="font-medium text-sm text-foreground mb-1">
+                      {step.step_name}
+                    </div>
+                    {step.completed_at && (
+                      <div className="text-xs text-muted-foreground">
+                        {formatDate(step.completed_at)}
+                      </div>
+                    )}
+                    {step.remarks && (
+                      <div className="text-xs text-muted-foreground/70 mt-1 italic line-clamp-2" title={step.remarks}>
+                        {step.remarks}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {step.completed_at && (
-                  <div className="text-xs text-muted-foreground">
-                    {formatDate(step.completed_at)}
-                  </div>
-                )}
-                {step.remarks && (
-                  <div className="text-xs text-muted-foreground/70 mt-1 italic" title={step.remarks}>
-                    {step.remarks}
-                  </div>
-                )}
-              </div>
-            </div>
 
-            {index < steps.length - 1 && (
-              <div
-                className={`flex-1 h-1 relative z-0 mt-3 transition-colors ${
-                  step.status === 'completed'
-                    ? 'bg-green-500 dark:bg-green-600'
-                    : 'bg-muted'
-                }`}
-              />
-            )}
-          </React.Fragment>
-          ))}
-        </div>
-      </div>
+                {index < steps.length - 1 && (
+                  <div
+                    className={`flex-1 h-1 relative z-0 mt-3 transition-colors duration-300 ${
+                      step.status === 'completed'
+                        ? 'bg-green-500 dark:bg-green-600'
+                        : 'bg-muted'
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
 
 
       {/* Progress Summary */}
-      <div className="bg-muted/50 rounded-lg p-6 border border-border">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Overall Progress</p>
-            <p className="text-2xl font-bold text-foreground">
-              {steps.filter((s) => s.status === 'completed').length} / {steps.length} Steps
-            </p>
-          </div>
-          <div className="flex-1 sm:ml-8">
-            <div className="w-full bg-muted rounded-full h-4">
-              <div
-                className="bg-primary h-4 rounded-full transition-all"
-                style={{
-                  width: `${(steps.filter((s) => s.status === 'completed').length / steps.length) * 100}%`,
-                }}
-              ></div>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Overall Progress</p>
+              <p className="text-2xl font-bold text-foreground">
+                {steps.filter((s) => s.status === 'completed').length} / {steps.length} Steps
+              </p>
+            </div>
+            <div className="flex-1 sm:ml-8">
+              <div className="w-full bg-muted rounded-full h-4 overflow-hidden">
+                <div
+                  className="bg-primary h-4 rounded-full transition-all duration-500 ease-out"
+                  style={{
+                    width: `${(steps.filter((s) => s.status === 'completed').length / steps.length) * 100}%`,
+                  }}
+                ></div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Completion Modal */}
       {completingStep && (

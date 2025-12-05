@@ -14,6 +14,14 @@ import type { Lead, LeadFilters } from '@/types/api';
 import { LeadStatusBadge } from './LeadStatusBadge';
 import { SearchBar } from './SearchBar';
 import { FilterPanel, type FilterOptions } from './FilterPanel';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface LeadListProps {
   leads: Lead[];
@@ -145,99 +153,90 @@ export function LeadList({
 
       {/* Lead List */}
       {leads.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-500">No leads found</p>
+        <div className="bg-card rounded-lg border p-12 text-center">
+          <p className="text-muted-foreground text-lg">No leads found</p>
+          <p className="text-muted-foreground text-sm mt-2">
+            Try adjusting your search or filter criteria
+          </p>
         </div>
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {leads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{lead.customer_name}</div>
-                        <div className="text-sm text-gray-500 truncate max-w-xs">{lead.address}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{lead.phone}</div>
-                        {lead.email && <div className="text-sm text-gray-500">{lead.email}</div>}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <LeadStatusBadge status={lead.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(lead.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Link
-                          href={`${baseUrl}/${lead.id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="hidden md:block bg-card rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-semibold">Customer</TableHead>
+                  <TableHead className="font-semibold">Contact</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Created</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {leads.map((lead) => (
+                  <TableRow key={lead.id}>
+                    <TableCell>
+                      <div className="font-medium">{lead.customer_name}</div>
+                      <div className="text-muted-foreground text-sm truncate max-w-xs">{lead.address}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div>{lead.phone}</div>
+                      {lead.email && <div className="text-muted-foreground text-sm">{lead.email}</div>}
+                    </TableCell>
+                    <TableCell>
+                      <LeadStatusBadge status={lead.status} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(lead.created_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={`${baseUrl}/${lead.id}`}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        View
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
             {leads.map((lead) => (
-              <div key={lead.id} className="bg-white rounded-lg shadow p-4">
+              <div key={lead.id} className="bg-card rounded-lg border p-4">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
-                    <h3 className="text-base font-semibold text-gray-900">{lead.customer_name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{lead.address}</p>
+                    <h3 className="text-base font-semibold">{lead.customer_name}</h3>
+                    <p className="text-muted-foreground text-sm mt-1">{lead.address}</p>
                   </div>
                   <LeadStatusBadge status={lead.status} />
                 </div>
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Phone:</span>
-                    <span className="text-gray-900 font-medium">{lead.phone}</span>
+                    <span className="text-muted-foreground">Phone:</span>
+                    <span className="font-medium">{lead.phone}</span>
                   </div>
                   {lead.email && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Email:</span>
-                      <span className="text-gray-900">{lead.email}</span>
+                      <span className="text-muted-foreground">Email:</span>
+                      <span>{lead.email}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Created:</span>
-                    <span className="text-gray-900">{formatDate(lead.created_at)}</span>
+                    <span className="text-muted-foreground">Created:</span>
+                    <span>{formatDate(lead.created_at)}</span>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-gray-200">
+                <div className="mt-4 pt-3 border-t">
                   <Link
                     href={`${baseUrl}/${lead.id}`}
-                    className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    className="block w-full text-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors font-medium"
                   >
                     View Details
                   </Link>

@@ -9,40 +9,33 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication using NextAuth
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    // Check if user is admin
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (userError || !userData) {
+    // Check if user account is disabled
+    if (user.status === 'disabled') {
       return NextResponse.json(
-        { error: { code: 'USER_NOT_FOUND', message: 'User not found' } },
-        { status: 404 }
+        { error: { code: 'FORBIDDEN', message: 'Account disabled' } },
+        { status: 403 }
       );
     }
+    
+    // Use regular client - RLS policies allow all authenticated users to read step_master
+    const supabase = await createClient();
 
-    // Only admin can access step master (but all users can read for timeline display)
-    // For GET, we allow all authenticated users to read
+    // All authenticated users can read step_master for timeline display
     const { data: steps, error: stepsError } = await supabase
       .from('step_master')
       .select('*')
@@ -55,7 +48,7 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       );
     }
-
+    
     return NextResponse.json({ steps });
   } catch (error) {
     console.error('Error in GET /api/steps:', error);
@@ -68,41 +61,35 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication using NextAuth
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
-    // Check if user is admin
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (userError || !userData) {
+    // Check if user account is disabled
+    if (user.status === 'disabled') {
       return NextResponse.json(
-        { error: { code: 'USER_NOT_FOUND', message: 'User not found' } },
-        { status: 404 }
+        { error: { code: 'FORBIDDEN', message: 'Account disabled' } },
+        { status: 403 }
       );
     }
 
-    if (userData.role !== 'admin') {
+    // Check if user is admin
+    if (user.role !== 'admin') {
       return NextResponse.json(
         { error: { code: 'FORBIDDEN', message: 'Admin access required' } },
         { status: 403 }
       );
     }
+    
+    // Use regular client - RLS policies handle admin-only write access
+    const supabase = await createClient();
 
     // Parse request body
     const body = await request.json();

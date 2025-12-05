@@ -10,6 +10,10 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { auth } from '@/lib/auth/auth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { DashboardCard } from '@/components/layout/DashboardCard';
+import { Users, TrendingUp, CheckCircle, Activity, AlertCircle, FileText } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
   // Get the current session using NextAuth
@@ -97,82 +101,70 @@ export default async function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Welcome back, {profile.name}
-          </p>
-        </div>
+        <PageLayout
+          title="Admin Dashboard"
+          description={`Welcome back, ${profile.name}`}
+        >
+          {/* Metrics Grid */}
+          {metrics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <DashboardCard
+                title="Total Leads"
+                value={metrics.totalLeads}
+                icon={<Activity className="h-4 w-4" />}
+              />
 
-        {/* Metrics Grid */}
-        {metrics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Total Leads</div>
-              <div className="mt-2 text-3xl font-bold text-foreground">
-                {metrics.totalLeads}
-              </div>
+              <DashboardCard
+                title="Ongoing"
+                value={metrics.leadsByStatus.ongoing}
+                icon={<TrendingUp className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Interested"
+                value={metrics.leadsByStatus.interested}
+                icon={<Users className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Closed"
+                value={metrics.leadsByStatus.closed}
+                icon={<CheckCircle className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Conversion Rate"
+                value={`${metrics.conversionRate.overallConversion.toFixed(1)}%`}
+              />
+
+              <DashboardCard
+                title="Pending Actions"
+                value={metrics.pendingActions}
+                icon={<AlertCircle className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Total Users"
+                value={totalUsers || 0}
+                icon={<Users className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Total Documents"
+                value={totalDocuments || 0}
+                icon={<FileText className="h-4 w-4" />}
+              />
             </div>
+          )}
 
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Ongoing</div>
-              <div className="mt-2 text-3xl font-bold text-primary">
-                {metrics.leadsByStatus.ongoing}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Interested</div>
-              <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                {metrics.leadsByStatus.interested}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Closed</div>
-              <div className="mt-2 text-3xl font-bold text-primary">
-                {metrics.leadsByStatus.closed}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Conversion Rate</div>
-              <div className="mt-2 text-3xl font-bold text-primary">
-                {metrics.conversionRate.overallConversion.toFixed(1)}%
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Pending Actions</div>
-              <div className="mt-2 text-3xl font-bold text-accent-foreground">
-                {metrics.pendingActions}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Total Users</div>
-              <div className="mt-2 text-3xl font-bold text-foreground">
-                {totalUsers || 0}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Total Documents</div>
-              <div className="mt-2 text-3xl font-bold text-foreground">
-                {totalDocuments || 0}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Leads by Status */}
-        {metrics && (
-          <div className="bg-card border border-border rounded-lg shadow-sm mb-8 p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Leads by Status
-            </h2>
-            <div className="space-y-3">
+          {/* Leads by Status */}
+          {metrics && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Leads by Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+              <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Ongoing</span>
                 <div className="flex items-center gap-2">
@@ -235,24 +227,26 @@ export default async function AdminDashboardPage() {
                   <span className="text-sm font-medium text-foreground w-12 text-right">
                     {metrics.leadsByStatus.closed}
                   </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Recent Leads */}
-        <div className="bg-card border border-border rounded-lg shadow-sm mb-8">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Recent Leads</h2>
-            <Link
-              href="/admin/leads"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              View all
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
+          {/* Recent Leads */}
+          <Card className="mb-8">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>Recent Leads</CardTitle>
+              <Link
+                href="/admin/leads"
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                View all
+              </Link>
+            </CardHeader>
+            <CardContent className="p-0">
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted/50">
                 <tr>
@@ -307,23 +301,25 @@ export default async function AdminDashboardPage() {
                     </td>
                   </tr>
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                </tbody>
+              </table>
+            </div>
+            </CardContent>
+          </Card>
 
-        {/* User Management */}
-        <div className="bg-card border border-border rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">User Management</h2>
-            <Link
-              href="/admin/users"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              Manage users
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
+          {/* User Management */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>User Management</CardTitle>
+              <Link
+                href="/admin/users"
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Manage users
+              </Link>
+            </CardHeader>
+            <CardContent className="p-0">
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted/50">
                 <tr>
@@ -386,49 +382,54 @@ export default async function AdminDashboardPage() {
                     </td>
                   </tr>
                 )}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link href="/admin/steps">
+              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+                <CardHeader>
+                  <CardTitle>Manage Steps</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Configure timeline steps and workflow
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/users">
+              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+                <CardHeader>
+                  <CardTitle>Manage Users</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Create and manage user accounts
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/activity-log">
+              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+                <CardHeader>
+                  <CardTitle>Activity Log</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    View system activity and audit trail
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link
-            href="/admin/steps"
-            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Manage Steps
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Configure timeline steps and workflow
-            </p>
-          </Link>
-
-          <Link
-            href="/admin/users"
-            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Manage Users
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Create and manage user accounts
-            </p>
-          </Link>
-
-          <Link
-            href="/admin/activity-log"
-            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Activity Log
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              View system activity and audit trail
-            </p>
-          </Link>
-        </div>
+        </PageLayout>
       </div>
     </div>
   );

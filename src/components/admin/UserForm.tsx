@@ -2,13 +2,31 @@
  * User Form Component
  * 
  * Modal form for creating and editing users.
- * Requirements: 1.2, 1.4
+ * Requirements: 1.2, 1.4, 2.1, 2.4, 4.1, 4.2, 4.3
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
 import type { Database } from '@/types/database';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 type User = Database['public']['Tables']['users']['Row'];
 type UserRole = Database['public']['Tables']['users']['Row']['role'];
@@ -155,42 +173,43 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
-          <h2 className="text-xl font-semibold">
-            {user ? 'Edit User' : 'Create User'}
-          </h2>
-        </div>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{user ? 'Edit User' : 'Create User'}</DialogTitle>
+          <DialogDescription>
+            {user ? 'Update user information and settings.' : 'Create a new user account with role and permissions.'}
+          </DialogDescription>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">
               {error}
             </div>
           )}
 
           <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Name *
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="name">
+                Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
                 type="text"
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter full name"
               />
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email *
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="email">
+                Email <span className="text-destructive">*</span>
+              </Label>
+              <Input
                 type="email"
                 id="email"
                 name="email"
@@ -198,15 +217,20 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 onChange={handleChange}
                 required
                 disabled={!!user}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                placeholder="user@example.com"
               />
+              {user && (
+                <p className="text-xs text-muted-foreground">
+                  Email cannot be changed after creation
+                </p>
+              )}
             </div>
 
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Phone *
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="phone">
+                Phone <span className="text-destructive">*</span>
+              </Label>
+              <Input
                 type="tel"
                 id="phone"
                 name="phone"
@@ -216,70 +240,73 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 placeholder="9876543210"
                 pattern="[1-9][0-9]{9}"
                 title="Phone number must be exactly 10 digits and cannot start with 0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 10 digits, cannot start with 0
               </p>
             </div>
 
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                Role *
-              </label>
-              <select
-                id="role"
-                name="role"
+            <div className="space-y-2">
+              <Label htmlFor="role">
+                Role <span className="text-destructive">*</span>
+              </Label>
+              <Select
                 value={formData.role}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, role: value as UserRole }))
+                }
               >
-                <option value="customer">Customer</option>
-                <option value="agent">Agent</option>
-                <option value="installer">Installer</option>
-                <option value="office">Office Team</option>
-                <option value="admin">Admin</option>
-              </select>
+                <SelectTrigger id="role" className="w-full">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="agent">Agent</SelectItem>
+                  <SelectItem value="installer">Installer</SelectItem>
+                  <SelectItem value="office">Office Team</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                Status *
-              </label>
-              <select
-                id="status"
-                name="status"
+            <div className="space-y-2">
+              <Label htmlFor="status">
+                Status <span className="text-destructive">*</span>
+              </Label>
+              <Select
                 value={formData.status}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, status: value as UserStatus }))
+                }
               >
-                <option value="active">Active</option>
-                <option value="disabled">Disabled</option>
-              </select>
+                <SelectTrigger id="status" className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="disabled">Disabled</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <label htmlFor="assigned_area" className="block text-sm font-medium text-gray-700 mb-1">
-                Assigned Area
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="assigned_area">Assigned Area</Label>
+              <Input
                 type="text"
                 id="assigned_area"
                 name="assigned_area"
                 value={formData.assigned_area}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., North Region"
               />
             </div>
 
             {!user && (
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password *
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  Password <span className="text-destructive">*</span>
+                </Label>
+                <Input
                   type="password"
                   id="password"
                   name="password"
@@ -287,34 +314,30 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                   onChange={handleChange}
                   required={!user}
                   minLength={8}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Minimum 8 characters"
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Minimum 8 characters
                 </p>
               </div>
             )}
           </div>
 
-          <div className="mt-6 flex justify-end space-x-3 pt-4 border-t border-gray-200 sticky bottom-0 bg-white -mx-6 px-6 -mb-4 pb-4">
-            <button
+          <DialogFooter>
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={loading}>
               {loading ? 'Saving...' : user ? 'Update' : 'Create'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

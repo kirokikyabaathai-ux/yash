@@ -1,75 +1,61 @@
-# Script to update API routes from Supabase Auth to NextAuth
-# This script updates authentication checks in API routes
+# PowerShell script to update all API routes to use NextAuth instead of Supabase Auth
 
 $files = @(
-    "src/app/api/customer-profiles/route.ts",
-    "src/app/api/customer-profiles/draft/route.ts",
-    "src/app/api/customer-profiles/upload/route.ts",
-    "src/app/api/dashboard/metrics/route.ts",
-    "src/app/api/documents/route.ts",
-    "src/app/api/documents/cleanup/route.ts",
-    "src/app/api/documents/delete/route.ts",
-    "src/app/api/documents/upload/route.ts",
-    "src/app/api/documents/view/route.ts",
-    "src/app/api/documents/[id]/corrupted/route.ts",
-    "src/app/api/documents/[id]/valid/route.ts",
-    "src/app/api/documents/[id]/view/route.ts",
-    "src/app/api/example-error-handling/route.ts",
-    "src/app/api/leads/[id]/route.ts",
-    "src/app/api/leads/[id]/activity/route.ts",
-    "src/app/api/leads/[id]/admin/move-backward/route.ts",
-    "src/app/api/leads/[id]/admin/move-forward/route.ts",
-    "src/app/api/leads/[id]/documents/route.ts",
-    "src/app/api/leads/[id]/documents/upload-url/route.ts",
-    "src/app/api/leads/[id]/status/route.ts",
-    "src/app/api/leads/[id]/status-history/route.ts",
-    "src/app/api/leads/[id]/steps/route.ts",
-    "src/app/api/leads/[id]/steps/[stepId]/complete/route.ts",
-    "src/app/api/leads/[id]/steps/[stepId]/reopen/route.ts",
+    "src/app/api/users/[id]/route.ts",
     "src/app/api/notifications/[id]/read/route.ts",
-    "src/app/api/steps/route.ts",
-    "src/app/api/steps/reorder/route.ts",
-    "src/app/api/steps/[id]/route.ts",
-    "src/app/api/users/[id]/route.ts"
+    "src/app/api/leads/[id]/steps/route.ts",
+    "src/app/api/leads/[id]/status-history/route.ts",
+    "src/app/api/leads/[id]/status/route.ts",
+    "src/app/api/leads/[id]/route.ts",
+    "src/app/api/leads/[id]/documents/upload-url/route.ts",
+    "src/app/api/leads/[id]/documents/route.ts",
+    "src/app/api/leads/[id]/admin/move-forward/route.ts",
+    "src/app/api/leads/[id]/admin/move-backward/route.ts",
+    "src/app/api/leads/[id]/activity/route.ts",
+    "src/app/api/documents/[id]/view/route.ts",
+    "src/app/api/documents/[id]/valid/route.ts",
+    "src/app/api/documents/[id]/corrupted/route.ts",
+    "src/app/api/documents/view/route.ts",
+    "src/app/api/documents/upload/route.ts",
+    "src/app/api/documents/route.ts",
+    "src/app/api/documents/delete/route.ts",
+    "src/app/api/documents/cleanup/route.ts",
+    "src/app/api/customer-profiles/upload/route.ts",
+    "src/app/api/customer-profiles/draft/route.ts"
 )
+
+Write-Host "Updating API routes to use NextAuth..." -ForegroundColor Green
 
 foreach ($file in $files) {
     if (Test-Path $file) {
-        Write-Host "Processing $file..."
+        Write-Host "Processing: $file" -ForegroundColor Yellow
+        
         $content = Get-Content $file -Raw
         
-        # Add NextAuth import if not present
-        if ($content -notmatch "import.*auth.*from.*@/lib/auth/auth") {
-            $content = $content -replace "(import.*from '@/lib/supabase/server';)", "`$1`nimport { auth } from '@/lib/auth/auth';"
-        }
+        # Replace import
+        $content = $content -replace "import \{ createClient \} from '@/lib/supabase/server';", "import { createServiceRoleClient } from '@/lib/supabase/service-role';`nimport { auth } from '@/lib/auth/auth';"
         
-        # Replace auth check pattern
-        $oldPattern = @"
-    const \{
-      data: \{ user \},
-      error: authError,
-    \} = await supabase\.auth\.getUser\(\);
-
-    if \(authError \|\| !user\) \{
-"@
+        # Replace auth check pattern 1 (with const supabase)
+        $content = $content -replace "const supabase = await createClient\(\);[\s\S]*?const \{[\s\S]*?data: \{ user \},[\s\S]*?error: authError,[\s\S]*?\} = await supabase\.auth\.getUser\(\);[\s\S]*?if \(authError \|\| !user\) \{", "const session = await auth();`n`n    if (!session || !session.user) {"
         
-        $newPattern = @"
-    // Check authentication with NextAuth
-    const session = await auth();
-
-    if (!session || !session.user) {
-"@
+        # Replace auth check pattern 2 (without const supabase)
+        $content = $content -replace "const \{[\s\S]*?data: \{ user \},[\s\S]*?error: authError,[\s\S]*?\} = await supabase\.auth\.getUser\(\);[\s\S]*?if \(authError \|\| !user\) \{", "const session = await auth();`n`n    if (!session || !session.user) {"
         
-        $content = $content -replace [regex]::Escape($oldPattern), $newPattern
+        # Replace auth check pattern 3 (inline)
+        $content = $content -replace "const \{[\s\S]*?data: \{ user \},[\s\S]*?\} = await supabase\.auth\.getUser\(\);[\s\S]*?if \(!user\) \{", "const session = await auth();`n`n    if (!session || !session.user) {"
         
-        # Replace user.id with session.user.id
-        $content = $content -replace '\buser\.id\b', 'session.user.id'
+        # Add const user = session.user after auth check
+        $content = $content -replace "if \(!session \|\| !session\.user\) \{([\s\S]*?)\}", "if (!session || !session.user) {`$1}`n`n    const user = session.user;"
         
-        Set-Content $file -Value $content -NoNewline
-        Write-Host "Updated $file"
+        # Create supabase client after auth
+        $content = $content -replace "const user = session\.user;", "const user = session.user;`n`n    const supabase = createServiceRoleClient();"
+        
+        Set-Content $file $content
+        Write-Host "✓ Updated: $file" -ForegroundColor Green
     } else {
-        Write-Host "File not found: $file" -ForegroundColor Yellow
+        Write-Host "✗ Not found: $file" -ForegroundColor Red
     }
 }
 
-Write-Host "`nAll files processed!" -ForegroundColor Green
+Write-Host "`nDone! All API routes updated." -ForegroundColor Green
+Write-Host "Please review the changes and test the endpoints." -ForegroundColor Yellow

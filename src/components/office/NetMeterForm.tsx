@@ -10,6 +10,7 @@
 
 import React, { useState } from 'react';
 import type { Lead, LeadStep, StepMaster } from '@/types/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface NetMeterFormProps {
   lead: Lead;
@@ -188,10 +189,11 @@ export function NetMeterForm({
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-foreground mb-4">
-        Submit Net Meter Application
-      </h3>
+    <Card>
+      <CardHeader>
+        <CardTitle>Submit Net Meter Application</CardTitle>
+      </CardHeader>
+      <CardContent>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
@@ -297,6 +299,7 @@ export function NetMeterForm({
           </button>
         </div>
       </form>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

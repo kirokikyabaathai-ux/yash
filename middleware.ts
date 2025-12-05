@@ -55,6 +55,7 @@ export async function middleware(request: NextRequest) {
 
     // Check if user has required role for this route
     const allowedRoles = getAllowedRoles(pathname);
+    
     if (allowedRoles && user.role) {
       if (!allowedRoles.includes(user.role)) {
         // User doesn't have permission, redirect to their dashboard

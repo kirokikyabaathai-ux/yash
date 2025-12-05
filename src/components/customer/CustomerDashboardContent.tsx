@@ -4,7 +4,7 @@
  * Customer Dashboard Content Component
  * 
  * Displays the customer's linked lead information, timeline, and document upload options.
- * Requirements: 3.5
+ * Requirements: 3.5, 5.1, 5.2, 5.3, 5.4, 5.5
  */
 
 import Link from 'next/link';
@@ -13,6 +13,10 @@ import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { StatusHistory } from './StatusHistory';
 import { Timeline } from '@/components/timeline/Timeline';
 import type { TimelineStepData } from '@/components/timeline/TimelineStep';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { DashboardCard } from '@/components/layout/DashboardCard';
+import { Button } from '@/components/ui/button';
 
 type User = Database['public']['Tables']['users']['Row'];
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -59,16 +63,20 @@ export function CustomerDashboardContent({
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
-            <div className="bg-card shadow-md rounded-lg p-6 border border-border">
-              <h1 className="text-2xl font-bold text-foreground mb-4">
-                Welcome, {user.name}!
-              </h1>
-              <div className="bg-accent border border-accent-foreground/20 rounded-md p-4">
-                <p className="text-sm text-accent-foreground">
-                  No lead is currently linked to your account. Please contact our team to create a lead for your solar installation project.
-                </p>
-              </div>
-            </div>
+            <PageLayout
+              title={`Welcome, ${user.name}!`}
+              description="Track your solar installation project"
+            >
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="bg-accent border border-accent-foreground/20 rounded-md p-4">
+                    <p className="text-sm text-accent-foreground">
+                      No lead is currently linked to your account. Please contact our team to create a lead for your solar installation project.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </PageLayout>
           </div>
         </div>
       </div>
@@ -79,98 +87,101 @@ export function CustomerDashboardContent({
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Header */}
-          <div className="bg-card shadow-md rounded-lg p-6 mb-6 border border-border">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Welcome, {user.name}!
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Track your solar installation project progress
-            </p>
-          </div>
-
-          {/* Lead Information */}
-          <div className="bg-card shadow-md rounded-lg p-6 mb-6 border border-border">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Project Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(lead as any).customer_account?.customer_id && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Customer ID</p>
-                  <p className="mt-1 text-sm text-foreground font-mono">{(lead as any).customer_account.customer_id}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Customer Name</p>
-                <p className="mt-1 text-sm text-foreground">{lead.customer_name}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Phone</p>
-                <p className="mt-1 text-sm text-foreground">{lead.phone}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Email</p>
-                <p className="mt-1 text-sm text-foreground">{lead.email || 'Not provided'}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <p className="mt-1">
-                  <LeadStatusBadge status={lead.status as any} />
-                </p>
-              </div>
-              <div className="md:col-span-2">
-                <p className="text-sm font-medium text-muted-foreground">Address</p>
-                <p className="mt-1 text-sm text-foreground">{lead.address}</p>
-              </div>
-            </div>
-
-            {/* Fill Customer Form Button */}
-            {(lead.status === 'lead' || lead.status === 'lead_interested') && (
-              <div className="mt-6 pt-4 border-t border-border">
-                <Link
-                  href={`/customer/profile/new?leadId=${lead.id}`}
-                  className="block w-full text-center px-4 py-2 bg-primary text-primary-foreground rounded-md shadow-sm text-sm font-medium hover:bg-primary/90 transition-colors"
-                >
-                  Fill Customer Profile Form
+          <PageLayout
+            title={`Welcome, ${user.name}!`}
+            description="Track your solar installation project progress"
+            actions={
+              (lead.status === 'lead' || lead.status === 'lead_interested') && (
+                <Link href={`/customer/profile/new?leadId=${lead.id}`}>
+                  <Button>Fill Customer Profile Form</Button>
                 </Link>
-                <p className="mt-2 text-xs text-muted-foreground text-center">
-                  Complete your profile to proceed with the installation process
-                </p>
-              </div>
-            )}
-          </div>
+              )
+            }
+          >
 
-          {/* Status History */}
-          <div className="bg-card shadow-md rounded-lg p-6 mb-6 border border-border">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Status Updates
-            </h2>
-            <StatusHistory leadId={lead.id} />
-          </div>
-
-          {/* Timeline */}
-          <div className="bg-card shadow-md rounded-lg border border-border p-6">
-            {timelineSteps && timelineSteps.length > 0 ? (
-              <Timeline
-                leadId={lead.id}
-                userRole="customer"
-                userId={user.id}
-                leadStatus={lead.status}
-                leadInstallerId={lead.installer_id}
-                initialSteps={transformTimelineSteps(timelineSteps)}
-              />
-            ) : (
-              <>
-                <h2 className="text-lg font-semibold text-foreground mb-4">
-                  Project Timeline
-                </h2>
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">No timeline steps available yet.</p>
+            {/* Lead Information */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-2xl font-semibold tracking-tight">Project Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {(lead as any).customer_account?.customer_id && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Customer ID</p>
+                      <p className="text-sm font-mono font-normal text-foreground">{(lead as any).customer_account.customer_id}</p>
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Customer Name</p>
+                    <p className="text-base font-semibold text-foreground">{lead.customer_name}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                    <p className="text-sm font-normal text-foreground">{lead.phone}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Email</p>
+                    <p className="text-sm font-normal text-foreground">{lead.email || 'Not provided'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Status</p>
+                    <div className="mt-1">
+                      <LeadStatusBadge status={lead.status as any} />
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Address</p>
+                    <p className="text-sm font-normal text-foreground">{lead.address}</p>
+                  </div>
                 </div>
-              </>
-            )}
-          </div>
+
+                {/* Fill Customer Form Button */}
+                {(lead.status === 'lead' || lead.status === 'lead_interested') && (
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <p className="text-xs font-normal text-muted-foreground text-center">
+                      Complete your profile to proceed with the installation process
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Status History */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-2xl font-semibold tracking-tight">Status Updates</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StatusHistory leadId={lead.id} />
+              </CardContent>
+            </Card>
+
+            {/* Timeline */}
+            <Card>
+              {timelineSteps && timelineSteps.length > 0 ? (
+                <Timeline
+                  leadId={lead.id}
+                  userRole="customer"
+                  userId={user.id}
+                  leadStatus={lead.status}
+                  leadInstallerId={lead.installer_id}
+                  initialSteps={transformTimelineSteps(timelineSteps)}
+                />
+              ) : (
+                <>
+                  <CardHeader>
+                    <CardTitle>Project Timeline</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">No timeline steps available yet.</p>
+                    </div>
+                  </CardContent>
+                </>
+              )}
+            </Card>
+          </PageLayout>
         </div>
       </div>
     </div>

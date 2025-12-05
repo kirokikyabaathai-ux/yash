@@ -4,6 +4,8 @@
  */
 
 import type { LeadStatus } from '@/types/database';
+import type { VariantProps } from 'class-variance-authority';
+import type { badgeVariants } from '@/components/ui/badge';
 
 export const STATUS_LABELS: Record<LeadStatus, string> = {
   lead: 'Lead',
@@ -21,6 +23,7 @@ export const STATUS_DESCRIPTIONS: Record<LeadStatus, string> = {
   lead_cancelled: 'Customer declined/withdrew',
 };
 
+// Legacy color mapping for backward compatibility
 export const STATUS_COLORS: Record<LeadStatus, { bg: string; text: string; badge: string }> = {
   lead: {
     bg: 'bg-blue-100',
@@ -49,6 +52,35 @@ export const STATUS_COLORS: Record<LeadStatus, { bg: string; text: string; badge
   },
 };
 
+// shadcn/ui Badge variant mapping with custom colors for status indicators
+type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
+
+export const STATUS_VARIANTS: Record<
+  LeadStatus,
+  { variant: BadgeVariant; className: string }
+> = {
+  lead: {
+    variant: 'outline',
+    className: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
+  },
+  lead_interested: {
+    variant: 'outline',
+    className: 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100',
+  },
+  lead_processing: {
+    variant: 'outline',
+    className: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100',
+  },
+  lead_completed: {
+    variant: 'outline',
+    className: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100',
+  },
+  lead_cancelled: {
+    variant: 'destructive',
+    className: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100',
+  },
+};
+
 export function getStatusLabel(status: LeadStatus): string {
   return STATUS_LABELS[status] || status;
 }
@@ -59,4 +91,8 @@ export function getStatusDescription(status: LeadStatus): string {
 
 export function getStatusColor(status: LeadStatus): { bg: string; text: string; badge: string } {
   return STATUS_COLORS[status] || STATUS_COLORS.lead;
+}
+
+export function getStatusVariant(status: LeadStatus): { variant: BadgeVariant; className: string } {
+  return STATUS_VARIANTS[status] || STATUS_VARIANTS.lead;
 }

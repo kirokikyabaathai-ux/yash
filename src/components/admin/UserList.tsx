@@ -8,6 +8,16 @@
 'use client';
 
 import type { Database } from '@/types/database';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 type User = Database['public']['Tables']['users']['Row'];
 
@@ -37,95 +47,74 @@ export function UserList({ users, onEdit, onDisable }: UserListProps) {
 
   if (users.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        No users found. Create your first user to get started.
+      <div className="bg-card rounded-lg border p-12 text-center">
+        <p className="text-muted-foreground text-lg">No users found</p>
+        <p className="text-muted-foreground text-sm mt-2">
+          Create your first user to get started
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Email
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Phone
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Role
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Created
-            </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+    <div className="bg-card rounded-lg border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="font-semibold">Name</TableHead>
+            <TableHead className="font-semibold">Email</TableHead>
+            <TableHead className="font-semibold">Phone</TableHead>
+            <TableHead className="font-semibold">Role</TableHead>
+            <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="font-semibold">Created</TableHead>
+            <TableHead className="text-right font-semibold">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {users.map((user) => (
-            <tr key={user.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">{user.name}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-500">{user.email}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-500">{user.phone}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(
-                    user.role
-                  )}`}
-                >
+            <TableRow key={user.id}>
+              <TableCell className="font-medium">{user.name}</TableCell>
+              <TableCell className="text-muted-foreground">{user.email}</TableCell>
+              <TableCell className="text-muted-foreground">{user.phone}</TableCell>
+              <TableCell>
+                <Badge variant="secondary" className={getRoleBadgeColor(user.role)}>
                   {user.role}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
-                    user.status
-                  )}`}
-                >
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary" className={getStatusBadgeColor(user.status)}>
                   {user.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                </Badge>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
                 {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => onEdit(user)}
-                  className="text-blue-600 hover:text-blue-900 mr-4"
+                  className="mr-2"
                 >
                   Edit
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => onDisable(user.id, user.status)}
                   className={
                     user.status === 'active'
-                      ? 'text-red-600 hover:text-red-900'
-                      : 'text-green-600 hover:text-green-900'
+                      ? 'text-destructive hover:text-destructive'
+                      : 'text-green-600 hover:text-green-700'
                   }
                 >
                   {user.status === 'active' ? 'Disable' : 'Enable'}
-                </button>
-              </td>
-            </tr>
+                </Button>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

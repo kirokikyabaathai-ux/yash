@@ -3,12 +3,15 @@
  * 
  * Displays individual timeline step with status and actions.
  * 
- * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5
+ * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 15.1, 15.2, 15.3, 15.4, 15.5
  */
 
 'use client';
 
 import type { StepStatus, UserRole } from '@/types/database';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export interface TimelineStepData {
   id: string;
@@ -111,119 +114,133 @@ export function TimelineStep({
   };
 
   return (
-    <div className={`border-2 rounded-lg p-6 ${getStatusColor()} transition-all`}>
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-4 flex-1">
-          {/* Status Icon */}
-          <div className="flex-shrink-0 mt-1">{getStatusIcon()}</div>
+    <Card className={`transition-all hover:shadow-md ${step.status === 'completed' ? 'border-green-300 dark:border-green-800' : ''}`}>
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-4 flex-1">
+            {/* Status Icon */}
+            <div className="flex-shrink-0 mt-1">{getStatusIcon()}</div>
 
-          {/* Step Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-3">
-              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-background text-foreground text-sm font-medium border-2 border-border">
-                {step.order_index}
-              </span>
-              <h3 className="text-lg font-semibold text-foreground">{step.step_name}</h3>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  step.status === 'completed'
-                    ? 'bg-green-200 text-green-900 dark:bg-green-900/40 dark:text-green-300'
-                    : step.status === 'pending'
-                    ? 'bg-primary/20 text-primary'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {step.status.charAt(0).toUpperCase() + step.status.slice(1)}
-              </span>
-            </div>
-
-            {/* Completion Details */}
-            {step.status === 'completed' && (
-              <div className="mt-3 space-y-1 text-sm">
-                {step.completed_at && (
-                  <p className="text-foreground">
-                    <span className="font-medium">Completed:</span> {formatDate(step.completed_at)}
-                  </p>
-                )}
-                {step.completed_by_name && (
-                  <p className="text-foreground">
-                    <span className="font-medium">By:</span> {step.completed_by_name}
-                  </p>
-                )}
-                {step.remarks && (
-                  <div className="mt-2">
-                    <p className="font-medium text-foreground">Remarks:</p>
-                    <p className="text-muted-foreground mt-1 whitespace-pre-wrap">{step.remarks}</p>
-                  </div>
-                )}
-                {step.attachments && step.attachments.length > 0 && (
-                  <div className="mt-2">
-                    <p className="font-medium text-foreground">Attachments:</p>
-                    <ul className="mt-1 space-y-1">
-                      {step.attachments.map((attachment, index) => (
-                        <li key={index} className="text-primary hover:underline">
-                          <a href={attachment} target="_blank" rel="noopener noreferrer">
-                            Attachment {index + 1}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+            {/* Step Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-3 flex-wrap gap-2">
+                <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-background text-foreground text-sm font-medium border-2 border-border">
+                  {step.order_index}
+                </span>
+                <CardTitle className="text-lg">{step.step_name}</CardTitle>
+                <Badge
+                  variant={
+                    step.status === 'completed'
+                      ? 'default'
+                      : step.status === 'pending'
+                      ? 'secondary'
+                      : 'outline'
+                  }
+                  className={
+                    step.status === 'completed'
+                      ? 'bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300'
+                      : ''
+                  }
+                >
+                  {step.status.charAt(0).toUpperCase() + step.status.slice(1)}
+                </Badge>
               </div>
+
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center space-x-2 ml-4">
+            {step.status === 'pending' && step.customer_upload && onUpload && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onUpload(step.step_id)}
+                disabled={isLoading}
+              >
+                Upload
+              </Button>
             )}
 
-            {/* Requirements */}
-            {step.status !== 'completed' && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {step.remarks_required && (
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-background text-foreground border border-border">
-                    Remarks Required
-                  </span>
-                )}
-                {step.attachments_allowed && (
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-background text-foreground border border-border">
-                    Attachments Allowed
-                  </span>
-                )}
-              </div>
+            {step.status === 'pending' && canComplete && (
+              <Button
+                size="sm"
+                onClick={() => onComplete(step.id)}
+                disabled={isLoading}
+              >
+                Complete
+              </Button>
+            )}
+
+            {step.status === 'completed' && canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onReopen(step.id)}
+                disabled={isLoading}
+              >
+                Reopen
+              </Button>
             )}
           </div>
         </div>
+      </CardHeader>
 
-        {/* Actions */}
-        <div className="flex items-center space-x-2 ml-4">
-          {step.status === 'pending' && step.customer_upload && onUpload && (
-            <button
-              onClick={() => onUpload(step.step_id)}
-              disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-primary bg-background border border-primary rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Upload
-            </button>
-          )}
+      {/* Completion Details */}
+      {step.status === 'completed' && (
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            {step.completed_at && (
+              <p className="text-foreground">
+                <span className="font-medium">Completed:</span> {formatDate(step.completed_at)}
+              </p>
+            )}
+            {step.completed_by_name && (
+              <p className="text-foreground">
+                <span className="font-medium">By:</span> {step.completed_by_name}
+              </p>
+            )}
+            {step.remarks && (
+              <div className="mt-3">
+                <p className="font-medium text-foreground">Remarks:</p>
+                <p className="text-muted-foreground mt-1 whitespace-pre-wrap">{step.remarks}</p>
+              </div>
+            )}
+            {step.attachments && step.attachments.length > 0 && (
+              <div className="mt-3">
+                <p className="font-medium text-foreground">Attachments:</p>
+                <ul className="mt-1 space-y-1">
+                  {step.attachments.map((attachment, index) => (
+                    <li key={index} className="text-primary hover:underline">
+                      <a href={attachment} target="_blank" rel="noopener noreferrer">
+                        Attachment {index + 1}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      )}
 
-          {step.status === 'pending' && canComplete && (
-            <button
-              onClick={() => onComplete(step.id)}
-              disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-primary-foreground bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Complete
-            </button>
-          )}
-
-          {step.status === 'completed' && canEdit && (
-            <button
-              onClick={() => onReopen(step.id)}
-              disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-foreground bg-background border border-input rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Reopen
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+      {/* Requirements */}
+      {step.status !== 'completed' && (
+        <CardFooter>
+          <div className="flex flex-wrap gap-2">
+            {step.remarks_required && (
+              <Badge variant="outline">
+                Remarks Required
+              </Badge>
+            )}
+            {step.attachments_allowed && (
+              <Badge variant="outline">
+                Attachments Allowed
+              </Badge>
+            )}
+          </div>
+        </CardFooter>
+      )}
+    </Card>
   );
 }

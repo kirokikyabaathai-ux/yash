@@ -3,13 +3,17 @@
  * 
  * Form for creating and editing step master configurations.
  * 
- * Requirements: 6.1, 6.2, 6.3
+ * Requirements: 2.1, 4.1, 4.2, 4.3, 6.1, 6.2, 6.3
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
 import type { UserRole } from '@/types/database';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 
 export interface StepMasterFormData {
   step_name: string;
@@ -140,11 +144,11 @@ export function StepMasterForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Step Name */}
-      <div>
-        <label htmlFor="step_name" className="block text-sm font-medium text-gray-700">
-          Step Name <span className="text-red-500">*</span>
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="step_name">
+          Step Name <span className="text-destructive">*</span>
+        </Label>
+        <Input
           type="text"
           id="step_name"
           name="step_name"
@@ -152,116 +156,122 @@ export function StepMasterForm({
           onChange={handleChange}
           disabled={isLoading}
           placeholder="e.g., Site Survey, Installation, Commissioning"
-          className={`mt-1 block w-full rounded-md border ${
-            errors.step_name ? 'border-red-300' : 'border-gray-300'
-          } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+          aria-invalid={!!errors.step_name}
         />
         {errors.step_name && (
-          <p className="mt-1 text-sm text-red-600">{errors.step_name}</p>
+          <p className="text-sm text-destructive">{errors.step_name}</p>
         )}
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Use drag and drop to reorder steps after creation
         </p>
       </div>
 
       {/* Allowed Roles */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Allowed Roles <span className="text-red-500">*</span>
-        </label>
-        <div className="space-y-2">
+      <div className="space-y-3">
+        <Label>
+          Allowed Roles <span className="text-destructive">*</span>
+        </Label>
+        <div className="space-y-3">
           {ROLE_OPTIONS.map((role) => (
-            <label key={role.value} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
+            <div key={role.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`role-${role.value}`}
                 checked={formData.allowed_roles.includes(role.value)}
-                onChange={() => handleRoleToggle(role.value)}
+                onCheckedChange={() => handleRoleToggle(role.value)}
                 disabled={isLoading}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               />
-              <span className="ml-2 text-sm text-gray-700">{role.label}</span>
-            </label>
+              <Label
+                htmlFor={`role-${role.value}`}
+                className="text-sm font-normal cursor-pointer"
+              >
+                {role.label}
+              </Label>
+            </div>
           ))}
         </div>
         {errors.allowed_roles && (
-          <p className="mt-1 text-sm text-red-600">{errors.allowed_roles}</p>
+          <p className="text-sm text-destructive">{errors.allowed_roles}</p>
         )}
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-xs text-muted-foreground">
           Select which roles can complete this step
         </p>
       </div>
 
       {/* Checkboxes */}
-      <div className="space-y-3">
-        <label className="flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            name="remarks_required"
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="remarks_required"
             checked={formData.remarks_required}
-            onChange={handleChange}
+            onCheckedChange={(checked) =>
+              setFormData((prev) => ({ ...prev, remarks_required: !!checked }))
+            }
             disabled={isLoading}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           />
-          <span className="ml-2 text-sm text-gray-700">Remarks Required</span>
-        </label>
+          <Label htmlFor="remarks_required" className="text-sm font-normal cursor-pointer">
+            Remarks Required
+          </Label>
+        </div>
 
-        <label className="flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            name="attachments_allowed"
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="attachments_allowed"
             checked={formData.attachments_allowed}
-            onChange={handleChange}
+            onCheckedChange={(checked) =>
+              setFormData((prev) => ({ ...prev, attachments_allowed: !!checked }))
+            }
             disabled={isLoading}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           />
-          <span className="ml-2 text-sm text-gray-700">Attachments Allowed</span>
-        </label>
+          <Label htmlFor="attachments_allowed" className="text-sm font-normal cursor-pointer">
+            Attachments Allowed
+          </Label>
+        </div>
 
-        <label className="flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            name="customer_upload"
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="customer_upload"
             checked={formData.customer_upload}
-            onChange={handleChange}
+            onCheckedChange={(checked) =>
+              setFormData((prev) => ({ ...prev, customer_upload: !!checked }))
+            }
             disabled={isLoading}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           />
-          <span className="ml-2 text-sm text-gray-700">Customer Upload Enabled</span>
-        </label>
+          <Label htmlFor="customer_upload" className="text-sm font-normal cursor-pointer">
+            Customer Upload Enabled
+          </Label>
+        </div>
 
-        <label className="flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            name="requires_installer_assignment"
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="requires_installer_assignment"
             checked={formData.requires_installer_assignment}
-            onChange={handleChange}
+            onCheckedChange={(checked) =>
+              setFormData((prev) => ({ ...prev, requires_installer_assignment: !!checked }))
+            }
             disabled={isLoading}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           />
-          <span className="ml-2 text-sm text-gray-700">Requires Installer Assignment</span>
-        </label>
+          <Label htmlFor="requires_installer_assignment" className="text-sm font-normal cursor-pointer">
+            Requires Installer Assignment
+          </Label>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          When enabled, admin/office must assign an installer before completing this step
+        </p>
       </div>
-      <p className="text-sm text-gray-500">
-        When enabled, admin/office must assign an installer before completing this step
-      </p>
 
       {/* Form Actions */}
       <div className="flex justify-end space-x-3 pt-4 border-t">
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={onCancel}
           disabled={isLoading}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        </Button>
+        <Button type="submit" disabled={isLoading}>
           {isLoading ? 'Saving...' : step ? 'Update Step' : 'Create Step'}
-        </button>
+        </Button>
       </div>
     </form>
   );

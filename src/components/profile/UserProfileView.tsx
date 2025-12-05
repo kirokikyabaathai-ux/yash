@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Phone, MapPin, Calendar, Shield, Hash } from 'lucide-react';
 import type { Tables } from '@/types/database';
 
@@ -103,12 +104,15 @@ export function UserProfileView({ userId }: UserProfileViewProps) {
       </div>
 
       {/* Contact Information Card */}
-      <div className="bg-card border rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <User className="h-5 w-5 text-primary" />
-          Contact Information
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5 text-primary" />
+            Contact Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
           <div className="flex items-start gap-3">
             <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
@@ -134,17 +138,21 @@ export function UserProfileView({ userId }: UserProfileViewProps) {
               </div>
             </div>
           )}
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Role Information Card */}
       {(user.agent_id || user.office_id || user.customer_id) && (
-        <div className="bg-card border rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            Role Information
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Role Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
             {user.agent_id && (
               <div className="flex items-start gap-3">
                 <Hash className="h-5 w-5 text-muted-foreground mt-0.5" />
@@ -174,17 +182,21 @@ export function UserProfileView({ userId }: UserProfileViewProps) {
                 </div>
               </div>
             )}
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Account Details Card */}
-      <div className="bg-card border rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          Account Details
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            Account Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <Calendar className="h-5 w-5 text-primary" />
@@ -228,8 +240,9 @@ export function UserProfileView({ userId }: UserProfileViewProps) {
               </p>
             </div>
           </div>
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

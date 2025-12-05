@@ -10,6 +10,10 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { auth } from '@/lib/auth/auth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { DashboardCard } from '@/components/layout/DashboardCard';
+import { Users, TrendingUp, CheckCircle, Activity, AlertCircle } from 'lucide-react';
 
 export default async function OfficeDashboardPage() {
   // Get the current session using NextAuth
@@ -102,118 +106,104 @@ export default async function OfficeDashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Office Dashboard</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Welcome back, {profile.name}
-          </p>
-        </div>
+        <PageLayout
+          title="Office Dashboard"
+          description={`Welcome back, ${profile.name}`}
+        >
+          {/* Metrics Grid */}
+          {metrics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <DashboardCard
+                title="Total Leads"
+                value={metrics.totalLeads}
+                icon={<Users className="h-4 w-4" />}
+              />
 
-        {/* Metrics Grid */}
-        {metrics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Total Leads</div>
-              <div className="mt-2 text-3xl font-bold text-foreground">
-                {metrics.totalLeads}
-              </div>
+              <DashboardCard
+                title="New Lead"
+                value={metrics.leadsByStatus.lead || 0}
+                icon={<Activity className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Lead Processing"
+                value={metrics.leadsByStatus.lead_processing || 0}
+                icon={<TrendingUp className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Completed"
+                value={metrics.leadsByStatus.lead_completed || 0}
+                icon={<CheckCircle className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Conversion Rate"
+                value={`${metrics.conversionRate.overallConversion.toFixed(1)}%`}
+              />
+
+              <DashboardCard
+                title="Pending Actions"
+                value={metrics.pendingActions}
+                icon={<AlertCircle className="h-4 w-4" />}
+              />
+
+              <DashboardCard
+                title="Inquiry → Application"
+                value={`${metrics.conversionRate.ongoingToInterested?.toFixed(1) || 0}%`}
+              />
+
+              <DashboardCard
+                title="Application → Completed"
+                value={`${metrics.conversionRate.interestedToClosed?.toFixed(1) || 0}%`}
+              />
             </div>
+          )}
 
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">New Lead</div>
-              <div className="mt-2 text-3xl font-bold text-primary">
-                {metrics.leadsByStatus.lead || 0}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Lead Processing</div>
-              <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                {metrics.leadsByStatus.lead_processing || 0}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Completed</div>
-              <div className="mt-2 text-3xl font-bold text-primary">
-                {metrics.leadsByStatus.lead_completed || 0}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Conversion Rate</div>
-              <div className="mt-2 text-3xl font-bold text-primary">
-                {metrics.conversionRate.overallConversion.toFixed(1)}%
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Pending Actions</div>
-              <div className="mt-2 text-3xl font-bold text-accent-foreground">
-                {metrics.pendingActions}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Inquiry → Application</div>
-              <div className="mt-2 text-3xl font-bold text-primary">
-                {metrics.conversionRate.ongoingToInterested?.toFixed(1) || 0}%
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <div className="text-sm font-medium text-muted-foreground">Application → Completed</div>
-              <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                {metrics.conversionRate.interestedToClosed?.toFixed(1) || 0}%
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Leads by Current Step */}
-        {metrics && Object.keys(metrics.leadsByStep).length > 0 && (
-          <div className="bg-card border border-border rounded-lg shadow-sm mb-8 p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Leads by Current Step
-            </h2>
-            <div className="space-y-3">
-              {Object.entries(metrics.leadsByStep).map(([stepName, count]: [string, any]) => (
-                <div key={stepName} className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{stepName}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-48 bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full transition-all"
-                        style={{
-                          width: `${metrics.totalLeads > 0 ? (count / metrics.totalLeads) * 100 : 0}%`,
-                        }}
-                      />
+          {/* Leads by Current Step */}
+          {metrics && Object.keys(metrics.leadsByStep).length > 0 && (
+            <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Leads by Current Step</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Object.entries(metrics.leadsByStep).map(([stepName, count]: [string, any]) => (
+                  <div key={stepName} className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{stepName}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-48 bg-muted rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{
+                            width: `${metrics.totalLeads > 0 ? (count / metrics.totalLeads) * 100 : 0}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-foreground w-12 text-right">
+                        {count}
+                      </span>
                     </div>
-                    <span className="text-sm font-medium text-foreground w-12 text-right">
-                      {count}
-                    </span>
                   </div>
+                ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Pending Leads */}
-        <div className="bg-card border border-border rounded-lg shadow-sm mb-8">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">
-              Pending Leads (Active)
-            </h2>
+          {/* Pending Leads */}
+          <Card className="mb-8">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle>Pending Leads (Active)</CardTitle>
             <Link
               href="/office/leads"
               className="text-sm text-primary hover:text-primary/80 transition-colors"
             >
               View all
             </Link>
-          </div>
-          <div className="overflow-x-auto">
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted/50">
                 <tr>
@@ -272,22 +262,24 @@ export default async function OfficeDashboardPage() {
                   </tr>
                 )}
               </tbody>
-            </table>
-          </div>
-        </div>
+              </table>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* All Leads */}
-        <div className="bg-card border border-border rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">All Leads</h2>
+          {/* All Leads */}
+          <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle>All Leads</CardTitle>
             <Link
               href="/office/leads"
               className="text-sm text-primary hover:text-primary/80 transition-colors"
             >
               View all
             </Link>
-          </div>
-          <div className="overflow-x-auto">
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted/50">
                 <tr>
@@ -354,48 +346,53 @@ export default async function OfficeDashboardPage() {
                   </tr>
                 )}
               </tbody>
-            </table>
+              </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link href="/office/leads/new">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardHeader>
+                <CardTitle>Create New Lead</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Add a new solar installation lead
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/office/leads">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardHeader>
+                <CardTitle>Manage Leads</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  View and manage all leads
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/office/reports">
+            <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+              <CardHeader>
+                <CardTitle>View Reports</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Generate and view reports
+                </p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link
-            href="/office/leads/new"
-            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Create New Lead
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Add a new solar installation lead
-            </p>
-          </Link>
-
-          <Link
-            href="/office/leads"
-            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Manage Leads
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              View and manage all leads
-            </p>
-          </Link>
-
-          <Link
-            href="/office/reports"
-            className="bg-card border border-border rounded-lg shadow-sm p-6 hover:shadow-md hover:border-primary/50 transition-all"
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              View Reports
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Generate and view reports
-            </p>
-          </Link>
-        </div>
+        </PageLayout>
       </div>
     </div>
   );
