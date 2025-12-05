@@ -10,13 +10,12 @@
 import { useState, useEffect } from 'react';
 import type { Database } from '@/types/database';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -173,137 +172,175 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   };
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{user ? 'Edit User' : 'Create User'}</DialogTitle>
-          <DialogDescription>
-            {user ? 'Update user information and settings.' : 'Create a new user account with role and permissions.'}
-          </DialogDescription>
-        </DialogHeader>
+    <Sheet open={true} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+        <div className="p-6 border-b bg-muted/30">
+          <SheetHeader>
+            <SheetTitle className="text-xl">{user ? 'Edit User' : 'Create User'}</SheetTitle>
+            <SheetDescription className="text-sm">
+              {user ? 'Update user information and settings.' : 'Create a new user account with role and permissions.'}
+            </SheetDescription>
+          </SheetHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-start gap-3">
+              <svg className="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               {error}
             </div>
           )}
 
+          {/* Basic Information Section */}
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">
-                Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                placeholder="Enter full name"
-              />
-            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-4">Basic Information</h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter full name"
+                    className="text-base"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">
-                Email <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                disabled={!!user}
-                placeholder="user@example.com"
-              />
-              {user && (
-                <p className="text-xs text-muted-foreground">
-                  Email cannot be changed after creation
-                </p>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled={!!user}
+                    placeholder="user@example.com"
+                    className="text-base"
+                  />
+                  {user && (
+                    <p className="text-xs text-muted-foreground">
+                      Email cannot be changed after creation
+                    </p>
+                  )}
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">
-                Phone <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-                placeholder="9876543210"
-                pattern="[1-9][0-9]{9}"
-                title="Phone number must be exactly 10 digits and cannot start with 0"
-              />
-              <p className="text-xs text-muted-foreground">
-                10 digits, cannot start with 0
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    Phone <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="9876543210"
+                    pattern="[1-9][0-9]{9}"
+                    title="Phone number must be exactly 10 digits and cannot start with 0"
+                    className="text-base"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    10 digits, cannot start with 0
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Role & Permissions Section */}
+          <div className="space-y-4 pb-6 border-b">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-1">Role & Permissions</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Configure user role and access level
               </p>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role">
-                Role <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={formData.role}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, role: value as UserRole }))
-                }
-              >
-                <SelectTrigger id="role" className="w-full">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="customer">Customer</SelectItem>
-                  <SelectItem value="agent">Agent</SelectItem>
-                  <SelectItem value="installer">Installer</SelectItem>
-                  <SelectItem value="office">Office Team</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">
-                Status <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, status: value as UserStatus }))
-                }
-              >
-                <SelectTrigger id="status" className="w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="disabled">Disabled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assigned_area">Assigned Area</Label>
-              <Input
-                type="text"
-                id="assigned_area"
-                name="assigned_area"
-                value={formData.assigned_area}
-                onChange={handleChange}
-                placeholder="e.g., North Region"
-              />
-            </div>
-
-            {!user && (
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">
+                <Label htmlFor="role" className="text-sm font-medium">
+                  Role <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, role: value as UserRole }))
+                  }
+                >
+                  <SelectTrigger id="role" className="w-full">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer">Customer</SelectItem>
+                    <SelectItem value="agent">Agent</SelectItem>
+                    <SelectItem value="installer">Installer</SelectItem>
+                    <SelectItem value="office">Office Team</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-sm font-medium">
+                  Status <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, status: value as UserStatus }))
+                  }
+                >
+                  <SelectTrigger id="status" className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="disabled">Disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assigned_area" className="text-sm font-medium">Assigned Area</Label>
+                <Input
+                  type="text"
+                  id="assigned_area"
+                  name="assigned_area"
+                  value={formData.assigned_area}
+                  onChange={handleChange}
+                  placeholder="e.g., North Region"
+                  className="text-base"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional: Specify geographic area or territory
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Security Section */}
+          {!user && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-1">Security</h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Set initial password for the new user
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
                   Password <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -315,15 +352,17 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                   required={!user}
                   minLength={8}
                   placeholder="Minimum 8 characters"
+                  className="text-base"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Minimum 8 characters
+                  Minimum 8 characters required
                 </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          <DialogFooter>
+          {/* Form Actions */}
+          <div className="flex justify-end gap-3 pt-6 border-t sticky bottom-0 bg-background">
             <Button
               type="button"
               variant="outline"
@@ -332,12 +371,22 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : user ? 'Update' : 'Create'}
+            <Button type="submit" disabled={loading} className="min-w-[120px]">
+              {loading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                user ? 'Update User' : 'Create User'
+              )}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

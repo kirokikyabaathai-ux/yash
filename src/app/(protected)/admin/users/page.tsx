@@ -89,37 +89,54 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <Button onClick={handleCreateUser}>
-          Create User
-        </Button>
-      </div>
-
-      {error && (
-        <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-md text-destructive">
-          {error}
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">User Management</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Manage user accounts, roles, and permissions across the system
+              </p>
+            </div>
+            <Button onClick={handleCreateUser} size="lg" className="shadow-md">
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create User
+            </Button>
+          </div>
         </div>
-      )}
 
-      {loading ? (
-        <div className="text-center py-8">Loading users...</div>
-      ) : (
-        <UserList
-          users={users}
-          onEdit={handleEditUser}
-          onDisable={handleDisableUser}
-        />
-      )}
+        {error && (
+          <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
+            <svg className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
 
-      {showForm && (
-        <UserForm
-          user={editingUser}
-          onClose={handleFormClose}
-          onSuccess={handleFormSuccess}
-        />
-      )}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <UserList
+            users={users}
+            onEdit={handleEditUser}
+            onDisable={handleDisableUser}
+          />
+        )}
+
+        {showForm && (
+          <UserForm
+            user={editingUser}
+            onClose={handleFormClose}
+            onSuccess={handleFormSuccess}
+          />
+        )}
+      </div>
     </div>
   );
 }
