@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { CustomerProfileForm } from '@/components/customers/CustomerProfileForm';
 import type { CustomerProfileFormData } from '@/types/customer';
 import type { Lead } from '@/types/api';
+import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
 
 interface CustomerProfileFormWrapperProps {
   leadData?: Lead | null;
@@ -123,8 +124,12 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
       
       alert('Customer profile created successfully!');
       
-      // Redirect to dashboard to see updated status
-      router.push('/customer/dashboard');
+      // Get session and redirect to role-based dashboard
+      const sessionResponse = await fetch('/api/auth/session');
+      const session = await sessionResponse.json();
+      const role = (session?.user?.role || 'customer') as UserRole;
+      
+      router.push(getDashboardPath(role));
       router.refresh();
     } catch (error) {
       console.error('Error creating customer profile:', error);

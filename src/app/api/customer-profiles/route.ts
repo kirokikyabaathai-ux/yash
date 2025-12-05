@@ -5,23 +5,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { auth } from '@/lib/auth/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const supabase = await createClient();
     const body = await request.json();
 
     // Determine the correct user_id
-    let targetUserId = body.user_id || user.id;
+    let targetUserId = body.user_id || session.user.id;
     
     // If a lead_id is provided and user_id is not explicitly set, 
     // use the customer_account_id from the lead (if it exists)
@@ -189,7 +188,7 @@ export async function POST(request: NextRequest) {
           file_name: fileMetadata.fileName || filePath.split('/').pop(),
           file_size: fileMetadata.fileSize || 0,
           mime_type: fileMetadata.mimeType || 'application/octet-stream',
-          uploaded_by: user.id,
+          uploaded_by: session.user.id,
           status: 'valid' as const,
         });
       }
@@ -261,16 +260,14 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const leadId = searchParams.get('leadId');
 
@@ -279,7 +276,7 @@ export async function GET(request: NextRequest) {
     if (leadId) {
       query = query.eq('lead_id', leadId);
     } else {
-      query = query.eq('user_id', user.id);
+      query = query.eq('user_id', session.user.id);
     }
 
     const { data, error } = await query;

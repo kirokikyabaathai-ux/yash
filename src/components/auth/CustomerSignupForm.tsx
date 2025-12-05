@@ -1,20 +1,22 @@
 'use client';
 
 /**
- * Customer Signup Form Component
+ * Customer Signup Form Component (NextAuth Integration)
  * 
- * Handles customer self-registration with automatic lead linking.
+ * Handles customer self-registration with automatic lead creation.
  * When a customer registers:
- * 1. Creates Supabase Auth account
- * 2. Creates user profile with 'customer' role
- * 3. Calls link_customer_to_lead RPC to link to existing lead or create new one
+ * 1. Calls customer-signup API to create Supabase Auth account
+ * 2. Database trigger creates user profile with 'customer' role
+ * 3. Database trigger automatically creates a lead record
+ * 4. Signs in the user with NextAuth
  * 
- * Requirements: 3.1, 3.2, 3.3, 3.4
+ * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5
  */
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { signIn } from 'next-auth/react';
+import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
 
 interface FormData {
   name: string;
@@ -36,8 +38,6 @@ export function CustomerSignupForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const supabase = createClient();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -89,53 +89,48 @@ export function CustomerSignupForm() {
     }
 
     try {
-      // Step 1: Create Supabase Auth account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            name: formData.name,
-            phone: formData.phone,
-            role: 'customer',
-          },
+      // Step 1: Call customer signup API
+      const response = await fetch('/api/auth/customer-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        }),
       });
 
-      if (authError) {
-        setError(authError.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error?.message || 'Failed to create account');
         setLoading(false);
         return;
       }
 
-      if (!authData.user) {
-        setError('Failed to create account. Please try again.');
+      // Step 2: Sign in with NextAuth using the credentials
+      const signInResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setError('Account created but sign in failed. Please try logging in.');
         setLoading(false);
         return;
       }
 
-      // Step 2: The trigger handle_new_user() automatically creates the user profile and lead
-      // Just wait a moment for the trigger to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Step 3: Verify the user profile was created by the trigger
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError || !profile) {
-        console.error('Profile verification error:', profileError);
-        setError('Account created but profile setup incomplete. Please contact support.');
-        setLoading(false);
-        return;
-      }
-
-      console.log('User profile created successfully:', profile);
-
-      // Redirect to customer dashboard
-      router.push('/customer/dashboard');
+      // Step 3: Get session and redirect to role-based dashboard
+      const sessionResponse = await fetch('/api/auth/session');
+      const session = await sessionResponse.json();
+      const role = (session?.user?.role || 'customer') as UserRole;
+      
+      router.push(getDashboardPath(role));
+      router.refresh(); // Refresh to update session state
     } catch (err) {
       console.error('Signup error:', err);
       setError('An unexpected error occurred. Please try again.');

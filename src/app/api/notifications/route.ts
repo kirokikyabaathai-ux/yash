@@ -1,6 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { Database } from '@/types/database';
 
 /**
@@ -13,20 +13,17 @@ import { Database } from '@/types/database';
  */
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !session.user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
+
+    const supabase = await createClient();
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -37,7 +34,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from('notifications')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(limit);
 

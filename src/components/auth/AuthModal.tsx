@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/lib/supabase/client';
+import { signIn } from 'next-auth/react';
 import { toast } from 'sonner';
+import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,7 +27,6 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   // Sync mode with initialMode when it changes
   useEffect(() => {
@@ -55,8 +55,16 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
           return;
         }
 
-        // Call signup API
-        const response = await fetch('/api/auth/signup', {
+        // Validate phone number format (10 digits, cannot start with 0)
+        const phoneRegex = /^[1-9][0-9]{9}$/;
+        if (!phoneRegex.test(phone)) {
+          toast.error('Phone number must be exactly 10 digits and cannot start with 0');
+          setIsLoading(false);
+          return;
+        }
+
+        // Call customer signup API
+        const response = await fetch('/api/auth/customer-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, phone, password }),
@@ -70,25 +78,51 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
           return;
         }
 
-        toast.success('Account created successfully!');
-        onClose();
-        router.push('/customer/dashboard');
-      } else {
-        // Login
-        const { error } = await supabase.auth.signInWithPassword({
+        // Sign in with NextAuth
+        const signInResult = await signIn('credentials', {
           email,
           password,
+          redirect: false,
         });
 
-        if (error) {
-          toast.error(error.message);
+        if (signInResult?.error) {
+          toast.error('Account created but sign in failed. Please try logging in.');
           setIsLoading(false);
           return;
         }
 
+        // Get session to determine role-based redirect
+        const sessionResponse = await fetch('/api/auth/session');
+        const session = await sessionResponse.json();
+        const role = (session?.user?.role || 'customer') as UserRole;
+        
+        toast.success('Account created successfully!');
+        onClose();
+        router.push(getDashboardPath(role));
+        router.refresh();
+      } else {
+        // Login with NextAuth
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          toast.error('Invalid email or password');
+          setIsLoading(false);
+          return;
+        }
+
+        // Get session to determine role-based redirect
+        const sessionResponse = await fetch('/api/auth/session');
+        const session = await sessionResponse.json();
+        const role = (session?.user?.role || 'customer') as UserRole;
+        
         toast.success('Logged in successfully!');
         onClose();
-        router.push('/customer/dashboard');
+        router.push(getDashboardPath(role));
+        router.refresh();
       }
     } catch (error) {
       console.error('Auth error:', error);

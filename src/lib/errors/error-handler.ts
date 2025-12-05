@@ -251,6 +251,43 @@ export function getUserFriendlyMessage(code: ErrorCode): string {
   return UserFriendlyMessages[code] || UserFriendlyMessages[ErrorCodes.INTERNAL_ERROR];
 }
 
+/**
+ * Creates an authentication error response
+ */
+export function createAuthError(message: string, code: ErrorCode = ErrorCodes.INVALID_CREDENTIALS): AppError {
+  return new AuthenticationError(message, code);
+}
+
+/**
+ * Creates a session expired error
+ */
+export function createSessionExpiredError(): AppError {
+  return new AuthenticationError(
+    UserFriendlyMessages[ErrorCodes.SESSION_EXPIRED],
+    ErrorCodes.SESSION_EXPIRED
+  );
+}
+
+/**
+ * Creates an account disabled error
+ */
+export function createAccountDisabledError(): AppError {
+  return new AuthorizationError(
+    UserFriendlyMessages[ErrorCodes.ACCOUNT_DISABLED],
+    ErrorCodes.ACCOUNT_DISABLED
+  );
+}
+
+/**
+ * Creates an invalid session error
+ */
+export function createInvalidSessionError(details?: string): AppError {
+  const message = details 
+    ? `Invalid session: ${details}` 
+    : UserFriendlyMessages[ErrorCodes.UNAUTHORIZED];
+  return new AuthenticationError(message, ErrorCodes.UNAUTHORIZED);
+}
+
 // ============================================================================
 // Error Logging
 // ============================================================================

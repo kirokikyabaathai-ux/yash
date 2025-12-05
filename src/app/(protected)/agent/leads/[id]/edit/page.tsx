@@ -6,6 +6,7 @@
 import { redirect, notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { EditLeadClient } from './EditLeadClient';
+import { auth } from '@/lib/auth/auth';
 
 export default async function AgentEditLeadPage({
   params,
@@ -13,18 +14,18 @@ export default async function AgentEditLeadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
+  const session = await auth();
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     redirect('/');
   }
+
+  const supabase = await createClient();
 
   const { data: profile } = await supabase
     .from('users')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single();
 
   if (!profile || profile.role !== 'agent') {

@@ -6,29 +6,27 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CustomerProfileView } from '@/components/customers/CustomerProfileView';
+import { auth } from '@/lib/auth/auth';
 
 export default async function CustomerProfileViewPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
+  const session = await auth();
   const { id } = await params;
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     redirect('/');
   }
+
+  const supabase = await createClient();
 
   // Get user role
   const { data: userData } = await supabase
     .from('users')
     .select('role')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single();
 
   if (!userData) {

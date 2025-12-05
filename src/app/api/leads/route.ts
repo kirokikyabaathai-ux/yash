@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { getLeads, createLead } from '@/lib/api/leads';
 import type { CreateLeadRequest, LeadFilters } from '@/types/api';
 
@@ -24,15 +25,10 @@ import type { CreateLeadRequest, LeadFilters } from '@/types/api';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !session.user) {
       return NextResponse.json(
         {
           error: {
@@ -86,15 +82,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !session.user) {
       return NextResponse.json(
         {
           error: {
@@ -144,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create lead
-    const lead = await createLead(body, user.id, true);
+    const lead = await createLead(body, session.user.id, true);
 
     return NextResponse.json(lead, { status: 201 });
   } catch (error) {

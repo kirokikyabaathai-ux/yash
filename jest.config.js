@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env' });
 
 module.exports = {
   preset: 'ts-jest',
@@ -13,4 +13,7 @@ module.exports = {
     '!src/**/*.d.ts',
   ],
   testTimeout: 60000, // 60 seconds for property-based tests with database operations
+  transformIgnorePatterns: [
+    'node_modules/(?!(next-auth|@auth)/)',
+  ],
 };

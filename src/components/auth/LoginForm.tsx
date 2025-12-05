@@ -4,13 +4,14 @@
  * Login Form Component
  * 
  * Handles user authentication for all roles (Admin, Agent, Office, Installer, Customer).
- * Uses Supabase Auth with email/password authentication.
+ * Uses NextAuth with credentials provider for email/password authentication.
  */
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { signIn } from 'next-auth/react';
 import { Eye, EyeOff } from 'lucide-react';
+import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
 
 export function LoginForm() {
   const router = useRouter();
@@ -26,68 +27,47 @@ export function LoginForm() {
     errorParam === 'account_disabled' ? 'Your account has been disabled. Please contact support.' : null
   );
 
-  const supabase = createClient();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // Sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      // Sign in with NextAuth
+      // Use callbackUrl to prevent default redirects
+      const result = await signIn('credentials', {
         email,
         password,
+        redirect: false,
+        callbackUrl: '/login', // Prevent automatic redirect
       });
 
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!authData.user) {
+      if (!result) {
         setError('Authentication failed. Please try again.');
         setLoading(false);
         return;
       }
 
-      // Create a fresh client instance with the new session
-      const freshClient = createClient();
-      
-      // Check if we have a session
-      const { data: sessionData } = await freshClient.auth.getSession();
-      console.log('Session after login:', sessionData.session ? 'EXISTS' : 'MISSING');
-      console.log('User ID from auth:', authData.user.id);
-      
-      // Fetch user profile to get role and status
-      const { data: profile, error: profileError } = await freshClient
-        .from('users')
-        .select('role, status')
-        .eq('id', authData.user.id)
-        .single();
-
-      console.log('Profile data:', profile);
-      console.log('Profile error:', profileError);
-
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
-        console.error('User ID:', authData.user.id);
-        setError(`Failed to fetch user profile: ${profileError.message || 'Unknown error'}`);
+      if (result.error) {
+        // Handle specific error cases
+        if (result.error === 'Account disabled') {
+          setError('Your account has been disabled. Please contact support.');
+        } else if (result.error === 'CredentialsSignin') {
+          setError('Invalid email or password');
+        } else {
+          setError(result.error);
+        }
         setLoading(false);
         return;
       }
 
-      if (!profile) {
-        setError('User profile not found. Please contact support.');
-        setLoading(false);
-        return;
-      }
+      // Authentication successful - get user role from session
+      // The session will be available after successful sign in
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
 
-      // Check if account is disabled
-      if (profile.status === 'disabled') {
-        await supabase.auth.signOut();
-        setError('Your account has been disabled. Please contact support.');
+      if (!session?.user?.role) {
+        setError('Failed to retrieve user information. Please try again.');
         setLoading(false);
         return;
       }
@@ -96,27 +76,14 @@ export function LoginForm() {
       if (redirectTo) {
         router.push(redirectTo);
       } else {
-        switch (profile.role) {
-          case 'admin':
-            router.push('/admin/dashboard');
-            break;
-          case 'office':
-            router.push('/office/dashboard');
-            break;
-          case 'agent':
-            router.push('/agent/dashboard');
-            break;
-          case 'installer':
-            router.push('/installer/dashboard');
-            break;
-          case 'customer':
-            router.push('/customer/dashboard');
-            break;
-          default:
-            router.push('/');
-        }
+        const role = session.user.role as UserRole;
+        const dashboardPath = getDashboardPath(role);
+        router.push(dashboardPath);
       }
+      
+      router.refresh();
     } catch (err) {
+      console.error('Login error:', err);
       setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }

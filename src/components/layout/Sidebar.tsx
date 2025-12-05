@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { useSession } from 'next-auth/react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -16,9 +15,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { Tables } from '@/types/database';
-
-type UserProfile = Tables<'users'>;
 
 interface NavItem {
   label: string;
@@ -80,51 +76,44 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const supabase = createClient();
+  const { data: session, status } = useSession();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        
-        if (authUser) {
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', authUser.id)
-            .single();
-          
-          setUser(profile);
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
-
-    fetchUser();
-  }, [supabase]);
+  const userRole = session?.user?.role;
 
   const filteredNavItems = navigationItems.filter(item => 
-    user?.role && item.roles.includes(user.role)
+    userRole && item.roles.includes(userRole)
   );
 
   const handleNavigation = (href: string) => {
-    if (user?.role) {
-      router.push(`/${user.role}${href}`);
+    if (userRole) {
+      router.push(`/${userRole}${href}`);
       onMobileClose();
     }
   };
 
   const isActive = (href: string) => {
-    if (user?.role) {
-      const fullPath = `/${user.role}${href}`;
+    if (userRole) {
+      const fullPath = `/${userRole}${href}`;
       return pathname === fullPath || pathname.startsWith(fullPath);
     }
     return false;
   };
 
-  if (!user) {
+  // Show loading state while session is loading
+  if (status === 'loading') {
+    return (
+      <aside className="fixed lg:sticky top-16 h-[calc(100vh-4rem)] border-r border-border bg-card w-64 hidden lg:block">
+        <div className="flex flex-col h-full p-4 space-y-4">
+          <div className="h-10 bg-muted animate-pulse rounded" />
+          <div className="h-10 bg-muted animate-pulse rounded" />
+          <div className="h-10 bg-muted animate-pulse rounded" />
+        </div>
+      </aside>
+    );
+  }
+
+  // Don't render if no session
+  if (!session?.user) {
     return null;
   }
 
@@ -180,6 +169,30 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               );
             })}
           </nav>
+
+          {/* User Info Section - Bottom of Sidebar */}
+          {session?.user && (
+            <div className="p-3 border-t border-border bg-muted/50">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  {session.user.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {session.user.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {session.user.email}
+                  </p>
+                </div>
+              </div>
+              {session.user.role && (
+                <div className="mt-2 px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary text-center">
+                  {session.user.role.charAt(0).toUpperCase() + session.user.role.slice(1)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </aside>
     </>

@@ -9,22 +9,23 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
+import { auth } from '@/lib/auth/auth';
 
 export default async function AgentDashboardPage() {
-  const supabase = await createClient();
+  // Get the current session using NextAuth
+  const session = await auth();
 
-  // Get the current user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     redirect('/');
   }
 
-  // Get user profile to verify role
+  const supabase = await createClient();
+
+  // Get user profile from Supabase using session user ID
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single();
 
   if (profileError || !profile) {

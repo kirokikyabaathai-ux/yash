@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { createClient } from '@/lib/supabase/client';
 import { User, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import type { Tables } from '@/types/database';
 
 type UserProfile = Tables<'users'>;
@@ -15,37 +17,33 @@ interface TopBarProps {
 
 export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        
-        if (authUser) {
+      if (session?.user?.id) {
+        try {
           const { data: profile } = await supabase
             .from('users')
             .select('*')
-            .eq('id', authUser.id)
+            .eq('id', session.user.id)
             .single();
           
           setUser(profile);
+        } catch (error) {
+          console.error('Error fetching user:', error);
         }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchUser();
-  }, [supabase]);
+  }, [session, supabase]);
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await signOut({ redirect: false });
       router.push('/');
       router.refresh();
     } catch (error) {
@@ -59,7 +57,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
     }
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4">
@@ -100,7 +98,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
 
         {/* User Actions */}
         <div className="flex items-center gap-2">
-          {user && (
+          {session?.user && user ? (
             <>
               {/* User Info - Hidden on mobile */}
               <div className="hidden md:flex flex-col items-end mr-2">
@@ -109,6 +107,9 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
                   {user.customer_id || user.agent_id || user.office_id || `${user.role}`}
                 </span>
               </div>
+
+              {/* Notification Bell */}
+              <NotificationBell />
 
               {/* Profile Button */}
               <Button
@@ -132,7 +133,11 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
                 <LogOut className="h-5 w-5" />
               </Button>
             </>
-          )}
+          ) : status === 'unauthenticated' ? (
+            <div className="text-sm text-muted-foreground">
+              Not authenticated
+            </div>
+          ) : null}
         </div>
       </div>
     </header>

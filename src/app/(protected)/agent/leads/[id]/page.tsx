@@ -6,25 +6,26 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { LeadDetailClient } from '@/components/leads/LeadDetailClient';
+import { auth } from '@/lib/auth/auth';
 
 export default async function AgentLeadDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
+  const session = await auth();
   const { id } = await params;
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     redirect('/');
   }
+
+  const supabase = await createClient();
 
   const { data: profile } = await supabase
     .from('users')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single();
 
   if (!profile || profile.role !== 'agent') {
@@ -55,7 +56,7 @@ export default async function AgentLeadDetailPage({
       )
     `)
     .eq('id', id)
-    .eq('created_by', user.id)
+    .eq('created_by', session.user.id)
     .single();
 
   if (leadError || !lead) {
@@ -67,7 +68,7 @@ export default async function AgentLeadDetailPage({
       <LeadDetailClient 
         lead={lead as any} 
         userRole="agent" 
-        userId={user.id}
+        userId={session.user.id}
         backUrl="/agent/leads"
         backLabel="Back to My Leads"
       />

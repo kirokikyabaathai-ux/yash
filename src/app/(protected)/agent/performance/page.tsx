@@ -6,20 +6,21 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { auth } from '@/lib/auth/auth';
 
 export default async function AgentPerformancePage() {
-  const supabase = await createClient();
+  const session = await auth();
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     redirect('/');
   }
+
+  const supabase = await createClient();
 
   const { data: profile } = await supabase
     .from('users')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single();
 
   if (!profile || profile.role !== 'agent') {

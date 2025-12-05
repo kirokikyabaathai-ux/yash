@@ -7,28 +7,27 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CustomerProfileFormWrapper } from './client';
+import { auth } from '@/lib/auth/auth';
 
 interface PageProps {
   searchParams: Promise<{ leadId?: string }>;
 }
 
 export default async function NewCustomerProfilePage({ searchParams }: PageProps) {
-  const supabase = await createClient();
+  const session = await auth();
   const params = await searchParams;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session?.user) {
     redirect('/');
   }
+
+  const supabase = await createClient();
 
   // Fetch user role
   const { data: userData } = await supabase
     .from('users')
     .select('role')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single();
 
   if (!userData || !['customer', 'admin', 'office', 'agent'].includes(userData.role)) {

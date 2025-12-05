@@ -2,15 +2,15 @@
  * Next.js Middleware for Authentication and Authorization
  * 
  * This middleware:
- * - Refreshes Supabase sessions on each request
+ * - Validates NextAuth sessions on each request
  * - Protects routes based on authentication status
  * - Enforces role-based access control
  * - Redirects users to appropriate dashboards
  */
 
-import { type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth/auth';
 import {
-  createMiddlewareClient,
   isProtectedRoute,
   isPublicRoute,
   getAllowedRoles,
@@ -18,27 +18,23 @@ import {
 } from '@/lib/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
-  const { supabase, response, user } = await createMiddlewareClient(request);
   const pathname = request.nextUrl.pathname;
+  
+  // Get session from NextAuth
+  const session = await auth();
+  const user = session?.user;
 
   // If user is authenticated and on homepage, redirect to dashboard
   if (user && pathname === '/') {
-    // Get user profile to determine role
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profile?.role) {
-      const dashboardRoute = getDashboardRoute(profile.role);
-      return Response.redirect(new URL(dashboardRoute, request.url));
+    if (user.role) {
+      const dashboardRoute = getDashboardRoute(user.role);
+      return NextResponse.redirect(new URL(dashboardRoute, request.url));
     }
   }
 
   // If route is public, allow access
   if (isPublicRoute(pathname)) {
-    return response;
+    return NextResponse.next();
   }
 
   // If route is protected, check authentication
@@ -47,35 +43,28 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       const redirectUrl = new URL('/', request.url);
       redirectUrl.searchParams.set('redirectTo', pathname);
-      return Response.redirect(redirectUrl);
+      return NextResponse.redirect(redirectUrl);
     }
 
-    // Get user profile to check role
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role, status')
-      .eq('id', user.id)
-      .single();
-
     // If user account is disabled, redirect to homepage with error
-    if (profile?.status === 'disabled') {
+    if (user.status === 'disabled') {
       const redirectUrl = new URL('/', request.url);
       redirectUrl.searchParams.set('error', 'account_disabled');
-      return Response.redirect(redirectUrl);
+      return NextResponse.redirect(redirectUrl);
     }
 
     // Check if user has required role for this route
     const allowedRoles = getAllowedRoles(pathname);
-    if (allowedRoles && profile?.role) {
-      if (!allowedRoles.includes(profile.role)) {
+    if (allowedRoles && user.role) {
+      if (!allowedRoles.includes(user.role)) {
         // User doesn't have permission, redirect to their dashboard
-        const dashboardRoute = getDashboardRoute(profile.role);
-        return Response.redirect(new URL(dashboardRoute, request.url));
+        const dashboardRoute = getDashboardRoute(user.role);
+        return NextResponse.redirect(new URL(dashboardRoute, request.url));
       }
     }
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import NotificationItem from './NotificationItem';
@@ -12,21 +13,21 @@ interface NotificationListProps {
 }
 
 export default function NotificationList({ onNotificationRead }: NotificationListProps) {
+  const { data: session, status } = useSession();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (status !== 'loading') {
+      fetchNotifications();
+    }
+  }, [status, session]);
 
   const fetchNotifications = async () => {
     setLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (!session?.user?.id) {
       setLoading(false);
       return;
     }
@@ -34,7 +35,7 @@ export default function NotificationList({ onNotificationRead }: NotificationLis
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -64,7 +65,7 @@ export default function NotificationList({ onNotificationRead }: NotificationLis
     }
   };
 
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <div className="p-4 text-center text-sm text-muted-foreground">
         Loading notifications...

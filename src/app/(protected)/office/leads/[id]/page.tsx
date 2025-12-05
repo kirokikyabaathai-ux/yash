@@ -6,25 +6,26 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { LeadDetailClient } from '@/components/leads/LeadDetailClient';
+import { auth } from '@/lib/auth/auth';
 
 export default async function OfficeLeadDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
+  const session = await auth();
   const { id } = await params;
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     redirect('/');
   }
+
+  const supabase = await createClient();
 
   const { data: profile } = await supabase
     .from('users')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single();
 
   if (!profile || profile.role !== 'office') {
@@ -62,7 +63,7 @@ export default async function OfficeLeadDetailPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <LeadDetailClient lead={lead as any} userRole="office" userId={user.id} />
+      <LeadDetailClient lead={lead as any} userRole="office" userId={session.user.id} />
     </div>
   );
 }

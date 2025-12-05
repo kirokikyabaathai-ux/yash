@@ -34,14 +34,29 @@ export default function NotificationItem({
     }
   };
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (!notification.read) {
       onMarkAsRead(notification.id);
     }
 
     // Navigate to the lead if lead_id is present
     if (notification.lead_id) {
-      router.push(`/customer/dashboard?lead=${notification.lead_id}`);
+      // Get user role from session to determine correct dashboard
+      const sessionResponse = await fetch('/api/auth/session');
+      const session = await sessionResponse.json();
+      const role = session?.user?.role || 'customer';
+      
+      // Map role to dashboard path
+      const dashboardMap: Record<string, string> = {
+        admin: '/admin/dashboard',
+        office: '/office/dashboard',
+        agent: '/agent/dashboard',
+        installer: '/installer/dashboard',
+        customer: '/customer/dashboard',
+      };
+      
+      const dashboardPath = dashboardMap[role] || '/customer/dashboard';
+      router.push(`${dashboardPath}?lead=${notification.lead_id}`);
     }
   };
 

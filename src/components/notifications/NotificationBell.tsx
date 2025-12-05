@@ -2,29 +2,29 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useSession } from 'next-auth/react';
+import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import NotificationList from './NotificationList';
 
 export default function NotificationBell() {
+  const { data: session, status } = useSession();
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const supabase = createClientComponentClient<Database>();
+    if (status === 'loading' || !session?.user?.id) return;
+
+    const supabase = createClient();
     
     const fetchUnreadCount = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) return;
+      if (!session?.user?.id) return;
 
       const { count } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .eq('read', false);
 
       setUnreadCount(count || 0);
@@ -62,7 +62,7 @@ export default function NotificationBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [session, status]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -81,17 +81,13 @@ export default function NotificationBell() {
   }, [isOpen]);
 
   const fetchUnreadCount = async () => {
-    const supabase = createClientComponentClient<Database>();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    if (!session?.user?.id) return;
 
-    if (!user) return;
-
+    const supabase = createClient();
     const { count } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .eq('read', false);
 
     setUnreadCount(count || 0);

@@ -7,27 +7,28 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { LeadStatus } from '@/types/database';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !session.user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
 
+    const supabase = await createClient();
+
     // Get user profile to check role
     const { data: profile, error: profileError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', user.id)
+      .eq('id', session.user.id)
       .single();
 
     if (profileError || !profile) {

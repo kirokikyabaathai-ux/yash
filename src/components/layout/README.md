@@ -12,6 +12,9 @@ A mobile-optimized sidebar navigation with role-based menu items.
 - **Responsive Icons**: Uses lucide-react icons for visual clarity
 - **Hamburger Menu**: Mobile menu button in TopBar for easy access
 - **Auto-Close**: Automatically closes on mobile after navigation
+- **User Info Display**: Shows user avatar, name, email, and role at bottom of sidebar
+- **Loading State**: Shows skeleton loader while session is loading
+- **Authentication State**: Only renders when user is authenticated
 
 ### Navigation Items by Role
 
@@ -38,12 +41,14 @@ A responsive top navigation bar that displays across all protected routes.
 
 ### Features
 
-- **Logo**: YAS Naturals branding with "YN" icon
-- **User Information**: Displays user name and role (hidden on mobile)
+- **Logo**: YAS Naturals branding with logo image
+- **User Information**: Displays user name and role/ID (hidden on mobile)
+- **Notification Bell**: Real-time notifications with unread count badge
 - **Profile Button**: Quick access to user profile page
 - **Logout Button**: Sign out functionality
 - **Responsive Design**: Adapts to mobile and desktop screens
 - **Loading State**: Shows skeleton loader while fetching user data
+- **Authentication State**: Shows/hides elements based on session state
 
 ### Usage
 

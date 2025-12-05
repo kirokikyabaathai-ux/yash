@@ -7,6 +7,10 @@
  * 
  * IMPORTANT: Never use the service role key in Next.js application code.
  * Service role key should only be used in Supabase Edge Functions and tests.
+ * 
+ * NOTE: With NextAuth integration, this client still maintains Supabase Auth
+ * sessions for RLS policy enforcement. The NextAuth session provides the
+ * authentication layer, while Supabase Auth sessions enable RLS.
  */
 
 import { createServerClient } from '@supabase/ssr';
@@ -20,6 +24,11 @@ import type { Database } from '@/types/database';
  * - Cookie-based session management from Next.js cookies
  * - Automatic token refresh
  * - RLS policy enforcement based on authenticated user
+ * 
+ * With NextAuth integration:
+ * - NextAuth handles authentication and session management
+ * - Supabase Auth sessions are maintained for RLS policy enforcement
+ * - The user ID from NextAuth session matches the Supabase Auth user ID
  * 
  * @returns Supabase client instance with server-side cookie handling
  */

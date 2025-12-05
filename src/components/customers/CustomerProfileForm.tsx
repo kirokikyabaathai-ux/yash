@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CustomerProfileFormData } from '@/types/customer';
 import type { Lead } from '@/types/api';
+import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
 
 interface CustomerProfileFormProps {
   onSubmit: (data: CustomerProfileFormData) => Promise<void>;
@@ -725,7 +726,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
 
                   if (response.ok) {
                     alert('Draft saved successfully! You can continue filling the form later.');
-                    router.push('/customer/dashboard');
+                    // Get session to determine role-based redirect
+                    const sessionResponse = await fetch('/api/auth/session');
+                    const session = await sessionResponse.json();
+                    const role = (session?.user?.role || 'customer') as UserRole;
+                    router.push(getDashboardPath(role));
                   } else {
                     const error = await response.json();
                     if (error.error === 'Cannot edit submitted profile') {

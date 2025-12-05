@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 
 /**
  * GET /api/users
@@ -18,15 +19,10 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !session.user) {
       return NextResponse.json(
         {
           error: {
@@ -39,28 +35,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user profile to check role
-    const { data: userProfile, error: profileError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !userProfile) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'FORBIDDEN',
-            message: 'User profile not found',
-            timestamp: new Date().toISOString(),
-          },
-        },
-        { status: 403 }
-      );
-    }
-
     // Check if user is admin
-    if (userProfile.role !== 'admin') {
+    if (session.user.role !== 'admin') {
       return NextResponse.json(
         {
           error: {
@@ -72,6 +48,8 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    const supabase = await createClient();
 
     // Get all users
     const { data: users, error: usersError } = await supabase
@@ -109,15 +87,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Check authentication with NextAuth
+    const session = await auth();
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!session || !session.user) {
       return NextResponse.json(
         {
           error: {
@@ -130,28 +103,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user profile to check role
-    const { data: userProfile, error: profileError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !userProfile) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'FORBIDDEN',
-            message: 'User profile not found',
-            timestamp: new Date().toISOString(),
-          },
-        },
-        { status: 403 }
-      );
-    }
-
     // Check if user is admin
-    if (userProfile.role !== 'admin') {
+    if (session.user.role !== 'admin') {
       return NextResponse.json(
         {
           error: {
@@ -167,10 +120,12 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json();
 
+    const supabase = await createClient();
+
     // Get session token for edge function authentication
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session: supabaseSession } } = await supabase.auth.getSession();
     
-    if (!session?.access_token) {
+    if (!supabaseSession?.access_token) {
       return NextResponse.json(
         {
           error: {
@@ -205,7 +160,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
+        'Authorization': `Bearer ${supabaseSession.access_token}`,
       },
       body: JSON.stringify({
         email: body.email,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User, Mail, Phone, MapPin, Calendar, Shield, Hash } from 'lucide-react';
@@ -13,6 +14,7 @@ interface UserProfileViewProps {
 }
 
 export function UserProfileView({ userId }: UserProfileViewProps) {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -20,8 +22,7 @@ export function UserProfileView({ userId }: UserProfileViewProps) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        const targetUserId = userId || authUser?.id;
+        const targetUserId = userId || session?.user?.id;
         
         if (targetUserId) {
           const { data: profile } = await supabase
@@ -39,10 +40,12 @@ export function UserProfileView({ userId }: UserProfileViewProps) {
       }
     };
 
-    fetchUser();
-  }, [userId, supabase]);
+    if (status !== 'loading') {
+      fetchUser();
+    }
+  }, [userId, session, status, supabase]);
 
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <div className="space-y-6">
         <div className="space-y-2">
