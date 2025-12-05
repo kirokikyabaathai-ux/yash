@@ -63,7 +63,7 @@ export default async function AdminLeadDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background p-6 md:p-8">
       <LeadDetailClient 
         lead={lead as any} 
         userRole="admin" 

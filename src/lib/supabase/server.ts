@@ -70,13 +70,19 @@ export async function createClient() {
       
       if (session && (session as any).supabaseAccessToken) {
         // Set the session using the stored token
-        await client.auth.setSession({
+        const { error } = await client.auth.setSession({
           access_token: (session as any).supabaseAccessToken,
           refresh_token: (session as any).supabaseRefreshToken,
         });
+        
+        if (error) {
+          console.error('Failed to set Supabase session from NextAuth:', error);
+        } else {
+          console.log('Successfully restored Supabase session from NextAuth');
+        }
       }
     } catch (error) {
-      // Ignore - will use cookies only
+      console.error('Error restoring Supabase session:', error);
     }
   }
 

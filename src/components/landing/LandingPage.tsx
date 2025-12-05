@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { ThreeDImageCarousel } from '@/components/ui/ThreeDImageCarousel';
 import { SimpleCarousel } from '@/components/ui/SimpleCarousel';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { getDashboardPath } from '@/lib/utils/navigation';
 
 const carouselSlides = [
   { id: 1, src: '/carousel (1).jpeg', href: '#' },
@@ -17,12 +20,21 @@ const carouselSlides = [
 ];
 
 export function LandingPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   const openAuthModal = (mode: 'login' | 'signup') => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
+  };
+
+  const goToDashboard = () => {
+    if (session?.user) {
+      const dashboardPath = getDashboardPath(session.user.role as any);
+      router.push(dashboardPath);
+    }
   };
 
   return (
@@ -50,20 +62,32 @@ export function LandingPage() {
               </div>
             </div>
             <div className="flex gap-3 w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                onClick={() => openAuthModal('login')} 
-                className="flex-1 sm:flex-none text-sm sm:text-base font-medium"
-              >
-                Login
-              </Button>
-              <Button 
-                size="lg"
-                className="flex-1 sm:flex-none text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
-                onClick={() => openAuthModal('signup')}
-              >
-                Sign Up
-              </Button>
+              {session?.user ? (
+                <Button 
+                  size="lg"
+                  className="flex-1 sm:flex-none text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
+                  onClick={goToDashboard}
+                >
+                  Go to Dashboard
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => openAuthModal('login')} 
+                    className="flex-1 sm:flex-none text-sm sm:text-base font-medium"
+                  >
+                    Login
+                  </Button>
+                  <Button 
+                    size="lg"
+                    className="flex-1 sm:flex-none text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
+                    onClick={() => openAuthModal('signup')}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -60,13 +60,15 @@ export const authConfig: NextAuthConfig = {
             throw new Error("Invalid email or password");
           }
 
-          // Return user object for session
+          // Return user object for session with Supabase tokens
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             role: user.role,
             status: user.status,
+            supabaseAccessToken: signInData.session?.access_token,
+            supabaseRefreshToken: signInData.session?.refresh_token,
           };
         } catch (error) {
           // Re-throw the error with a user-friendly message
@@ -90,7 +92,12 @@ export const authConfig: NextAuthConfig = {
       console.log(`User signed in: ${user.email}`);
     },
     async signOut() {
-      // Log sign out
+      // Clear Supabase session on sign out
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error('Error signing out from Supabase:', error);
+      }
       console.log('User signed out');
     },
   },
@@ -104,15 +111,10 @@ export const authConfig: NextAuthConfig = {
         token.role = (user as any).role;
         token.status = (user as any).status;
         
-        // Store Supabase auth session in NextAuth token
-        // This allows us to maintain Supabase Auth session for RLS
-        if (account) {
-          // Get the current Supabase session that was created during authorize()
-          const { data: { session: supabaseSession } } = await supabase.auth.getSession();
-          if (supabaseSession) {
-            token.supabaseAccessToken = supabaseSession.access_token;
-            token.supabaseRefreshToken = supabaseSession.refresh_token;
-          }
+        // Store Supabase tokens from the authorize function
+        if ((user as any).supabaseAccessToken) {
+          token.supabaseAccessToken = (user as any).supabaseAccessToken;
+          token.supabaseRefreshToken = (user as any).supabaseRefreshToken;
         }
       }
       

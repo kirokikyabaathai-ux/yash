@@ -39,7 +39,7 @@ export default async function CustomerDashboardPage() {
     redirect('/');
   }
 
-  // Get the customer's linked lead
+  // Get the customer's linked lead (filtered by user ID for security)
   const { data: lead } = await supabase
     .from('leads')
     .select(`

@@ -43,9 +43,14 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
 
   const handleLogout = async () => {
     try {
-      await signOut({ redirect: false });
-      router.push('/');
-      router.refresh();
+      // Sign out from Supabase Auth first
+      await supabase.auth.signOut();
+      
+      // Then sign out from NextAuth with redirect
+      await signOut({ 
+        redirect: true,
+        callbackUrl: '/'
+      });
     } catch (error) {
       console.error('Error logging out:', error);
     }

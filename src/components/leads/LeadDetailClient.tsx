@@ -20,6 +20,9 @@ import { Button } from '@/components/ui/button';
 import type { Lead } from '@/types/api';
 import { useRouter } from 'next/navigation';
 import type { TimelineStepData } from '@/components/timeline/TimelineStep';
+import { getPolishedCardClasses, standardTransitions } from '@/lib/design-system/polish';
+import { dataDisplayClasses } from '@/lib/design-system/visual-hierarchy';
+import { cn } from '@/lib/utils';
 
 interface LeadDetailClientProps {
   lead: Lead & {
@@ -43,6 +46,11 @@ export function LeadDetailClient({
   const router = useRouter();
   const [timelineSteps, setTimelineSteps] = useState<TimelineStepData[]>([]);
   const [isLoadingSteps, setIsLoadingSteps] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetchTimelineSteps();
@@ -82,61 +90,90 @@ export function LeadDetailClient({
       ]}
       actions={<LeadStatusBadge status={lead.status} />}
     >
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Lead Information */}
-          <Card>
+          <Card className={getPolishedCardClasses()}>
             <CardHeader>
-              <CardTitle className="text-xl">Lead Information</CardTitle>
+              <CardTitle>Lead Information</CardTitle>
             </CardHeader>
             <CardContent>
-              <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Customer Name</dt>
-                  <dd className="mt-1 text-sm">{lead.customer_name}</dd>
+              <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div className="space-y-1.5">
+                  <dt className={dataDisplayClasses.label}>Customer Name</dt>
+                  <dd className={dataDisplayClasses.valueLarge}>{lead.customer_name}</dd>
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
-                  <dd className="mt-1 text-sm">{lead.phone}</dd>
+                <div className="space-y-1.5">
+                  <dt className={dataDisplayClasses.label}>Phone</dt>
+                  <dd className={dataDisplayClasses.value}>
+                    <a 
+                      href={`tel:${lead.phone}`}
+                      className={cn("hover:text-primary hover:underline", standardTransitions.colors)}
+                    >
+                      {lead.phone}
+                    </a>
+                  </dd>
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-                  <dd className="mt-1 text-sm">{lead.email || 'N/A'}</dd>
+                <div className="space-y-1.5">
+                  <dt className={dataDisplayClasses.label}>Email</dt>
+                  <dd className={dataDisplayClasses.value}>
+                    {lead.email ? (
+                      <a 
+                        href={`mailto:${lead.email}`}
+                        className={cn("hover:text-primary hover:underline", standardTransitions.colors)}
+                      >
+                        {lead.email}
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">N/A</span>
+                    )}
+                  </dd>
                 </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Source</dt>
-                  <dd className="mt-1 text-sm capitalize">{lead.source}</dd>
+                <div className="space-y-1.5">
+                  <dt className={dataDisplayClasses.label}>Source</dt>
+                  <dd className={cn(dataDisplayClasses.value, "capitalize")}>{lead.source}</dd>
                 </div>
-                <div className="md:col-span-2">
-                  <dt className="text-sm font-medium text-muted-foreground">Address</dt>
-                  <dd className="mt-1 text-sm">{lead.address}</dd>
+                <div className="md:col-span-2 space-y-1.5">
+                  <dt className={dataDisplayClasses.label}>Address</dt>
+                  <dd className={dataDisplayClasses.value}>{lead.address}</dd>
                 </div>
                 {lead.notes && (
-                  <div className="md:col-span-2">
-                    <dt className="text-sm font-medium text-muted-foreground">Notes</dt>
-                    <dd className="mt-1 text-sm">{lead.notes}</dd>
+                  <div className="md:col-span-2 space-y-1.5">
+                    <dt className={dataDisplayClasses.label}>Notes</dt>
+                    <dd className={cn(dataDisplayClasses.value, "text-muted-foreground")}>{lead.notes}</dd>
                   </div>
                 )}
                 {lead.created_by_user && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Created By</dt>
-                    <dd className="mt-1 text-sm">{lead.created_by_user.name}</dd>
+                  <div className="space-y-1.5">
+                    <dt className={dataDisplayClasses.label}>Created By</dt>
+                    <dd className={dataDisplayClasses.value}>{lead.created_by_user.name}</dd>
                   </div>
                 )}
                 {lead.installer && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Assigned Installer</dt>
-                    <dd className="mt-1 text-sm">
+                  <div className="space-y-1.5">
+                    <dt className={dataDisplayClasses.label}>Assigned Installer</dt>
+                    <dd className={dataDisplayClasses.value}>
                       {lead.installer.name} ({lead.installer.phone})
                     </dd>
                   </div>
                 )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Created At</dt>
-                  <dd className="mt-1 text-sm">
-                    {lead.created_at ? new Date(lead.created_at).toLocaleString() : 'N/A'}
+                <div className="space-y-1.5">
+                  <dt className={dataDisplayClasses.label}>Created At</dt>
+                  <dd className={dataDisplayClasses.value}>
+                    {mounted && lead.created_at 
+                      ? new Date(lead.created_at).toLocaleString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false
+                        })
+                      : lead.created_at 
+                        ? new Date(lead.created_at).toISOString().slice(0, 16).replace('T', ' ')
+                        : 'N/A'
+                    }
                   </dd>
                 </div>
               </dl>
@@ -144,9 +181,9 @@ export function LeadDetailClient({
           </Card>
 
           {/* Documents */}
-          <Card>
+          <Card className={getPolishedCardClasses()}>
             <CardHeader>
-              <CardTitle className="text-xl">Documents</CardTitle>
+              <CardTitle>Documents</CardTitle>
             </CardHeader>
             <CardContent>
               <DocumentListContainer leadId={lead.id} userRole={userRole} />
@@ -157,9 +194,9 @@ export function LeadDetailClient({
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           {/* Quick Actions */}
-          <Card>
+          <Card className={getPolishedCardClasses()}>
             <CardHeader>
-              <CardTitle className="text-xl">Quick Actions</CardTitle>
+              <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {/* Edit Lead Button - For agents editing their own leads */}
@@ -229,23 +266,37 @@ export function LeadDetailClient({
 
           {/* Customer Account Info */}
           {lead.customer_account && (
-            <Card>
+            <Card className={getPolishedCardClasses()}>
               <CardHeader>
-                <CardTitle className="text-xl">Customer Account</CardTitle>
+                <CardTitle>Customer Account</CardTitle>
               </CardHeader>
               <CardContent>
                 <dl className="space-y-3">
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Name</dt>
-                    <dd className="mt-1 text-sm">{lead.customer_account.name}</dd>
+                  <div className="space-y-1.5">
+                    <dt className={dataDisplayClasses.label}>Name</dt>
+                    <dd className={dataDisplayClasses.value}>{lead.customer_account.name}</dd>
                   </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-                    <dd className="mt-1 text-sm">{lead.customer_account.email}</dd>
+                  <div className="space-y-1.5">
+                    <dt className={dataDisplayClasses.label}>Email</dt>
+                    <dd className={dataDisplayClasses.value}>
+                      <a 
+                        href={`mailto:${lead.customer_account.email}`}
+                        className={cn("hover:text-primary hover:underline", standardTransitions.colors)}
+                      >
+                        {lead.customer_account.email}
+                      </a>
+                    </dd>
                   </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
-                    <dd className="mt-1 text-sm">{lead.customer_account.phone}</dd>
+                  <div className="space-y-1.5">
+                    <dt className={dataDisplayClasses.label}>Phone</dt>
+                    <dd className={dataDisplayClasses.value}>
+                      <a 
+                        href={`tel:${lead.customer_account.phone}`}
+                        className={cn("hover:text-primary hover:underline", standardTransitions.colors)}
+                      >
+                        {lead.customer_account.phone}
+                      </a>
+                    </dd>
                   </div>
                 </dl>
               </CardContent>

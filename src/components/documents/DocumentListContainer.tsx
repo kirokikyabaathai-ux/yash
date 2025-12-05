@@ -42,6 +42,7 @@ export function DocumentListContainer({ leadId, userRole }: DocumentListContaine
 
   useEffect(() => {
     fetchDocuments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leadId]);
 
   const canManage = ['admin', 'office', 'agent'].includes(userRole);

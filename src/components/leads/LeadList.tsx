@@ -162,40 +162,40 @@ export function LeadList({
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-card rounded-lg border">
+          <div className="hidden md:block bg-card rounded-lg border shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="font-semibold">Customer</TableHead>
-                  <TableHead className="font-semibold">Contact</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold">Created</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold text-foreground">Customer</TableHead>
+                  <TableHead className="font-semibold text-foreground">Contact</TableHead>
+                  <TableHead className="font-semibold text-foreground">Status</TableHead>
+                  <TableHead className="font-semibold text-foreground">Created</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {leads.map((lead) => (
-                  <TableRow key={lead.id}>
-                    <TableCell>
-                      <div className="font-medium">{lead.customer_name}</div>
-                      <div className="text-muted-foreground text-sm truncate max-w-xs">{lead.address}</div>
+                  <TableRow key={lead.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="py-4">
+                      <div className="font-medium text-foreground">{lead.customer_name}</div>
+                      <div className="text-muted-foreground text-sm truncate max-w-xs mt-1">{lead.address}</div>
                     </TableCell>
-                    <TableCell>
-                      <div>{lead.phone}</div>
-                      {lead.email && <div className="text-muted-foreground text-sm">{lead.email}</div>}
+                    <TableCell className="py-4">
+                      <div className="text-foreground">{lead.phone}</div>
+                      {lead.email && <div className="text-muted-foreground text-sm mt-1">{lead.email}</div>}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <LeadStatusBadge status={lead.status} />
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground py-4">
                       {formatDate(lead.created_at)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right py-4">
                       <Link
                         href={`${baseUrl}/${lead.id}`}
-                        className="text-primary hover:underline font-medium"
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
                       >
-                        View
+                        View Details
                       </Link>
                     </TableCell>
                   </TableRow>
