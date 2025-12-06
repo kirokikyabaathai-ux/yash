@@ -8,14 +8,7 @@
 'use client';
 
 import type { Database } from '@/types/database';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { DataTable } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -45,76 +38,89 @@ export function UserList({ users, onEdit, onDisable }: UserListProps) {
       : 'bg-red-100 text-red-800';
   };
 
-  if (users.length === 0) {
-    return (
-      <div className="bg-card rounded-lg border p-12 text-center">
-        <p className="text-muted-foreground text-lg">No users found</p>
-        <p className="text-muted-foreground text-sm mt-2">
-          Create your first user to get started
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-card rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="font-semibold">Name</TableHead>
-            <TableHead className="font-semibold">Email</TableHead>
-            <TableHead className="font-semibold">Phone</TableHead>
-            <TableHead className="font-semibold">Role</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
-            <TableHead className="font-semibold">Created</TableHead>
-            <TableHead className="text-right font-semibold">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.name}</TableCell>
-              <TableCell className="text-muted-foreground">{user.email}</TableCell>
-              <TableCell className="text-muted-foreground">{user.phone}</TableCell>
-              <TableCell>
-                <Badge variant="secondary" className={getRoleBadgeColor(user.role)}>
-                  {user.role}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge variant="secondary" className={getStatusBadgeColor(user.status)}>
-                  {user.status}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(user)}
-                  className="mr-2"
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDisable(user.id, user.status)}
-                  className={
-                    user.status === 'active'
-                      ? 'text-destructive hover:text-destructive'
-                      : 'text-green-600 hover:text-green-700'
-                  }
-                >
-                  {user.status === 'active' ? 'Disable' : 'Enable'}
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTable
+      data={users}
+      keyExtractor={(user) => user.id}
+      emptyMessage="No users found. Create your first user to get started."
+      columns={[
+        {
+          header: 'Name',
+          accessor: (user) => (
+            <span className="font-medium text-foreground">{user.name}</span>
+          ),
+        },
+        {
+          header: 'Email',
+          accessor: (user) => (
+            <span className="text-muted-foreground">{user.email}</span>
+          ),
+        },
+        {
+          header: 'Phone',
+          accessor: (user) => (
+            <span className="text-muted-foreground">{user.phone}</span>
+          ),
+        },
+        {
+          header: 'Role',
+          accessor: (user) => (
+            <Badge variant="secondary" className={getRoleBadgeColor(user.role)}>
+              {user.role}
+            </Badge>
+          ),
+        },
+        {
+          header: 'Status',
+          accessor: (user) => (
+            <Badge variant="secondary" className={getStatusBadgeColor(user.status)}>
+              {user.status}
+            </Badge>
+          ),
+        },
+        {
+          header: 'Created',
+          accessor: (user) => (
+            <span className="text-muted-foreground">
+              {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+            </span>
+          ),
+        },
+        {
+          header: 'Actions',
+          accessor: (user) => (
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(user);
+                }}
+                className="hover:bg-accent"
+              >
+                Edit
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDisable(user.id, user.status);
+                }}
+                className={
+                  user.status === 'active'
+                    ? 'text-destructive hover:text-destructive hover:bg-destructive/10'
+                    : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                }
+              >
+                {user.status === 'active' ? 'Disable' : 'Enable'}
+              </Button>
+            </div>
+          ),
+          className: 'text-right',
+        },
+      ]}
+    />
   );
 }

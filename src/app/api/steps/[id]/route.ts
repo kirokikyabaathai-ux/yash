@@ -57,6 +57,8 @@ export async function PATCH(
       remarks_required,
       attachments_allowed,
       customer_upload,
+      requires_installer_assignment,
+      step_documents,
     } = body;
 
     // Build update object with only provided fields
@@ -66,6 +68,7 @@ export async function PATCH(
     if (remarks_required !== undefined) updateData.remarks_required = remarks_required;
     if (attachments_allowed !== undefined) updateData.attachments_allowed = attachments_allowed;
     if (customer_upload !== undefined) updateData.customer_upload = customer_upload;
+    if (requires_installer_assignment !== undefined) updateData.requires_installer_assignment = requires_installer_assignment;
     updateData.updated_at = new Date().toISOString();
 
     // Note: order_index is now managed by the linked list structure via reorder endpoint
@@ -94,7 +97,48 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json({ step: updatedStep });
+    // Handle step_documents if provided
+    if (step_documents !== undefined && Array.isArray(step_documents)) {
+      // Delete existing step_documents
+      await supabase
+        .from('step_documents')
+        .delete()
+        .eq('step_id', stepId);
+
+      // Insert new step_documents
+      if (step_documents.length > 0) {
+        const documentsToInsert = step_documents.map((doc: any) => ({
+          step_id: stepId,
+          document_category: doc.document_category,
+          submission_type: doc.submission_type || 'file',
+        }));
+
+        const { error: docsError } = await supabase
+          .from('step_documents')
+          .insert(documentsToInsert);
+
+        if (docsError) {
+          console.error('Error updating step documents:', docsError);
+          // Don't fail the whole operation, just log the error
+        }
+      }
+    }
+
+    // Fetch the complete step with documents
+    const { data: completeStep } = await supabase
+      .from('step_master')
+      .select(`
+        *,
+        step_documents (
+          id,
+          document_category,
+          submission_type
+        )
+      `)
+      .eq('id', stepId)
+      .single();
+
+    return NextResponse.json({ step: completeStep || updatedStep });
   } catch (error) {
     console.error('Error in PATCH /api/steps/[id]:', error);
     return NextResponse.json(

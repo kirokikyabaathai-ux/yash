@@ -90,13 +90,6 @@ export function CustomerDashboardContent({
           <PageLayout
             title={`Welcome, ${user.name}!`}
             description="Track your solar installation project progress"
-            actions={
-              (lead.status === 'lead' || lead.status === 'lead_interested') && (
-                <Link href={`/customer/profile/new?leadId=${lead.id}`}>
-                  <Button>Fill Customer Profile Form</Button>
-                </Link>
-              )
-            }
           >
 
             {/* Lead Information */}

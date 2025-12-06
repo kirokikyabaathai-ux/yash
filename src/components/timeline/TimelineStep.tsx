@@ -13,6 +13,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+export interface StepDocument {
+  id: number;
+  document_category: string;
+  submission_type: 'form' | 'file';
+}
+
 export interface TimelineStepData {
   id: string;
   step_id: string;
@@ -29,6 +35,7 @@ export interface TimelineStepData {
   attachments_allowed: boolean;
   customer_upload: boolean;
   requires_installer_assignment: boolean;
+  step_documents?: StepDocument[];
 }
 
 interface TimelineStepProps {

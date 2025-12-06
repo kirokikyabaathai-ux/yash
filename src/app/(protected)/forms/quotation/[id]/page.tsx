@@ -23,16 +23,32 @@ export default async function QuotationViewPage({
     .single();
 
   if (error || !document) {
+    console.error('Quotation fetch error:', error);
     return (
       <div className="container mx-auto p-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">Error: Quotation not found</p>
+          {error && (
+            <p className="text-sm text-red-600 mt-2">
+              {error.message || 'Unknown error'}
+            </p>
+          )}
         </div>
       </div>
     );
   }
 
-  const quotationData = document.form_json as QuotationData;
+  if (!document.form_json) {
+    return (
+      <div className="container mx-auto p-8">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800">Error: No form data found in quotation</p>
+        </div>
+      </div>
+    );
+  }
+
+  const quotationData = document.form_json as unknown as QuotationData;
 
   return (
     <div className="container mx-auto p-8">

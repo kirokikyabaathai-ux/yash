@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
         mime_type: file.type,
         uploaded_by: user.id,
         status: 'valid',
+        is_submitted: true, // Mark as submitted when file is uploaded
       })
       .select()
       .single();

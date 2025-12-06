@@ -71,10 +71,20 @@ export async function POST(
       );
     }
 
-    // Get the lead_step to find the step_id
+    // Get the lead_step to find the step_id and required documents
     const { data: leadStep, error: leadStepError } = await supabase
       .from('lead_steps')
-      .select('step_id, status')
+      .select(`
+        step_id,
+        status,
+        step_master:step_id (
+          step_documents (
+            id,
+            document_category,
+            submission_type
+          )
+        )
+      `)
       .eq('id', leadStepId)
       .eq('lead_id', leadId)
       .single();
@@ -89,6 +99,51 @@ export async function POST(
     // Parse request body
     const body = await request.json();
     const { remarks, attachments, admin_override, skipped } = body;
+
+    // Check if all required documents are submitted (unless admin override)
+    const stepDocuments = (leadStep.step_master as any)?.step_documents || [];
+    if (stepDocuments.length > 0 && !admin_override) {
+      const requiredCategories = stepDocuments.map((doc: any) => doc.document_category);
+      
+      // Get submitted documents for this lead
+      const { data: submittedDocs, error: docsError } = await supabase
+        .from('documents')
+        .select('document_category, is_submitted, status')
+        .eq('lead_id', leadId)
+        .in('document_category', requiredCategories)
+        .eq('is_submitted', true)
+        .eq('status', 'valid') as any;
+
+      if (docsError) {
+        console.error('Error checking documents:', docsError);
+        return NextResponse.json(
+          { error: { code: 'DATABASE_ERROR', message: 'Failed to verify documents' } },
+          { status: 500 }
+        );
+      }
+
+      const submittedCategories = (submittedDocs as any[])?.map((doc: any) => doc.document_category) || [];
+      const missingDocuments = requiredCategories.filter(
+        (cat: string) => !submittedCategories.includes(cat)
+      );
+
+      if (missingDocuments.length > 0) {
+        const missingDocNames = missingDocuments.map((cat: string) => 
+          cat.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+        ).join(', ');
+
+        return NextResponse.json(
+          {
+            error: {
+              code: 'MISSING_DOCUMENTS',
+              message: `Cannot complete step. Missing required documents: ${missingDocNames}`,
+              missing_documents: missingDocuments,
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     // If admin override is requested, bypass RPC and update directly
     if (admin_override && userData.role === 'admin') {

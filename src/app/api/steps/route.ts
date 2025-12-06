@@ -38,7 +38,14 @@ export async function GET(request: NextRequest) {
     // All authenticated users can read step_master for timeline display
     const { data: steps, error: stepsError } = await supabase
       .from('step_master')
-      .select('*')
+      .select(`
+        *,
+        step_documents (
+          id,
+          document_category,
+          submission_type
+        )
+      `)
       .order('order_index', { ascending: true });
 
     if (stepsError) {
@@ -100,6 +107,8 @@ export async function POST(request: NextRequest) {
       remarks_required,
       attachments_allowed,
       customer_upload,
+      requires_installer_assignment,
+      step_documents,
     } = body;
 
     // Validate required fields
@@ -133,6 +142,7 @@ export async function POST(request: NextRequest) {
       remarks_required: remarks_required ?? false,
       attachments_allowed: attachments_allowed ?? false,
       customer_upload: customer_upload ?? false,
+      requires_installer_assignment: requires_installer_assignment ?? false,
     };
 
     const { data: newStep, error: createError } = await supabase
@@ -149,7 +159,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ step: newStep }, { status: 201 });
+    // Insert step_documents if provided
+    if (step_documents && Array.isArray(step_documents) && step_documents.length > 0) {
+      const documentsToInsert = step_documents.map((doc: any) => ({
+        step_id: newStep.id,
+        document_category: doc.document_category,
+        submission_type: doc.submission_type || 'file',
+      }));
+
+      const { error: docsError } = await supabase
+        .from('step_documents')
+        .insert(documentsToInsert);
+
+      if (docsError) {
+        console.error('Error creating step documents:', docsError);
+        // Don't fail the whole operation, just log the error
+      }
+    }
+
+    // Fetch the complete step with documents
+    const { data: completeStep } = await supabase
+      .from('step_master')
+      .select(`
+        *,
+        step_documents (
+          id,
+          document_category,
+          submission_type
+        )
+      `)
+      .eq('id', newStep.id)
+      .single();
+
+    return NextResponse.json({ step: completeStep || newStep }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/steps:', error);
     return NextResponse.json(

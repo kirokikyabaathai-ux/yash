@@ -65,48 +65,6 @@ export type Database = {
           },
         ]
       }
-      customer_profile_drafts: {
-        Row: {
-          created_at: string | null
-          draft_data: Json
-          id: string
-          lead_id: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          draft_data: Json
-          id?: string
-          lead_id?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          draft_data?: Json
-          id?: string
-          lead_id?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "customer_profile_drafts_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "customer_profile_drafts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customer_profiles: {
         Row: {
           aadhaar_back_path: string | null
@@ -130,7 +88,7 @@ export type Database = {
           pan_card_path: string | null
           pin_code: string
           state: string
-          status: 'draft' | 'submitted'
+          status: Database["public"]["Enums"]["customer_profile_status"]
           updated_at: string | null
           user_id: string | null
         }
@@ -156,7 +114,7 @@ export type Database = {
           pan_card_path?: string | null
           pin_code: string
           state: string
-          status?: 'draft' | 'submitted'
+          status?: Database["public"]["Enums"]["customer_profile_status"]
           updated_at?: string | null
           user_id?: string | null
         }
@@ -182,7 +140,7 @@ export type Database = {
           pan_card_path?: string | null
           pin_code?: string
           state?: string
-          status?: 'draft' | 'submitted'
+          status?: Database["public"]["Enums"]["customer_profile_status"]
           updated_at?: string | null
           user_id?: string | null
         }
@@ -209,39 +167,57 @@ export type Database = {
           file_name: string
           file_path: string
           file_size: number
+          form_json: Json | null
           id: string
+          is_submitted: boolean
           lead_id: string
+          metadata: Json | null
           mime_type: string
+          replaced_by: string | null
           status: string
           type: string
+          updated_at: string | null
           uploaded_at: string | null
           uploaded_by: string
+          version: number | null
         }
         Insert: {
           document_category: string
           file_name: string
           file_path: string
           file_size: number
+          form_json?: Json | null
           id?: string
+          is_submitted?: boolean
           lead_id: string
+          metadata?: Json | null
           mime_type: string
+          replaced_by?: string | null
           status?: string
           type: string
+          updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by: string
+          version?: number | null
         }
         Update: {
           document_category?: string
           file_name?: string
           file_path?: string
           file_size?: number
+          form_json?: Json | null
           id?: string
+          is_submitted?: boolean
           lead_id?: string
+          metadata?: Json | null
           mime_type?: string
+          replaced_by?: string | null
           status?: string
           type?: string
+          updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string
+          version?: number | null
         }
         Relationships: [
           {
@@ -249,6 +225,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_replaced_by_fkey"
+            columns: ["replaced_by"]
+            isOneToOne: false
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
           {
@@ -391,6 +374,47 @@ export type Database = {
           },
         ]
       }
+      materials: {
+        Row: {
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          material_name: string
+          quantity: number | null
+          received: boolean | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          material_name: string
+          quantity?: number | null
+          received?: boolean | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          material_name?: string
+          quantity?: number | null
+          received?: boolean | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -435,6 +459,86 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          lead_id: string
+          pdf_path: string | null
+          quotation_data: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          lead_id: string
+          pdf_path?: string | null
+          quotation_data: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          lead_id?: string
+          pdf_path?: string | null
+          quotation_data?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      step_documents: {
+        Row: {
+          created_at: string
+          document_category: string
+          id: number
+          step_id: string
+          submission_type: Database["public"]["Enums"]["submission_type_enum"]
+        }
+        Insert: {
+          created_at?: string
+          document_category: string
+          id?: number
+          step_id: string
+          submission_type?: Database["public"]["Enums"]["submission_type_enum"]
+        }
+        Update: {
+          created_at?: string
+          document_category?: string
+          id?: number
+          step_id?: string
+          submission_type?: Database["public"]["Enums"]["submission_type_enum"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "step_documents_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "step_master"
             referencedColumns: ["id"]
           },
         ]
@@ -528,37 +632,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_mandatory_documents: { Args: { p_lead_id: string }; Returns: Json }
-      complete_step: {
-        Args: {
-          p_attachments?: string[]
-          p_lead_id: string
-          p_remarks?: string
-          p_step_id: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
-      generate_unique_user_id: {
-        Args: { role_type: string; suffix: string }
-        Returns: string
-      }
-      initialize_lead_timeline: { Args: { p_lead_id: string }; Returns: Json }
-      link_customer_to_lead: {
-        Args: {
-          p_address?: string
-          p_customer_id: string
-          p_customer_name: string
-          p_email?: string
-          p_phone: string
-        }
-        Returns: Json
-      }
-      normalize_phone: { Args: { phone_input: string }; Returns: string }
-      update_lead_status: { Args: { p_lead_id: string }; Returns: Json }
+      [_ in never]: never
     }
     Enums: {
-      customer_profile_status: 'draft' | 'submitted'
+      customer_profile_status: "draft" | "submitted"
+      submission_type_enum: "form" | "file"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -665,43 +743,3 @@ export type Enums<
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {
-      customer_profile_status: ['draft', 'submitted'] as const,
-    },
-  },
-} as const
-
-// Type aliases for convenience
-export type UserRole = 'admin' | 'agent' | 'office' | 'installer' | 'customer';
-export type UserStatus = 'active' | 'disabled';
-export type LeadStatus = 
-  | 'lead'
-  | 'lead_interested'
-  | 'lead_processing'
-  | 'lead_completed'
-  | 'lead_cancelled';
-export type LeadSource = 'agent' | 'office' | 'customer' | 'self';
-export type DocumentType = 'mandatory' | 'optional' | 'installation' | 'customer' | 'admin';
-export type DocumentStatus = 'valid' | 'corrupted' | 'replaced';
-export type StepStatus = 'upcoming' | 'pending' | 'completed';
-export type CustomerProfileStatus = 'draft' | 'submitted';

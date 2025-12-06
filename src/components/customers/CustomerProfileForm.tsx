@@ -54,42 +54,51 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
     const loadData = async () => {
       if (leadId) {
         try {
-          // Load draft
-          const draftResponse = await fetch(`/api/customer-profiles/draft?leadId=${leadId}`);
-          if (draftResponse.ok) {
-            const { draft } = await draftResponse.json();
-            if (draft) {
+          // Load profile data from documents table
+          const profileResponse = await fetch(`/api/leads/${leadId}/documents?category=profile`);
+          if (profileResponse.ok) {
+            const { documents } = await profileResponse.json();
+            const profileDoc = documents?.find((d: any) => d.document_category === 'profile');
+            
+            if (profileDoc) {
               // Check if already submitted
-              if (draft.status === 'submitted') {
+              if (profileDoc.is_submitted) {
                 setIsSubmitted(true);
               }
               
-              setFormData((prev) => ({
-                ...prev,
-                name: draft.name || prev.name,
-                gender: draft.gender || prev.gender,
-                address_line_1: draft.address_line_1 || prev.address_line_1,
-                address_line_2: draft.address_line_2 || prev.address_line_2,
-                pin_code: draft.pin_code || prev.pin_code,
-                state: draft.state || prev.state,
-                district: draft.district || prev.district,
-                account_holder_name: draft.account_holder_name || prev.account_holder_name,
-                bank_account_number: draft.bank_account_number || prev.bank_account_number,
-                bank_name: draft.bank_name || prev.bank_name,
-                ifsc_code: draft.ifsc_code || prev.ifsc_code,
-              }));
+              // Load form data from form_json
+              if (profileDoc.form_json) {
+                const formJson = profileDoc.form_json;
+                setFormData((prev) => ({
+                  ...prev,
+                  name: formJson.name || prev.name,
+                  gender: formJson.gender || prev.gender,
+                  address_line_1: formJson.address_line_1 || prev.address_line_1,
+                  address_line_2: formJson.address_line_2 || prev.address_line_2,
+                  pin_code: formJson.pin_code || prev.pin_code,
+                  state: formJson.state || prev.state,
+                  district: formJson.district || prev.district,
+                  account_holder_name: formJson.account_holder_name || prev.account_holder_name,
+                  bank_account_number: formJson.bank_account_number || prev.bank_account_number,
+                  bank_name: formJson.bank_name || prev.bank_name,
+                  ifsc_code: formJson.ifsc_code || prev.ifsc_code,
+                }));
+              }
             }
           }
 
           // Load existing documents
-          const docsResponse = await fetch(`/api/documents?leadId=${leadId}`);
+          const docsResponse = await fetch(`/api/leads/${leadId}/documents`);
           if (docsResponse.ok) {
             const { documents } = await docsResponse.json();
             console.log('Loaded documents:', documents);
             const docsMap: Record<string, { url: string; name: string; id: string }> = {};
             documents.forEach((doc: any) => {
+              // Skip profile document as it's not a file upload
+              if (doc.document_category === 'profile') return;
+              
               docsMap[doc.document_category] = {
-                url: doc.public_url,
+                url: doc.public_url || doc.file_path,
                 name: doc.file_name,
                 id: doc.id,
               };

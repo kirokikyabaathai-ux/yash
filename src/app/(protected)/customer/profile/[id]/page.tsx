@@ -33,14 +33,41 @@ export default async function CustomerProfileViewPage({
     redirect('/');
   }
 
-  // Fetch customer profile
-  const { data: profile, error: profileError } = await supabase
-    .from('customer_profiles')
+  // Try to fetch from documents table first (new format)
+  const { data: document } = await supabase
+    .from('documents')
     .select('*')
     .eq('id', id)
-    .single();
+    .eq('document_category', 'profile')
+    .single() as any;
 
-  if (profileError || !profile) {
+  let profile = null;
+
+  if (document?.form_json) {
+    // Convert document format to profile format
+    profile = {
+      id: document.id,
+      ...document.form_json,
+      created_at: document.uploaded_at,
+      updated_at: document.updated_at,
+      status: document.is_submitted ? 'submitted' : 'draft',
+    };
+  } else {
+    // Fallback to customer_profiles table (old format)
+    const { data: oldProfile, error: profileError } = await supabase
+      .from('customer_profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (profileError || !oldProfile) {
+      redirect('/office/dashboard');
+    }
+
+    profile = oldProfile;
+  }
+
+  if (!profile) {
     redirect('/office/dashboard');
   }
 

@@ -7,7 +7,25 @@ interface Props {
 }
 
 const QuotationForm: React.FC<Props> = ({ onSubmit }) => {
-  const [formData, setFormData] = useState<QuotationData>();
+  const [formData, setFormData] = useState<QuotationData>({
+    customerName: '',
+    address: '',
+    contactNo: '',
+    applicationNumber: '',
+    consumerNumber: '',
+    date: '',
+    quotationNo: '',
+    capacity: '',
+    siteLocation: '',
+    areaCapacity: '',
+    capacityKwp: '',
+    pvQuantity: '',
+    systemCost: '',
+    subsidyAmount: '',
+    netMeteringIncluded: '',
+    totalCost: '',
+    amountInWords: '',
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

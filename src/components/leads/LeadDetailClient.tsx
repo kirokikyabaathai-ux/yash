@@ -239,15 +239,6 @@ export function LeadDetailClient({
                 </Button>
               )}
               
-              {/* Fill Customer Form Button */}
-              {(lead.status === 'lead' || lead.status === 'lead_interested') && (
-                <Button asChild className="w-full">
-                  <Link href={`/customer/profile/new?leadId=${lead.id}`}>
-                    Fill Customer Profile Form
-                  </Link>
-                </Button>
-              )}
-              
               <Button asChild variant="outline" className="w-full">
                 <a href={`tel:${lead.phone}`}>
                   Call Customer

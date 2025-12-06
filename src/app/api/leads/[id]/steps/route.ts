@@ -79,7 +79,13 @@ export async function GET(
           allowed_roles,
           remarks_required,
           attachments_allowed,
-          customer_upload
+          customer_upload,
+          requires_installer_assignment,
+          step_documents (
+            id,
+            document_category,
+            submission_type
+          )
         )
       `)
       .eq('lead_id', leadId)
@@ -130,6 +136,8 @@ export async function GET(
       remarks_required: step.step_master?.remarks_required || false,
       attachments_allowed: step.step_master?.attachments_allowed || false,
       customer_upload: step.step_master?.customer_upload || false,
+      requires_installer_assignment: step.step_master?.requires_installer_assignment || false,
+      step_documents: step.step_master?.step_documents || [],
       created_at: step.created_at,
       updated_at: step.updated_at,
     })) || [];

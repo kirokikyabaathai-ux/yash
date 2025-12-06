@@ -88,10 +88,8 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
         }
       }
 
-      // Create customer profile
-      const profileData = {
-        user_id: data.user_id,
-        lead_id: data.lead_id,
+      // Save profile form data to documents table with document references
+      const profileFormData = {
         name: data.name,
         gender: data.gender,
         address_line_1: data.address_line_1,
@@ -103,26 +101,23 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
         bank_account_number: data.bank_account_number,
         bank_name: data.bank_name,
         ifsc_code: data.ifsc_code,
-        ...documentPaths,
-        documentMetadata,
+        documents: documentMetadata, // Include uploaded document references
       };
 
-      const response = await fetch('/api/customer-profiles', {
+      const response = await fetch(`/api/leads/${leadId}/documents/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify({ form_data: profileFormData }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to create customer profile');
+        throw new Error(error.message || 'Failed to save customer profile');
       }
-
-      const result = await response.json();
       
-      alert('Customer profile created successfully!');
+      alert('Customer profile saved successfully!');
       
       // Get session and redirect to role-based dashboard
       const sessionResponse = await fetch('/api/auth/session');

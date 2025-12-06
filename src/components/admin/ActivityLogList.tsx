@@ -11,14 +11,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { format } from 'date-fns';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { DataTable } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -244,113 +237,111 @@ export function ActivityLogList() {
           <CardTitle>Activity Log ({logs.length} entries)</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="p-12 text-center">
-              <div className="text-muted-foreground">Loading activity logs...</div>
-            </div>
-          ) : logs.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-muted-foreground text-lg">No activity logs found</p>
-              <p className="text-muted-foreground text-sm mt-2">
-                Try adjusting your filter criteria
-              </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-semibold">Action</TableHead>
-                  <TableHead className="font-semibold">Entity</TableHead>
-                  <TableHead className="font-semibold">User</TableHead>
-                  <TableHead className="font-semibold">Lead</TableHead>
-                  <TableHead className="font-semibold">Timestamp</TableHead>
-                  <TableHead className="font-semibold">Details</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={getActionBadgeColor(log.action)}
-                      >
-                        {log.action}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {log.entity_type}
-                    </TableCell>
-                    <TableCell>
-                      {log.user ? (
-                        <div className="text-sm">
-                          <div className="font-medium">{log.user.name}</div>
-                          <div className="text-muted-foreground text-xs">
-                            {log.user.email} • {log.user.role}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {log.lead ? (
-                        <div className="text-sm">
-                          <div className="font-medium">{log.lead.customer_name}</div>
-                          <div className="text-muted-foreground text-xs">
-                            {log.lead.phone}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {log.timestamp
-                        ? format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss')
-                        : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-2">
-                        {log.entity_id && (
-                          <div className="text-xs">
-                            <code className="bg-muted px-1 rounded">
-                              {log.entity_id}
-                            </code>
-                          </div>
-                        )}
-                        {(log.old_value || log.new_value) && (
-                          <details className="text-xs">
-                            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                              View Changes
-                            </summary>
-                            <div className="mt-2 space-y-2">
-                              {log.old_value && (
-                                <div>
-                                  <div className="font-medium mb-1">Old Value:</div>
-                                  <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
-                                    {JSON.stringify(log.old_value, null, 2)}
-                                  </pre>
-                                </div>
-                              )}
-                              {log.new_value && (
-                                <div>
-                                  <div className="font-medium mb-1">New Value:</div>
-                                  <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
-                                    {JSON.stringify(log.new_value, null, 2)}
-                                  </pre>
-                                </div>
-                              )}
-                            </div>
-                          </details>
-                        )}
+          <DataTable
+            data={logs}
+            keyExtractor={(log) => log.id}
+            loading={loading}
+            loadingMessage="Loading activity logs..."
+            emptyMessage="No activity logs found. Try adjusting your filter criteria."
+            columns={[
+              {
+                header: 'Action',
+                accessor: (log) => (
+                  <Badge
+                    variant="secondary"
+                    className={getActionBadgeColor(log.action)}
+                  >
+                    {log.action}
+                  </Badge>
+                ),
+              },
+              {
+                header: 'Entity',
+                accessor: (log) => (
+                  <span className="text-muted-foreground">{log.entity_type}</span>
+                ),
+              },
+              {
+                header: 'User',
+                accessor: (log) => (
+                  log.user ? (
+                    <div className="text-sm">
+                      <div className="font-medium text-foreground">{log.user.name}</div>
+                      <div className="text-muted-foreground text-xs mt-1">
+                        {log.user.email} • {log.user.role}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )
+                ),
+              },
+              {
+                header: 'Lead',
+                accessor: (log) => (
+                  log.lead ? (
+                    <div className="text-sm">
+                      <div className="font-medium text-foreground">{log.lead.customer_name}</div>
+                      <div className="text-muted-foreground text-xs mt-1">
+                        {log.lead.phone}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )
+                ),
+              },
+              {
+                header: 'Timestamp',
+                accessor: (log) => (
+                  <span className="text-muted-foreground text-sm">
+                    {log.timestamp
+                      ? format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss')
+                      : 'N/A'}
+                  </span>
+                ),
+              },
+              {
+                header: 'Details',
+                accessor: (log) => (
+                  <div className="space-y-2">
+                    {log.entity_id && (
+                      <div className="text-xs">
+                        <code className="bg-muted px-1 rounded">
+                          {log.entity_id}
+                        </code>
+                      </div>
+                    )}
+                    {(log.old_value || log.new_value) && (
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                          View Changes
+                        </summary>
+                        <div className="mt-2 space-y-2">
+                          {log.old_value && (
+                            <div>
+                              <div className="font-medium mb-1">Old Value:</div>
+                              <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
+                                {JSON.stringify(log.old_value, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                          {log.new_value && (
+                            <div>
+                              <div className="font-medium mb-1">New Value:</div>
+                              <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
+                                {JSON.stringify(log.new_value, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                ),
+              },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>

@@ -15,6 +15,14 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 
+export type SubmissionType = 'form' | 'file';
+
+export interface StepDocument {
+  id?: number;
+  document_category: string;
+  submission_type: SubmissionType;
+}
+
 export interface StepMasterFormData {
   step_name: string;
   allowed_roles: UserRole[];
@@ -22,13 +30,15 @@ export interface StepMasterFormData {
   attachments_allowed: boolean;
   customer_upload: boolean;
   requires_installer_assignment: boolean;
+  step_documents: StepDocument[];
 }
 
-export interface StepMaster extends StepMasterFormData {
+export interface StepMaster extends Omit<StepMasterFormData, 'step_documents'> {
   id: string;
   order_index: number;
   created_at: string;
   updated_at: string;
+  step_documents?: StepDocument[];
 }
 
 interface StepMasterFormProps {
@@ -46,6 +56,30 @@ const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'customer', label: 'Customer' },
 ];
 
+const DOCUMENT_CATEGORIES = [
+  { value: 'profile', label: 'Customer Profile' },
+  { value: 'cash_memo', label: 'Cash Memo' },
+  { value: 'quotation', label: 'Quotation' },
+  { value: 'ppa', label: 'PPA' },
+  { value: 'vendor_agreement', label: 'Vendor Agreement' },
+  { value: 'electricity_bill', label: 'Electricity Bill' },
+  { value: 'aadhaar_front', label: 'Aadhaar Front' },
+  { value: 'aadhaar_back', label: 'Aadhaar Back' },
+  { value: 'pan_card', label: 'PAN Card' },
+  { value: 'bank_passbook', label: 'Bank Passbook' },
+  { value: 'cancelled_cheque', label: 'Cancelled Cheque' },
+  { value: 'itr_documents', label: 'ITR Documents' },
+  { value: 'site_survey', label: 'Site Survey' },
+  { value: 'installation_photo', label: 'Installation Photo' },
+  { value: 'completion_certificate', label: 'Completion Certificate' },
+  { value: 'other', label: 'Other' },
+];
+
+const SUBMISSION_TYPES: { value: SubmissionType; label: string }[] = [
+  { value: 'file', label: 'File Upload' },
+  { value: 'form', label: 'Form Submission' },
+];
+
 export function StepMasterForm({
   step,
   onSubmit,
@@ -59,6 +93,7 @@ export function StepMasterForm({
     attachments_allowed: step?.attachments_allowed ?? false,
     customer_upload: step?.customer_upload ?? false,
     requires_installer_assignment: step?.requires_installer_assignment ?? false,
+    step_documents: step?.step_documents || [],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,6 +107,7 @@ export function StepMasterForm({
       attachments_allowed: step?.attachments_allowed ?? false,
       customer_upload: step?.customer_upload ?? false,
       requires_installer_assignment: step?.requires_installer_assignment ?? false,
+      step_documents: step?.step_documents || [],
     });
     setErrors({});
   }, [step]);
@@ -139,6 +175,36 @@ export function StepMasterForm({
         return newErrors;
       });
     }
+  };
+
+  const handleAddDocument = () => {
+    setFormData((prev) => ({
+      ...prev,
+      step_documents: [
+        ...prev.step_documents,
+        { document_category: 'other', submission_type: 'file' },
+      ],
+    }));
+  };
+
+  const handleRemoveDocument = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      step_documents: prev.step_documents.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleDocumentChange = (
+    index: number,
+    field: keyof StepDocument,
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      step_documents: prev.step_documents.map((doc, i) =>
+        i === index ? { ...doc, [field]: value } : doc
+      ),
+    }));
   };
 
   return (
@@ -214,6 +280,88 @@ export function StepMasterForm({
             {errors.allowed_roles}
           </p>
         )}
+      </div>
+
+      {/* Document Requirements Section */}
+      <div className="space-y-4 pb-6 border-b">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-1">Document Requirements</h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Specify which documents are required for this step
+          </p>
+        </div>
+        <div className="space-y-3">
+          {formData.step_documents.map((doc, index) => (
+            <div key={index} className="flex gap-3 items-start p-3 rounded-lg border bg-card">
+              <div className="flex-1 grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor={`doc-category-${index}`} className="text-xs font-medium">
+                    Document Category
+                  </Label>
+                  <select
+                    id={`doc-category-${index}`}
+                    value={doc.document_category}
+                    onChange={(e) =>
+                      handleDocumentChange(index, 'document_category', e.target.value)
+                    }
+                    disabled={isLoading}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {DOCUMENT_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`doc-type-${index}`} className="text-xs font-medium">
+                    Submission Type
+                  </Label>
+                  <select
+                    id={`doc-type-${index}`}
+                    value={doc.submission_type}
+                    onChange={(e) =>
+                      handleDocumentChange(index, 'submission_type', e.target.value)
+                    }
+                    disabled={isLoading}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {SUBMISSION_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRemoveDocument(index)}
+                disabled={isLoading}
+                className="mt-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleAddDocument}
+            disabled={isLoading}
+            className="w-full"
+          >
+            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Document Requirement
+          </Button>
+        </div>
       </div>
 
       {/* Step Configuration Section */}

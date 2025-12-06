@@ -29,6 +29,7 @@ interface CustomerProfile {
   cancelled_cheque_path?: string;
   pan_card_path?: string;
   itr_documents_path?: string;
+  documents?: Record<string, { fileName: string; fileSize: number; mimeType: string }>;
   created_at: string;
   updated_at: string;
 }
@@ -144,45 +145,81 @@ export function CustomerProfileView({ profile, userRole }: CustomerProfileViewPr
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Uploaded Documents</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {profile.aadhaar_front_path && (
+          {/* Check both old format (path fields) and new format (documents object) */}
+          {(profile.aadhaar_front_path || profile.documents?.aadhaar_front) && (
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-700">Aadhaar Front</span>
+              <div>
+                <span className="text-sm text-gray-700">Aadhaar Front</span>
+                {profile.documents?.aadhaar_front && (
+                  <p className="text-xs text-gray-500">{profile.documents.aadhaar_front.fileName}</p>
+                )}
+              </div>
               <span className="text-xs text-green-600">✓ Uploaded</span>
             </div>
           )}
-          {profile.aadhaar_back_path && (
+          {(profile.aadhaar_back_path || profile.documents?.aadhaar_back) && (
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-700">Aadhaar Back</span>
+              <div>
+                <span className="text-sm text-gray-700">Aadhaar Back</span>
+                {profile.documents?.aadhaar_back && (
+                  <p className="text-xs text-gray-500">{profile.documents.aadhaar_back.fileName}</p>
+                )}
+              </div>
               <span className="text-xs text-green-600">✓ Uploaded</span>
             </div>
           )}
-          {profile.electricity_bill_path && (
+          {(profile.electricity_bill_path || profile.documents?.electricity_bill) && (
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-700">Electricity Bill</span>
+              <div>
+                <span className="text-sm text-gray-700">Electricity Bill</span>
+                {profile.documents?.electricity_bill && (
+                  <p className="text-xs text-gray-500">{profile.documents.electricity_bill.fileName}</p>
+                )}
+              </div>
               <span className="text-xs text-green-600">✓ Uploaded</span>
             </div>
           )}
-          {profile.bank_passbook_path && (
+          {(profile.bank_passbook_path || profile.documents?.bank_passbook) && (
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-700">Bank Passbook</span>
+              <div>
+                <span className="text-sm text-gray-700">Bank Passbook</span>
+                {profile.documents?.bank_passbook && (
+                  <p className="text-xs text-gray-500">{profile.documents.bank_passbook.fileName}</p>
+                )}
+              </div>
               <span className="text-xs text-green-600">✓ Uploaded</span>
             </div>
           )}
-          {profile.cancelled_cheque_path && (
+          {(profile.cancelled_cheque_path || profile.documents?.cancelled_cheque) && (
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-700">Cancelled Cheque</span>
+              <div>
+                <span className="text-sm text-gray-700">Cancelled Cheque</span>
+                {profile.documents?.cancelled_cheque && (
+                  <p className="text-xs text-gray-500">{profile.documents.cancelled_cheque.fileName}</p>
+                )}
+              </div>
               <span className="text-xs text-green-600">✓ Uploaded</span>
             </div>
           )}
-          {profile.pan_card_path && (
+          {(profile.pan_card_path || profile.documents?.pan_card) && (
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-700">PAN Card</span>
+              <div>
+                <span className="text-sm text-gray-700">PAN Card</span>
+                {profile.documents?.pan_card && (
+                  <p className="text-xs text-gray-500">{profile.documents.pan_card.fileName}</p>
+                )}
+              </div>
               <span className="text-xs text-green-600">✓ Uploaded</span>
             </div>
           )}
-          {profile.itr_documents_path && (
+          {(profile.itr_documents_path || profile.documents?.itr_documents) && (
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-              <span className="text-sm text-gray-700">ITR Documents</span>
+              <div>
+                <span className="text-sm text-gray-700">ITR Documents</span>
+                {profile.documents?.itr_documents && (
+                  <p className="text-xs text-gray-500">{profile.documents.itr_documents.fileName}</p>
+                )}
+              </div>
               <span className="text-xs text-green-600">✓ Uploaded</span>
             </div>
           )}
