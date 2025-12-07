@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Letter Generator</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.5;
+            color: #000;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- CONTROL PANEL STYLES (Hidden when printing) --- */
+        .control-panel {
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 20px;
+            margin: 0 auto 30px auto;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-family: Arial, sans-serif;
+        }
+        .control-panel h2 {
+            margin-top: 0;
+            color: #1565c0;
+            font-size: 18px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn-print {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+            width: 100%;
+        }
+        .btn-print:hover {
+            background-color: #45a049;
+        }
+
+        /* --- DOCUMENT STYLES --- */
+        .document-container {
+            background-color: #fff;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px; /* Standard letter padding */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            min-height: 1000px; /* Visual height for A4 approx */
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .recipient-address {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .subject {
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+            text-decoration: underline;
+        }
+
+        .content-body {
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        .info-table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            border: 1px solid #000;
+            padding: 8px 15px;
+        }
+        .info-table td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+
+        .signature-section {
+            margin-top: 50px;
+        }
+        
+        .footer-note {
+            margin-top: 50px;
+            font-weight: bold;
+            font-size: 11pt;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+
+        /* Dynamic Text Highlight */
+        .dynamic-text {
+            background-color: #fff3e0;
+            padding: 0 2px;
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+            .control-panel {
+                display: none !important;
+            }
+            .document-container {
+                box-shadow: none;
+                width: 100%;
+                max-width: 100%;
+                padding: 40px;
+                margin: 0;
+            }
+            .dynamic-text {
+                background-color: transparent;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="control-panel">
+        <h2>📝 Bank Letter Details</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="text" id="inputDate" value="" placeholder="DD/MM/YYYY" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>Bank Name & Branch</label>
+                <input type="text" id="inputBank" value="The SBI MEDICAL COLLEGE (RAIGARH)" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>Bank Address / City</label>
+                <input type="text" id="inputBankAddr" value="SBI Raigarh Dist - Raigarh (C.G.) 496001" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>Applicant Name</label>
+                <input type="text" id="inputName" value="Prabhudan ekka" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>Solar Capacity</label>
+                <input type="text" id="inputCapacity" value="3kw" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>BP Number</label>
+                <input type="text" id="inputBP" value="1006637898" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>Applicant Address</label>
+                <input type="text" id="inputAddress" value="hp gas godam ke bagal" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>District</label>
+                <input type="text" id="inputDistrict" value="raigarh" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>State & Pin</label>
+                <input type="text" id="inputState" value="Chhattisgarh. 496001" oninput="updateLetter()">
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" id="inputMobile" value="9753265945" oninput="updateLetter()">
+            </div>
+        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ Print Letter</button>
+    </div>
+
+    <div class="document-container">
+        
+        <div class="header-top">
+            <div>To,</div>
+            <div>Date : <span id="dispDate" class="dynamic-text">---------------</span></div>
+        </div>
+
+        <div class="recipient-address">
+            <span id="dispBank" class="dynamic-text">The SBI MEDICAL COLLEGE (RAIGARH)</span><br>
+            <span id="dispBankAddr" class="dynamic-text">SBI Raigarh Dist - Raigarh (C.G.) 496001</span>
+        </div>
+
+        <div class="subject">
+            Subject: - Submission of work completion and request for pyment
+        </div>
+
+        <div class="content-body">
+            Respected Sir,<br><br>
+            An installation of <span id="dispCapacity1" class="dynamic-text">3kw</span> solar power plant has done in my residence by <strong>GSMR Sales</strong>.<br><br>
+            Please fine the attached document for inspection and kindly Disburse the Remaining Amount To vendor (<strong>GSMR Sales</strong>).
+        </div>
+
+        <div class="content-body">
+            Details are as follows :-
+            <table class="info-table">
+                <tr>
+                    <td>NAME</td>
+                    <td><span id="dispName1" class="dynamic-text">Prabhudan ekka</span></td>
+                </tr>
+                <tr>
+                    <td>SOLAR CAPICITY</td>
+                    <td><span id="dispCapacity2" class="dynamic-text">3kw</span></td>
+                </tr>
+                <tr>
+                    <td>BP. NO.</td>
+                    <td><span id="dispBP1" class="dynamic-text">1006637898</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="content-body">
+            Documents are attached here with :-
+            <ol>
+                <li>Invoice</li>
+                <li>Power Plant Photo</li>
+            </ol>
+        </div>
+
+        <div class="content-body">
+            Thank You
+        </div>
+
+        <div class="signature-section">
+            <strong>Applicant</strong><br><br>
+            Name- <span id="dispName2" class="dynamic-text">Prabhudan ekka</span><br>
+            B.P. No.: - <span id="dispBP2" class="dynamic-text">1006637898</span><br>
+            Adress- <span id="dispAddress" class="dynamic-text">hp gas godam ke bagal</span><br>
+            Distt- <span id="dispDistrict" class="dynamic-text">raigarh</span><br>
+            <span id="dispState" class="dynamic-text">Chhattisgarh. 496001</span><br>
+            Mo. <span id="dispMobile" class="dynamic-text">9753265945</span>
+        </div>
+
+        <div class="footer-note">
+            NOTE :- PLEASE SEND UTR NO. AFTER TRANSFER LOAN AMOUNT IN THE WHATSAPP NO. 8305599008
+        </div>
+
+    </div>
+
+    <script>
+        function updateLetter() {
+            // Get values
+            const date = document.getElementById('inputDate').value || '---------------';
+            const bank = document.getElementById('inputBank').value;
+            const bankAddr = document.getElementById('inputBankAddr').value;
+            const name = document.getElementById('inputName').value;
+            const capacity = document.getElementById('inputCapacity').value;
+            const bp = document.getElementById('inputBP').value;
+            const address = document.getElementById('inputAddress').value;
+            const district = document.getElementById('inputDistrict').value;
+            const state = document.getElementById('inputState').value;
+            const mobile = document.getElementById('inputMobile').value;
+
+            // Update DOM
+            document.getElementById('dispDate').innerText = date;
+            document.getElementById('dispBank').innerText = bank;
+            document.getElementById('dispBankAddr').innerText = bankAddr;
+            document.getElementById('dispName1').innerText = name;
+            document.getElementById('dispName2').innerText = name;
+            document.getElementById('dispCapacity1').innerText = capacity;
+            document.getElementById('dispCapacity2').innerText = capacity;
+            document.getElementById('dispBP1').innerText = bp;
+            document.getElementById('dispBP2').innerText = bp;
+            document.getElementById('dispAddress').innerText = address;
+            document.getElementById('dispDistrict').innerText = district;
+            document.getElementById('dispState').innerText = state;
+            document.getElementById('dispMobile').innerText = mobile;
+        }
+    </script>
+</body>
+</html>

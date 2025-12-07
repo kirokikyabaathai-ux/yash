@@ -40,6 +40,7 @@ interface DocumentStatus {
   submitted: boolean;
   label: string;
   submission_type?: 'form' | 'file';
+  documentId?: string; // Cache the document ID
 }
 
 export function StepCompletionModal({
@@ -72,14 +73,20 @@ export function StepCompletionModal({
       const response = await fetch(`/api/leads/${leadId}/documents`);
       if (response.ok) {
         const documents = await response.json();
-        // documents is an array directly, not wrapped in { documents: [] }
-        const submittedCategories = (Array.isArray(documents) ? documents : [])
-          .filter((doc: any) => doc.is_submitted && doc.status === 'valid')
-          .map((doc: any) => doc.document_category);
+        // documents is an array directly
+        const docsArray = Array.isArray(documents) ? documents : [];
+        
+        // Create a map of submitted documents with their IDs
+        const docMap = new Map(
+          docsArray
+            .filter((doc: any) => doc.is_submitted && doc.status === 'valid')
+            .map((doc: any) => [doc.document_category, doc.id])
+        );
 
         const statuses = step.step_documents!.map(doc => ({
           category: doc.document_category,
-          submitted: submittedCategories.includes(doc.document_category),
+          submitted: docMap.has(doc.document_category),
+          documentId: docMap.get(doc.document_category), // Cache the ID
           submission_type: doc.submission_type,
           label: doc.document_category.split('_').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1)
@@ -155,13 +162,15 @@ export function StepCompletionModal({
       case 'quotation':
         router.push(`/forms/quotation/new?leadId=${leadId}`);
         break;
+      case 'ppa':
+        router.push(`/forms/ppa/new?leadId=${leadId}`);
+        break;
+      case 'bank_letter':
+        router.push(`/forms/bank-letter/new?leadId=${leadId}`);
+        break;
       case 'cash_memo':
         // TODO: Add cash memo form route
         alert('Cash Memo form not yet implemented');
-        break;
-      case 'ppa':
-        // TODO: Add PPA form route
-        alert('PPA form not yet implemented');
         break;
       case 'vendor_agreement':
         // TODO: Add vendor agreement form route
@@ -173,56 +182,40 @@ export function StepCompletionModal({
   };
 
   const handleViewForm = async (category: string) => {
-    if (!leadId) return;
+    // Get document ID from cached statuses
+    const docStatus = documentStatuses.find(d => d.category === category);
+    const documentId = docStatus?.documentId;
 
-    try {
-      const response = await fetch(`/api/leads/${leadId}/documents`);
-      if (!response.ok) throw new Error('Failed to fetch document');
-
-      const documents = await response.json();
-      // documents is an array directly
-      const doc = (Array.isArray(documents) ? documents : []).find(
-        (d: any) => d.document_category === category && d.is_submitted
-      );
-
-      if (!doc?.id) {
-        alert('No data found for ' + category);
-        return;
-      }
+    if (!documentId) {
+      alert('No data found for ' + category);
+      return;
+    }
 
       // Route based on category
       switch (category) {
         case 'profile':
-          router.push(`/customer/profile/${doc.id}`);
+          router.push(`/customer/profile/${documentId}`);
           break;
         case 'quotation':
-          router.push(`/forms/quotation/${doc.id}`);
+          router.push(`/forms/quotation/${documentId}`);
+          break;
+        case 'ppa':
+          router.push(`/forms/ppa/${documentId}`);
+          break;
+        case 'bank_letter':
+          router.push(`/forms/bank-letter/${documentId}`);
           break;
         case 'cash_memo':
           // TODO: Add cash memo view route
           alert('Cash Memo view not yet implemented');
-          break;
-        case 'ppa':
-          // TODO: Add PPA view route
-          alert('PPA view not yet implemented');
           break;
         case 'vendor_agreement':
           // TODO: Add vendor agreement view route
           alert('Vendor Agreement view not yet implemented');
           break;
         default:
-          // For unimplemented forms, show the raw JSON data
-          if (doc.form_json) {
-            const formattedData = JSON.stringify(doc.form_json, null, 2);
-            alert(`${category} Data:\n\n${formattedData}`);
-          } else {
-            alert(`View for ${category} not yet implemented`);
-          }
+          alert(`View for ${category} not yet implemented`);
       }
-    } catch (error) {
-      console.error('Error viewing form:', error);
-      alert('Failed to view form');
-    }
   };
 
   // File submission handlers
@@ -262,28 +255,22 @@ export function StepCompletionModal({
   };
 
   const handleViewFile = async (category: string) => {
-    if (!leadId) return;
+    // Get document ID from cached statuses
+    const docStatus = documentStatuses.find(d => d.category === category);
+    const documentId = docStatus?.documentId;
+
+    if (!documentId) {
+      alert('No file found for ' + category);
+      return;
+    }
 
     try {
-      const response = await fetch(`/api/leads/${leadId}/documents`);
-      if (!response.ok) throw new Error('Failed to fetch document');
+      // Open document view
+      const viewResponse = await fetch(`/api/documents/view?documentId=${documentId}`);
+      if (!viewResponse.ok) throw new Error('Failed to get view URL');
 
-      const documents = await response.json();
-      // documents is an array directly
-      const doc = (Array.isArray(documents) ? documents : []).find(
-        (d: any) => d.document_category === category && d.is_submitted
-      );
-
-      if (doc?.id) {
-        // Open document view
-        const viewResponse = await fetch(`/api/documents/view?documentId=${doc.id}`);
-        if (!viewResponse.ok) throw new Error('Failed to get view URL');
-
-        const { url } = await viewResponse.json();
-        window.open(url, '_blank');
-      } else {
-        alert('No file found for ' + category);
-      }
+      const { url } = await viewResponse.json();
+      window.open(url, '_blank');
     } catch (error) {
       console.error('Error viewing file:', error);
       alert('Failed to view file');
@@ -291,30 +278,22 @@ export function StepCompletionModal({
   };
 
   const handleDeleteDocument = async (category: string) => {
-    if (!leadId) return;
+    // Get document ID from cached statuses
+    const docStatus = documentStatuses.find(d => d.category === category);
+    const documentId = docStatus?.documentId;
+
+    if (!documentId) {
+      alert('Document not found for ' + category);
+      return;
+    }
     
     if (!confirm(`Are you sure you want to delete this ${category}? This action cannot be undone.`)) {
       return;
     }
 
     try {
-      // Get document ID first
-      const response = await fetch(`/api/leads/${leadId}/documents`);
-      if (!response.ok) throw new Error('Failed to fetch document');
-
-      const documents = await response.json();
-      // documents is an array directly
-      const doc = (Array.isArray(documents) ? documents : []).find(
-        (d: any) => d.document_category === category && d.is_submitted
-      );
-
-      if (!doc?.id) {
-        alert('Document not found for ' + category);
-        return;
-      }
-
       // Delete document using the generic document endpoint
-      const deleteResponse = await fetch(`/api/documents/${doc.id}`, {
+      const deleteResponse = await fetch(`/api/documents/${documentId}`, {
         method: 'DELETE',
       });
 

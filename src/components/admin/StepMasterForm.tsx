@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { UserRole } from '@/types/database';
+import type { UserRole } from '@/lib/utils/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -61,6 +61,7 @@ const DOCUMENT_CATEGORIES = [
   { value: 'cash_memo', label: 'Cash Memo' },
   { value: 'quotation', label: 'Quotation' },
   { value: 'ppa', label: 'PPA' },
+    { value: 'bank_letter', label: 'Bank Letter' },
   { value: 'vendor_agreement', label: 'Vendor Agreement' },
   { value: 'electricity_bill', label: 'Electricity Bill' },
   { value: 'aadhaar_front', label: 'Aadhaar Front' },

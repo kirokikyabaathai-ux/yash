@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
+    // Check if user already exists with this email
     const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
@@ -71,6 +71,20 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { error: { code: 'EMAIL_EXISTS', message: 'An account with this email already exists' } },
+        { status: 400 }
+      );
+    }
+
+    // Check if phone number already exists
+    const { data: existingPhone } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('phone', phone)
+      .single();
+
+    if (existingPhone) {
+      return NextResponse.json(
+        { error: { code: 'PHONE_EXISTS', message: 'An account with this phone number already exists' } },
         { status: 400 }
       );
     }

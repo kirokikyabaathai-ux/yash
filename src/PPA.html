@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPA Generator</title>
+    <style>
+        body {
+            font-family: 'Cambria', 'Times New Roman', serif;
+            line-height: 1.5;
+            color: #000;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- CONTROL PANEL STYLES (Hidden when printing) --- */
+        .control-panel {
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 20px;
+            margin: 0 auto 30px auto;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .control-panel h2 {
+            margin-top: 0;
+            color: #1565c0;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            text-decoration: none;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Fixes padding issues */
+        }
+        .btn-print {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+            width: 100%;
+        }
+        .btn-print:hover {
+            background-color: #45a049;
+        }
+
+        /* --- DOCUMENT STYLES --- */
+        .document-container {
+            background-color: #fff;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        /* Dynamic Highlight Class - shows what is being edited */
+        .dynamic-text {
+            color: #000;
+            font-weight: bold;
+            background-color: #fff3e0; /* Subtle highlight to show variable fields */
+            padding: 0 2px;
+        }
+
+        /* Header Image */
+        .header-image {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-image img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 16pt;
+            margin-bottom: 20px;
+            text-decoration: underline;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        .signature-section {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .signature-block {
+            width: 45%;
+            margin-bottom: 40px;
+        }
+        .signature-line {
+            border-bottom: 1px solid #000;
+            margin-top: 40px;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+            .control-panel {
+                display: none !important; /* Hides inputs when printing */
+            }
+            .document-container {
+                box-shadow: none;
+                width: 100%;
+                max-width: 100%;
+                padding: 20px;
+                margin: 0;
+            }
+            .dynamic-text {
+                background-color: transparent; /* Removes highlight on print */
+                font-weight: bold;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="control-panel">
+        <h2>📝 PPA Details Entry</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Agreement Date</label>
+                <input type="text" id="inputDate" value="14-06-2025" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>Consumer ID / BP No</label>
+                <input type="text" id="inputId" value="1002794244" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>Prosumer Name</label>
+                <input type="text" id="inputName" value="Abhimanyu rathia" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>Father's Name</label>
+                <input type="text" id="inputFather" value="Shree arjun rathya" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>Village / Address Line 1</label>
+                <input type="text" id="inputVillage" value="Vill. Tangarghat" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>District</label>
+                <input type="text" id="inputDistrict" value="raigarh" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>State</label>
+                <input type="text" id="inputState" value="CHHATTISGARH" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>PIN Code</label>
+                <input type="text" id="inputPin" value="496107" oninput="updateDoc()">
+            </div>
+            <div class="form-group">
+                <label>Plant Capacity (kWp)</label>
+                <input type="text" id="inputKwp" value="3.00" oninput="updateDoc()">
+            </div>
+        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ Print Agreement</button>
+    </div>
+
+    <div class="document-container">
+        
+        <div class="header-image">
+            <img src="header.jpg" alt="CSPDCL Header Image (Save file as header.jpg)">
+        </div>
+
+        <h1>POWER PURCHASE AGREEMENT FOR RTS PLANTS</h1>
+
+        <p>
+            This Power Purchase Agreement is made and entered into at Sub Division on the <span id="dispDate" class="dynamic-text">14-06-2025</span> between CHHATTISGARH STATE POWER DISTRIBUTION CO. LTD. RAIPUR (hereinafter referred to as CSPDCL /Licensee), a company incorporated under the provisions of the Companies Act, 2013, having its head office at Vidyut Sewa Bhawan, Dangania, Raipur – 492013, Chhattisgarh, India, which expression shall, unless repugnant to the subject, context or meaning thereof, be deemed to mean and include its successors, authorized representatives and permitted assigns of the First part.
+        </p>
+
+        <p style="text-align: center; font-weight: bold; font-size: 14pt;">And</p>
+
+        <p>
+            <span id="dispId" class="dynamic-text">1002794244</span> having its premises at. <span id="dispName1" class="dynamic-text">Abhimanyu rathia</span> S/O <span id="dispFather1" class="dynamic-text">Shree arjun rathya</span> at. <span id="dispAddr1" class="dynamic-text">Vill. Tangarghat District: raigarh, State: CHHATTISGARH, PIN Code: 496107</span>, herein after referred to the 'Prosumer' as party on the SECOND PART.
+        </p>
+
+        <p>
+            The Chhattisgarh State Electricity Regulatory Commission (hereinafter referred to as “the Commission”) has notified Chhattisgarh State Electricity Regulatory Commission (Grid Interactive Distributed Renewable Energy Sources) Regulations, 2019 (hereinafter referred to as- “CSERC Distributed Solar energy Regulations 2019”) wherein modalities for purchase annual surplus energy (excess energy injected to CSPDCL’s distribution system by the RTS Plants having capacity 1kWp & above after netting off) by distribution licensee and other related dispensations are suitably addressed. Also, as per provisions in the CSERC Distributed Solar energy Regulations 2019, power generated by such RTS Plants will also qualify for CSPDCL'’s renewable purchase obligation.
+        </p>
+
+        <p>
+            Whereas Prosumer has set up <strong id="dispKwp" class="dynamic-text">3.00</strong><strong> kWp</strong> Roof-Top Solar Power Plant at. <strong id="dispFullAddr" class="dynamic-text">Abhimanyu rathiya S/O Shree arun rathiya at. Vill. Tangarghat District: raigarh, State: CHHATTISGARH, PIN Code: 496107</strong> for their captive use whereas Prosumer has offered annual surplus solar power (excess energy injected to CSPDCL’s distribution system by the RTS Plants having capacity 1kWp & above after netting off) for sale to the Licensee in accordance to CSERC Distributed Solar energy Regulations 2019, also the following Regulations and codes, as amended from time to time: -
+        </p>
+
+        <ul>
+            <li>CEA’s (Technical Standards for connectivity of the Distributed Generating Resources) Regulations, 2013. POWER</li>
+            <li>Central Electricity Authority (Installation and Operation of Meters) Regulations, 2006</li>
+            <li>Central Electricity Authority (Measures relating to safety and electric supply) Regulations, 2010</li>
+            <li>Chhattisgarh State Electricity Grid Code, 2011</li>
+            <li>CSERC Supply Code, 2011</li>
+        </ul>
+
+        <p>
+            NOW This agreement witnesses and the parties hereto have agreed as below: <br>
+            <span style="text-decoration: underline;">Part 1: Definitions and interpretations</span>
+        </p>
+
+        <p>In this Agreement, the following words and expressions shall have the respective meanings set forth herein:</p>
+
+        <ul>
+            <li>“Grid Meter/Bidirectional Meter” or “GM” means import and export meter on the basis of which energy bills shall be raised by Distribution licensee;</li>
+            <li>“Solar Meter/Generating Meter” or “SM” means a meter for used for accounting and billing of electricity generated by the Rooftop PV Solar Power Generating Plant;</li>
+            <li>All other words and phrases shall have the same meaning as defined in the CSERC Distributed Solar Energy Regulations 2019.</li>
+        </ul>
+
+        <ol>
+            <li>Regulations, guidelines or terms and conditions of power purchase by the licensee from RTS Plants specified by the Commission from time to time shall be acceptable and binding on both the parties.</li>
+            
+            <li><strong>TARIFF: Rs. per kWh</strong> for useful life of RTS plants. The tariff shall be governed by the modalities specified in related Regulations, guidelines or terms and conditions of power purchase by the licensee from RTS Plants specified by the Commission from time to time. The tariff for excess electricity at the end of settlement period shall be settled by the CSPDCL as per regulation 11(c) of Chhattisgarh State Electricity Regulatory Commission (Grid Interactive Distributed Renewable Energy Sources) Regulations, 2019 or its subsequent amendments notified by the Commission from time to time.</li>
+            
+            <li><strong>Payment of Dues:</strong> CSPDCL is obligated to make direct payment of dues into the bank account of Prosumer towards excess electricity, if any, at the end of settlement period by 15th May of ensuing financial year. The settlement of excess energy including dues, if any, shall be effected by the CSPDCL suo motu and the Prosumer shall not be required to approach the CSPDCL for this purpose. Provided, Bank account / NEFT details have been registered online in CSPDCL’s web portal by the Prosumer.</li>
+            
+            <li>CSPDCL shall accept the power as per the useful life of the RTS PLANTS unless the prosumer ceases to be a consumer of the licensee or the RTS PLANTS is abandoned, whichever is earlier.</li>
+            
+            <li>In case the prosumer leaves the system, excess electricity shall be considered as inadvertent injection and shall not be paid for by the licensee.</li>
+            
+            <li>Any other generators operating in parallel to the RTS plants shall not be eligible for payment at the tariff as specified in Clause 2.</li>
+            
+            <li><strong>METERING</strong>
+                <ol type="i">
+                    <li>The Grid Meter (GM) and Solar meter shall be interface type as envisaged in the CEA metering regulations on “Installation and Operation of Meters“. These meters may also comply the Time of Day (TOD) requirements so as to accommodate this type of metering in future course of time.</li>
+                    <li>The specifications of the all Energy Meters shall be as approved by CSPDCL / CSPTCL</li>
+                    <li>The meter shall be jointly tested and inspected and sealed on behalf of both the parties and shall not be interfered by either party except in the presence of the other party or its representatives.</li>
+                </ol>
+            </li>
+
+            <li><strong>Dispute Resolution:</strong> Both parties agree to resolve the dispute arising out of this agreement as per mechanism established under Section 42 of Electricity Act, 2003.</li>
+            
+            <li><strong>FORCE-MAJEURE AND OUTAGE:</strong> Any event which is beyond the control of the agencies involved which they could not foresee or with a reasonable amount of diligence could not have foreseen or which could not be prevented and which substantially affect the performance by either agency such as but not limited to:
+                <ol type="i">
+                    <li>Acts of God, natural phenomena, including but not limited to floods, droughts, earthquakes and epidemics</li>
+                    <li>Acts of any Government domestic or foreign, including but not limited to war declared or undeclared, hostilities priorities, quarantines, embargoes;</li>
+                    <li>Riot or Civil Commotion</li>
+                    <li>Grid’s failure not attributable to agencies involved. During force majeure period neither party shall be entitled for claiming compensation for damages in the event of force majeure.</li>
+                </ol>
+            </li>
+
+            <li>The Prosumer agrees that in case of a power outage on licensees system, Renewable Energy system will disconnect/ isolate automatically and his plant will not inject power into Licensee’s distribution system.</li>
+            
+            <li>The Prosumer shall be under the obligation to regulate its power generation as per the directives given by the CSPDCL. This directive shall be given for maintaining the stability of the system. In case the Prosumer does not comply with the directives to regulate their generation, CSPDCL will be free to isolate their power supply to save their system from collapse and initiate other action as per the provision of State Electricity Grid Code, CERC regulation and provisions under Electricity act 2003. Also, SLDC/CSPDCL shall levy charges as per Commission’s relevant regulations.</li>
+            
+            <li>CSPDCL will no way be responsible for paying compensation whatsoever on outages of Grid and failure of CSPDCL’s system.</li>
+            
+            <li>The Prosumer agrees that the CSPDCL will not be responsible for any damage to Rooftop Solar Photovoltaic power plant resulting from parallel operation of the Grid and the CSPDCL shall not be liable to pay any compensation for such damages, if any.</li>
+            
+            <li><strong>DURATION:</strong> The agreement shall come into effect for all purposes from the date of commercial operation (COD) of the RTS plants and shall remain valid for their useful life from the date of COD. Notwithstanding anything contained in this PPA, this agreement shall be terminable during the currency period of the agreement by either party by serving one month notice or on the specific direction from the Commission.</li>
+            
+            <li><strong>LOAD MANAGEMENT:</strong> The licensee shall endeavor to evacuate all the electricity offered by Prosumer as per this agreement. However, licensee may ask the Prosumer to temporarily curtail or stop its electricity export to grid when necessary on account of:
+                <ol type="i">
+                    <li>Inspection / repair / maintenance to its transmission network and associated equipments</li>
+                    <li>Safety of equipment of the licensee</li>
+                    <li>Force-majeure conditions. No compensation whatsoever shall be paid by the licensee due to non-evacuation of the power due to reasons stated above</li>
+                    <li>Grid’s failure not attributable to agencies involved. During force majeure period neither party shall be entitled for claiming compensation for damages in the event of force majeure.</li>
+                </ol>
+            </li>
+
+            <li>Both CSPDCL and the Prosumer shall abide by the prevailing rules and regulation issued under the provision of the Act as amended from time to time.</li>
+        </ol>
+
+        <p style="margin-top: 40px;">IN WITNESS WHEREOF parties through their respective duly authorized Officer/ representative have signed this agreement</p>
+
+        <div class="signature-section">
+            <div class="signature-block">
+                <p><strong>WITNESSES (Consumer)</strong></p>
+                <div class="signature-line"></div>
+                <div class="signature-line"></div>
+            </div>
+
+            <div class="signature-block" style="text-align: right;">
+                <p><strong>PROSUMER</strong></p>
+                <br><br>
+                <p style="font-size: 14pt; font-weight: bold;"><span id="dispNameSign" class="dynamic-text">Abhimanyu rathia</span></p>
+            </div>
+            
+            <div class="signature-block">
+                <p><strong>WITNESSES (CSPDCL)</strong></p>
+                <div class="signature-line"></div>
+                <div class="signature-line"></div>
+            </div>
+
+            <div class="signature-block" style="text-align: right;">
+                <p><strong>CSPDCL Authority</strong></p>
+                <div class="signature-line"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function updateDoc() {
+            // Get values from inputs
+            const date = document.getElementById('inputDate').value;
+            const id = document.getElementById('inputId').value;
+            const name = document.getElementById('inputName').value;
+            const father = document.getElementById('inputFather').value;
+            const village = document.getElementById('inputVillage').value;
+            const district = document.getElementById('inputDistrict').value;
+            const state = document.getElementById('inputState').value;
+            const pin = document.getElementById('inputPin').value;
+            const kwp = document.getElementById('inputKwp').value;
+
+            // Construct full address string
+            const fullAddress = `${village} District: ${district}, State: ${state}, PIN Code: ${pin}`;
+            const fullParagraphAddress = `${name} S/O ${father} at. ${fullAddress}`;
+
+            // Update DOM elements
+            document.getElementById('dispDate').innerText = date;
+            document.getElementById('dispId').innerText = id;
+            document.getElementById('dispName1').innerText = name;
+            document.getElementById('dispFather1').innerText = father;
+            document.getElementById('dispAddr1').innerText = fullAddress;
+            document.getElementById('dispKwp').innerText = kwp;
+            document.getElementById('dispFullAddr').innerText = fullParagraphAddress;
+            document.getElementById('dispNameSign').innerText = name;
+        }
+    </script>
+</body>
+</html>
