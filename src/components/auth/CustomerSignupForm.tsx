@@ -148,24 +148,28 @@ export function CustomerSignupForm() {
 
   return (
     <div className="w-full max-w-md">
-      <Card>
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Create your customer account</CardTitle>
-          <CardDescription className="text-center">
+      <Card className="rounded-[var(--penpot-radius-lg)] shadow-[var(--penpot-shadow-md)]">
+        <CardHeader className="space-y-[var(--penpot-spacing-2)] p-[var(--penpot-spacing-6)]">
+          <CardTitle className="text-[26px] font-bold text-center text-[var(--penpot-neutral-dark)]">
+            Create your customer account
+          </CardTitle>
+          <CardDescription className="text-center text-[14px] text-[var(--penpot-neutral-secondary)]">
             Register to track your solar installation project
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="p-[var(--penpot-spacing-6)] pt-0">
+          <form onSubmit={handleSubmit} className="space-y-[var(--penpot-spacing-4)]">
             {error && (
-              <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-destructive font-medium">{error}</p>
+              <div className="rounded-[var(--penpot-radius-md)] bg-[var(--penpot-error)]/10 border border-[var(--penpot-error)]/20 p-[var(--penpot-spacing-4)] flex items-start gap-[var(--penpot-spacing-3)]">
+                <AlertCircle className="h-5 w-5 text-[var(--penpot-error)] mt-0.5 flex-shrink-0" />
+                <p className="text-[14px] text-[var(--penpot-error)] font-medium">{error}</p>
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+            <div className="space-y-[var(--penpot-spacing-2)]">
+              <Label htmlFor="name" className="text-[14px] font-bold text-[var(--penpot-neutral-dark)]">
+                Full Name
+              </Label>
               <Input
                 id="name"
                 name="name"
@@ -175,11 +179,14 @@ export function CustomerSignupForm() {
                 value={formData.name}
                 onChange={handleChange}
                 disabled={loading}
+                size="md"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
+            <div className="space-y-[var(--penpot-spacing-2)]">
+              <Label htmlFor="email" className="text-[14px] font-bold text-[var(--penpot-neutral-dark)]">
+                Email address
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -190,11 +197,14 @@ export function CustomerSignupForm() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={loading}
+                size="md"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+            <div className="space-y-[var(--penpot-spacing-2)]">
+              <Label htmlFor="phone" className="text-[14px] font-bold text-[var(--penpot-neutral-dark)]">
+                Phone Number
+              </Label>
               <Input
                 id="phone"
                 name="phone"
@@ -205,11 +215,14 @@ export function CustomerSignupForm() {
                 value={formData.phone}
                 onChange={handleChange}
                 disabled={loading}
+                size="md"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-[var(--penpot-spacing-2)]">
+              <Label htmlFor="password" className="text-[14px] font-bold text-[var(--penpot-neutral-dark)]">
+                Password
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -221,6 +234,7 @@ export function CustomerSignupForm() {
                   value={formData.password}
                   onChange={handleChange}
                   disabled={loading}
+                  size="md"
                   className="pr-10"
                 />
                 <Button
@@ -228,21 +242,23 @@ export function CustomerSignupForm() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 h-full px-3 hover:bg-transparent"
+                  className="absolute inset-y-0 right-0 h-full px-[var(--penpot-spacing-3)] hover:bg-transparent"
                   disabled={loading}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    <EyeOff className="h-4 w-4 text-[var(--penpot-neutral-secondary)]" />
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <Eye className="h-4 w-4 text-[var(--penpot-neutral-secondary)]" />
                   )}
                 </Button>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <div className="space-y-[var(--penpot-spacing-2)]">
+              <Label htmlFor="confirmPassword" className="text-[14px] font-bold text-[var(--penpot-neutral-dark)]">
+                Confirm Password
+              </Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -254,6 +270,7 @@ export function CustomerSignupForm() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   disabled={loading}
+                  size="md"
                   className="pr-10"
                 />
                 <Button
@@ -261,14 +278,14 @@ export function CustomerSignupForm() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 h-full px-3 hover:bg-transparent"
+                  className="absolute inset-y-0 right-0 h-full px-[var(--penpot-spacing-3)] hover:bg-transparent"
                   disabled={loading}
                   aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    <EyeOff className="h-4 w-4 text-[var(--penpot-neutral-secondary)]" />
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <Eye className="h-4 w-4 text-[var(--penpot-neutral-secondary)]" />
                   )}
                 </Button>
               </div>
@@ -277,18 +294,19 @@ export function CustomerSignupForm() {
             <LoadingButton
               type="submit"
               loading={loading}
-              className="w-full"
+              className="w-full mt-[var(--penpot-spacing-6)]"
+              size="md"
             >
               Create account
             </LoadingButton>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <div className="text-sm text-center text-muted-foreground">
+        <CardFooter className="flex flex-col space-y-[var(--penpot-spacing-2)] p-[var(--penpot-spacing-6)] pt-0">
+          <div className="text-[14px] text-center text-[var(--penpot-neutral-secondary)]">
             Already have an account?{' '}
             <a
               href="/login"
-              className="font-medium text-primary hover:underline"
+              className="font-medium text-[var(--penpot-primary)] hover:underline"
             >
               Sign in
             </a>

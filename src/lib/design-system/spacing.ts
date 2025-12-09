@@ -37,7 +37,7 @@ export function getSpacing(scale: SpacingScale): string {
  * @returns true if the value is in the token set
  */
 export function isValidSpacingToken(value: string): boolean {
-  const validSpacing = Object.values(spacingTokens);
+  const validSpacing = Object.values(spacingTokens) as string[];
   return validSpacing.includes(value);
 }
 

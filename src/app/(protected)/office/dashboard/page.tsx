@@ -8,11 +8,11 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { auth } from '@/lib/auth/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { DashboardCard } from '@/components/layout/DashboardCard';
+import { DashboardTables } from './DashboardTables';
 import { Users, TrendingUp, CheckCircle, Activity, AlertCircle } from 'lucide-react';
 
 export default async function OfficeDashboardPage() {
@@ -191,165 +191,11 @@ export default async function OfficeDashboardPage() {
             </Card>
           )}
 
-          {/* Pending Leads */}
-          <Card className="mb-8">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle>Pending Leads (Active)</CardTitle>
-            <Link
-              href="/office/leads"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {pendingLeads && pendingLeads.length > 0 ? (
-                  pendingLeads.map((lead: any) => (
-                    <tr key={lead.id} className="hover:bg-accent/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-foreground">
-                          {lead.customer_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <LeadStatusBadge status={lead.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(lead.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          href={`/office/leads/${lead.id}`}
-                          className="text-primary hover:text-primary/80 transition-colors"
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-muted-foreground">
-                      No pending leads
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-              </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* All Leads */}
-          <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle>All Leads</CardTitle>
-            <Link
-              href="/office/leads"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created By
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {leads && leads.length > 0 ? (
-                  leads.map((lead: any) => (
-                    <tr key={lead.id} className="hover:bg-accent/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-foreground">
-                          {lead.customer_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <LeadStatusBadge status={lead.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">
-                          {lead.created_by_user?.name || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(lead.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          href={`/office/leads/${lead.id}`}
-                          className="text-primary hover:text-primary/80 transition-colors"
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center text-sm text-muted-foreground">
-                      No leads found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-              </table>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Data Tables */}
+          <DashboardTables 
+            pendingLeads={pendingLeads || []} 
+            leads={leads || []} 
+          />
 
           {/* Quick Actions */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">

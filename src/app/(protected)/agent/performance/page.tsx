@@ -7,6 +7,12 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { auth } from '@/lib/auth/auth';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { DashboardCard } from '@/components/layout/DashboardCard';
+import { Card } from '@/components/ui/organisms/Card';
+import { DataTable, Column } from '@/components/ui/organisms/DataTable';
+import { ProgressBar } from '@/components/ui/molecules/ProgressBar';
+import { Users, TrendingUp, Target, Activity } from 'lucide-react';
 
 export default async function AgentPerformancePage() {
   const session = await auth();
@@ -66,187 +72,146 @@ export default async function AgentPerformancePage() {
     }
   });
 
+  // Transform monthly data for DataTable
+  type MonthlyTrend = {
+    month: string;
+    total: number;
+    closed: number;
+    conversionRate: number;
+  };
+
+  const monthlyTrends: MonthlyTrend[] = Object.entries(monthlyData).map(([month, data]) => ({
+    month,
+    total: data.total,
+    closed: data.closed,
+    conversionRate: data.total > 0 ? (data.closed / data.total) * 100 : 0,
+  }));
+
+  // Define columns for monthly trends table
+  const monthlyTrendsColumns: Column<MonthlyTrend>[] = [
+    {
+      key: 'month',
+      header: 'Month',
+      sortable: true,
+    },
+    {
+      key: 'total',
+      header: 'Total Leads',
+      sortable: true,
+    },
+    {
+      key: 'closed',
+      header: 'Closed Deals',
+      sortable: true,
+    },
+    {
+      key: 'conversionRate',
+      header: 'Conversion Rate',
+      sortable: true,
+      render: (value: number) => `${value.toFixed(1)}%`,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <Link
-            href="/agent/dashboard"
-            className="text-sm text-primary hover:text-primary/80 mb-4 inline-block transition-colors"
-          >
-            ← Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-foreground">My Performance</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Detailed analytics and performance metrics
-          </p>
-        </div>
+        <PageLayout
+          title="My Performance"
+          description="Detailed analytics and performance metrics"
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/agent/dashboard' },
+            { label: 'Performance' },
+          ]}
+        >
+          {metrics && (
+            <div className="space-y-8">
+              {/* Key Metrics */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <DashboardCard
+                  title="Total Leads"
+                  value={metrics.totalLeads}
+                  description="All time"
+                  icon={<Users className="h-4 w-4" />}
+                />
 
-        {metrics && (
-          <>
-            {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-                <div className="text-sm font-medium text-muted-foreground">Total Leads</div>
-                <div className="mt-2 text-3xl font-bold text-foreground">
-                  {metrics.totalLeads}
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">All time</div>
+                <DashboardCard
+                  title="Conversion Rate"
+                  value={`${metrics.conversionRate.overallConversion.toFixed(1)}%`}
+                  description="Ongoing → Closed"
+                  icon={<TrendingUp className="h-4 w-4" />}
+                />
+
+                <DashboardCard
+                  title="Success Rate"
+                  value={`${metrics.conversionRate.interestedToClosed.toFixed(1)}%`}
+                  description="Interested → Closed"
+                  icon={<Target className="h-4 w-4" />}
+                />
+
+                <DashboardCard
+                  title="Active Leads"
+                  value={metrics.leadsByStatus.ongoing + metrics.leadsByStatus.interested}
+                  description="Ongoing + Interested"
+                  icon={<Activity className="h-4 w-4" />}
+                />
               </div>
 
-              <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-                <div className="text-sm font-medium text-muted-foreground">Conversion Rate</div>
-                <div className="mt-2 text-3xl font-bold text-primary">
-                  {metrics.conversionRate.overallConversion.toFixed(1)}%
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Ongoing → Closed
-                </div>
-              </div>
+              {/* Status Breakdown */}
+              <Card
+                header={{ title: 'Lead Status Breakdown' }}
+                padding="lg"
+              >
+                <div className="space-y-6">
+                  <ProgressBar
+                    label="Ongoing"
+                    value={(metrics.leadsByStatus.ongoing / metrics.totalLeads) * 100}
+                    colorScheme="primary"
+                    size="md"
+                  />
 
-              <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-                <div className="text-sm font-medium text-muted-foreground">Success Rate</div>
-                <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                  {metrics.conversionRate.interestedToClosed.toFixed(1)}%
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Interested → Closed
-                </div>
-              </div>
+                  <ProgressBar
+                    label="Interested"
+                    value={(metrics.leadsByStatus.interested / metrics.totalLeads) * 100}
+                    colorScheme="success"
+                    size="md"
+                  />
 
-              <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-                <div className="text-sm font-medium text-muted-foreground">Active Leads</div>
-                <div className="mt-2 text-3xl font-bold text-primary">
-                  {metrics.leadsByStatus.ongoing + metrics.leadsByStatus.interested}
+                  <ProgressBar
+                    label="Closed"
+                    value={(metrics.leadsByStatus.closed / metrics.totalLeads) * 100}
+                    colorScheme="info"
+                    size="md"
+                  />
+
+                  <ProgressBar
+                    label="Not Interested"
+                    value={(metrics.leadsByStatus.not_interested / metrics.totalLeads) * 100}
+                    colorScheme="error"
+                    size="md"
+                  />
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Ongoing + Interested
-                </div>
-              </div>
+              </Card>
+
+              {/* Monthly Trends */}
+              <Card
+                header={{ title: 'Monthly Performance Trends' }}
+                padding="none"
+              >
+                <DataTable
+                  columns={monthlyTrendsColumns}
+                  data={monthlyTrends}
+                  sortable
+                  keyExtractor={(row) => row.month}
+                  emptyState={
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">No monthly data available</p>
+                    </div>
+                  }
+                />
+              </Card>
             </div>
-
-            {/* Status Breakdown */}
-            <div className="bg-card border border-border rounded-lg shadow-sm mb-8 p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-6">
-                Lead Status Breakdown
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-foreground">Ongoing</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {metrics.leadsByStatus.ongoing} ({((metrics.leadsByStatus.ongoing / metrics.totalLeads) * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-3">
-                    <div
-                      className="bg-primary h-3 rounded-full transition-all"
-                      style={{
-                        width: `${(metrics.leadsByStatus.ongoing / metrics.totalLeads) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-foreground">Interested</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {metrics.leadsByStatus.interested} ({((metrics.leadsByStatus.interested / metrics.totalLeads) * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-3">
-                    <div
-                      className="bg-green-600 dark:bg-green-400 h-3 rounded-full transition-all"
-                      style={{
-                        width: `${(metrics.leadsByStatus.interested / metrics.totalLeads) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-foreground">Closed</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {metrics.leadsByStatus.closed} ({((metrics.leadsByStatus.closed / metrics.totalLeads) * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-3">
-                    <div
-                      className="bg-primary h-3 rounded-full transition-all"
-                      style={{
-                        width: `${(metrics.leadsByStatus.closed / metrics.totalLeads) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-foreground">Not Interested</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {metrics.leadsByStatus.not_interested} ({((metrics.leadsByStatus.not_interested / metrics.totalLeads) * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-3">
-                    <div
-                      className="bg-red-600 dark:bg-red-400 h-3 rounded-full transition-all"
-                      style={{
-                        width: `${(metrics.leadsByStatus.not_interested / metrics.totalLeads) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Monthly Trends */}
-            <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-6">
-                Monthly Performance Trends
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-border">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Month
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Total Leads
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Closed Deals
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Conversion Rate
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-card divide-y divide-border">
-                    {Object.entries(monthlyData).map(([month, data]) => (
-                      <tr key={month} className="hover:bg-accent/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                          {month}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {data.total}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {data.closed}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {data.total > 0 ? ((data.closed / data.total) * 100).toFixed(1) : 0}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
+          )}
+        </PageLayout>
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CustomerProfileFormWrapper } from './client';
 import { auth } from '@/lib/auth/auth';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { Card } from '@/components/ui/organisms/Card';
 
 interface PageProps {
   searchParams: Promise<{ leadId?: string }>;
@@ -61,16 +63,14 @@ export default async function NewCustomerProfilePage({ searchParams }: PageProps
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Create Customer Profile</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Fill in your details to complete your customer profile
-          </p>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-          <CustomerProfileFormWrapper leadData={leadData as any} />
-        </div>
+        <PageLayout
+          title="Create Customer Profile"
+          description="Fill in your details to complete your customer profile"
+        >
+          <Card padding="lg">
+            <CustomerProfileFormWrapper leadData={leadData as any} />
+          </Card>
+        </PageLayout>
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 /**
  * Lead Detail Component
  * 
- * Displays complete information for a single lead using shadcn/ui components.
+ * Displays complete information for a single lead using Penpot design system components.
  * 
- * Requirements: 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5
+ * Requirements: 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 6.1, 6.2, 6.3
  */
 
 'use client';
@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { penpotSpacing, penpotTypography } from '@/lib/design-system/tokens';
 
 interface LeadDetailProps {
   lead: Lead;
@@ -60,20 +61,25 @@ export function LeadDetail({
   return (
     <Card>
       {/* Header */}
-      <CardHeader>
+      <CardHeader style={{ padding: penpotSpacing[6] }}>
         <div className="flex justify-between items-start">
-          <div className="space-y-2">
-            <CardTitle className="text-3xl">{lead.customer_name}</CardTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[2] }}>
+            <CardTitle style={{ 
+              fontSize: penpotTypography.headings.h2.fontSize,
+              fontWeight: penpotTypography.headings.h2.fontWeight
+            }}>
+              {lead.customer_name}
+            </CardTitle>
             <LeadStatusBadge status={lead.status} />
           </div>
-          <div className="flex gap-2">
+          <div style={{ display: 'flex', gap: penpotSpacing[2] }}>
             {canEdit && onEdit && (
-              <Button variant="outline" onClick={onEdit}>
+              <Button variant="outline" size="md" onClick={onEdit}>
                 Edit
               </Button>
             )}
             {canDelete && onDelete && (
-              <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)}>
+              <Button variant="destructive" size="md" onClick={() => setShowDeleteConfirm(true)}>
                 Delete
               </Button>
             )}
@@ -82,65 +88,173 @@ export function LeadDetail({
       </CardHeader>
 
       {/* Content */}
-      <CardContent className="space-y-8">
+      <CardContent style={{ 
+        padding: penpotSpacing[6],
+        paddingTop: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: penpotSpacing[8]
+      }}>
         {/* Contact Information */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-semibold tracking-tight">Contact Information</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
-              <dd className="text-sm font-normal text-foreground">{lead.phone}</dd>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[4] }}>
+          <h3 style={{ 
+            fontSize: penpotTypography.headings.h4.fontSize,
+            fontWeight: penpotTypography.headings.h4.fontWeight
+          }}>
+            Contact Information
+          </h3>
+          <dl className="grid grid-cols-1 md:grid-cols-2" style={{ gap: penpotSpacing[4] }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+              <dt style={{ 
+                fontSize: penpotTypography.labels.small.fontSize,
+                fontWeight: penpotTypography.labels.small.fontWeight,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                Phone
+              </dt>
+              <dd style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                fontWeight: penpotTypography.body.regular.fontWeight
+              }}>
+                {lead.phone}
+              </dd>
             </div>
 
-            <div className="space-y-1">
-              <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-              <dd className="text-sm font-normal text-foreground">{lead.email || 'Not provided'}</dd>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+              <dt style={{ 
+                fontSize: penpotTypography.labels.small.fontSize,
+                fontWeight: penpotTypography.labels.small.fontWeight,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                Email
+              </dt>
+              <dd style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                fontWeight: penpotTypography.body.regular.fontWeight
+              }}>
+                {lead.email || 'Not provided'}
+              </dd>
             </div>
 
-            <div className="md:col-span-2 space-y-1">
-              <dt className="text-sm font-medium text-muted-foreground">Address</dt>
-              <dd className="text-sm font-normal text-foreground">{lead.address}</dd>
+            <div className="md:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+              <dt style={{ 
+                fontSize: penpotTypography.labels.small.fontSize,
+                fontWeight: penpotTypography.labels.small.fontWeight,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                Address
+              </dt>
+              <dd style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                fontWeight: penpotTypography.body.regular.fontWeight
+              }}>
+                {lead.address}
+              </dd>
             </div>
           </dl>
         </div>
 
         {/* Project Details */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-semibold tracking-tight">Project Details</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <dt className="text-sm font-medium text-muted-foreground">Source</dt>
-              <dd className="text-sm font-normal text-foreground capitalize">{lead.source}</dd>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[4] }}>
+          <h3 style={{ 
+            fontSize: penpotTypography.headings.h4.fontSize,
+            fontWeight: penpotTypography.headings.h4.fontWeight
+          }}>
+            Project Details
+          </h3>
+          <dl className="grid grid-cols-1 md:grid-cols-2" style={{ gap: penpotSpacing[4] }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+              <dt style={{ 
+                fontSize: penpotTypography.labels.small.fontSize,
+                fontWeight: penpotTypography.labels.small.fontWeight,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                Source
+              </dt>
+              <dd style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                fontWeight: penpotTypography.body.regular.fontWeight,
+                textTransform: 'capitalize'
+              }}>
+                {lead.source}
+              </dd>
             </div>
 
             {lead.notes && (
-              <div className="md:col-span-2 space-y-1">
-                <dt className="text-sm font-medium text-muted-foreground">Notes</dt>
-                <dd className="text-sm font-normal text-foreground whitespace-pre-wrap">{lead.notes}</dd>
+              <div className="md:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+                <dt style={{ 
+                  fontSize: penpotTypography.labels.small.fontSize,
+                  fontWeight: penpotTypography.labels.small.fontWeight,
+                  color: 'var(--penpot-neutral-secondary)'
+                }}>
+                  Notes
+                </dt>
+                <dd style={{ 
+                  fontSize: penpotTypography.body.regular.fontSize,
+                  fontWeight: penpotTypography.body.regular.fontWeight,
+                  whiteSpace: 'pre-wrap'
+                }}>
+                  {lead.notes}
+                </dd>
               </div>
             )}
           </dl>
         </div>
 
         {/* Metadata */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-semibold tracking-tight">Metadata</h3>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <dt className="text-sm font-medium text-muted-foreground">Created At</dt>
-              <dd className="text-sm font-normal text-foreground">{formatDate(lead.created_at)}</dd>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[4] }}>
+          <h3 style={{ 
+            fontSize: penpotTypography.headings.h4.fontSize,
+            fontWeight: penpotTypography.headings.h4.fontWeight
+          }}>
+            Metadata
+          </h3>
+          <dl className="grid grid-cols-1 md:grid-cols-2" style={{ gap: penpotSpacing[4] }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+              <dt style={{ 
+                fontSize: penpotTypography.labels.small.fontSize,
+                fontWeight: penpotTypography.labels.small.fontWeight,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                Created At
+              </dt>
+              <dd style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                fontWeight: penpotTypography.body.regular.fontWeight
+              }}>
+                {formatDate(lead.created_at)}
+              </dd>
             </div>
 
-            <div className="space-y-1">
-              <dt className="text-sm font-medium text-muted-foreground">Last Updated</dt>
-              <dd className="text-sm font-normal text-foreground">{formatDate(lead.updated_at)}</dd>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+              <dt style={{ 
+                fontSize: penpotTypography.labels.small.fontSize,
+                fontWeight: penpotTypography.labels.small.fontWeight,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                Last Updated
+              </dt>
+              <dd style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                fontWeight: penpotTypography.body.regular.fontWeight
+              }}>
+                {formatDate(lead.updated_at)}
+              </dd>
             </div>
 
-            <div className="space-y-1">
-              <dt className="text-sm font-medium text-muted-foreground">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[1] }}>
+              <dt style={{ 
+                fontSize: penpotTypography.labels.small.fontSize,
+                fontWeight: penpotTypography.labels.small.fontWeight,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
                 {(lead as any).customer_account?.customer_id ? 'Customer ID' : 'Lead ID'}
               </dt>
-              <dd className="text-sm font-mono font-normal text-foreground">
+              <dd style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                fontWeight: penpotTypography.body.regular.fontWeight,
+                fontFamily: 'monospace'
+              }}>
                 {(lead as any).customer_account?.customer_id || lead.id}
               </dd>
             </div>
@@ -159,10 +273,10 @@ export function LeadDetail({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+            <Button variant="outline" size="md" onClick={() => setShowDeleteConfirm(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" size="md" onClick={handleDelete}>
               Delete Lead
             </Button>
           </DialogFooter>

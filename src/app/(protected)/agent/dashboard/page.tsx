@@ -2,7 +2,10 @@
  * Agent Dashboard Page
  * 
  * Displays only agent's own leads and agent-specific metrics.
+ * Refactored to use Penpot design system components.
+ * 
  * Requirements: 17.2, 17.3, 17.4, 17.5
+ * Validates: Requirements 6.1, 6.2, 6.3, 9.1, 9.2, 9.3
  */
 
 import { redirect } from 'next/navigation';
@@ -10,9 +13,11 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { auth } from '@/lib/auth/auth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { DashboardCard } from '@/components/layout/DashboardCard';
+import { DataTable, type Column } from '@/components/ui/organisms/DataTable';
+import { Card, CardGrid } from '@/components/ui/organisms/Card';
+import { ProgressBar } from '@/components/ui/molecules/ProgressBar';
 import { Users, TrendingUp, CheckCircle, Activity } from 'lucide-react';
 
 export default async function AgentDashboardPage() {
@@ -106,6 +111,83 @@ export default async function AgentDashboardPage() {
     pendingActions: ongoingCount + interestedCount,
   } : null;
 
+  // Define columns for pending leads table
+  const pendingLeadsColumns: Column<any>[] = [
+    {
+      key: 'customer_name',
+      header: 'Customer',
+      sortable: true,
+    },
+    {
+      key: 'phone',
+      header: 'Phone',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (value) => <LeadStatusBadge status={value} />,
+    },
+    {
+      key: 'created_at',
+      header: 'Created At',
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+    {
+      key: 'id',
+      header: 'Actions',
+      render: (value) => (
+        <Link
+          href={`/agent/leads/${value}`}
+          className="font-medium text-primary hover:text-primary/80 hover:underline underline-offset-4 transition-colors"
+        >
+          View
+        </Link>
+      ),
+    },
+  ];
+
+  // Define columns for recent leads table
+  const recentLeadsColumns: Column<any>[] = [
+    {
+      key: 'customer_name',
+      header: 'Customer',
+      sortable: true,
+    },
+    {
+      key: 'phone',
+      header: 'Phone',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (value) => <LeadStatusBadge status={value} />,
+    },
+    {
+      key: 'address',
+      header: 'Address',
+      render: (value) => (
+        <div className="max-w-xs truncate">{value}</div>
+      ),
+    },
+    {
+      key: 'created_at',
+      header: 'Created At',
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+    {
+      key: 'id',
+      header: 'Actions',
+      render: (value) => (
+        <Link
+          href={`/agent/leads/${value}`}
+          className="font-medium text-primary hover:text-primary/80 hover:underline underline-offset-4 transition-colors"
+        >
+          View
+        </Link>
+      ),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -113,9 +195,9 @@ export default async function AgentDashboardPage() {
           title="Agent Dashboard"
           description={`Welcome back, ${profile.name}`}
         >
-          {/* Metrics Grid */}
+          {/* Metrics Grid - Responsive layout */}
           {metrics && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
               <DashboardCard
                 title="My Total Leads"
                 value={metrics.totalLeads}
@@ -167,267 +249,150 @@ export default async function AgentDashboardPage() {
             </div>
           )}
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Link href="/agent/leads/new">
-              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
-                <CardHeader>
-                  <CardTitle>Create New Lead</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Add a new installation lead
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+          {/* Quick Actions - Using CardGrid */}
+          <CardGrid columns={{ sm: 1, md: 3 }} gap="md" className="mb-8">
+            <Card
+              clickable
+              onClick={() => {}}
+              header={{
+                title: 'Create New Lead',
+              }}
+            >
+              <Link href="/agent/leads/new" className="block">
+                <p className="text-sm text-muted-foreground">
+                  Add a new installation lead
+                </p>
+              </Link>
+            </Card>
 
-            <Link href="/agent/leads">
-              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
-                <CardHeader>
-                  <CardTitle>My Leads</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    View and manage all my leads
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+            <Card
+              clickable
+              onClick={() => {}}
+              header={{
+                title: 'My Leads',
+              }}
+            >
+              <Link href="/agent/leads" className="block">
+                <p className="text-sm text-muted-foreground">
+                  View and manage all my leads
+                </p>
+              </Link>
+            </Card>
 
-            <Link href="/agent/performance">
-              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
-                <CardHeader>
-                  <CardTitle>My Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    View detailed performance metrics
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
+            <Card
+              clickable
+              onClick={() => {}}
+              header={{
+                title: 'My Performance',
+              }}
+            >
+              <Link href="/agent/performance" className="block">
+                <p className="text-sm text-muted-foreground">
+                  View detailed performance metrics
+                </p>
+              </Link>
+            </Card>
+          </CardGrid>
 
-          {/* Performance Summary */}
+          {/* Performance Summary - Using ProgressBar */}
           {metrics && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>My Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-              <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Ongoing Leads</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-48 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{
-                        width: `${metrics.totalLeads > 0 ? (metrics.leadsByStatus.ongoing / metrics.totalLeads) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-12 text-right">
+            <Card
+              header={{
+                title: 'My Performance',
+              }}
+              className="mb-8"
+            >
+              <div className="space-y-4">
+                <ProgressBar
+                  label="Ongoing Leads"
+                  value={metrics.totalLeads > 0 ? (metrics.leadsByStatus.ongoing / metrics.totalLeads) * 100 : 0}
+                  showPercentage={false}
+                  colorScheme="primary"
+                />
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium">
                     {metrics.leadsByStatus.ongoing}
                   </span>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Interested Leads</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-48 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-green-600 dark:bg-green-400 h-2 rounded-full transition-all"
-                      style={{
-                        width: `${metrics.totalLeads > 0 ? (metrics.leadsByStatus.interested / metrics.totalLeads) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-12 text-right">
+
+                <ProgressBar
+                  label="Interested Leads"
+                  value={metrics.totalLeads > 0 ? (metrics.leadsByStatus.interested / metrics.totalLeads) * 100 : 0}
+                  showPercentage={false}
+                  colorScheme="success"
+                />
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium">
                     {metrics.leadsByStatus.interested}
                   </span>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Closed Deals</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-48 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{
-                        width: `${metrics.totalLeads > 0 ? (metrics.leadsByStatus.closed / metrics.totalLeads) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-12 text-right">
+
+                <ProgressBar
+                  label="Closed Deals"
+                  value={metrics.totalLeads > 0 ? (metrics.leadsByStatus.closed / metrics.totalLeads) * 100 : 0}
+                  showPercentage={false}
+                  colorScheme="primary"
+                />
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium">
                     {metrics.leadsByStatus.closed}
                   </span>
                 </div>
               </div>
-              </div>
-              </CardContent>
             </Card>
           )}
 
-          {/* My Pending Leads */}
-          <Card className="mb-8">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle>My Pending Leads</CardTitle>
-            <Link
-              href="/agent/leads"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {pendingLeads && pendingLeads.length > 0 ? (
-                  pendingLeads.map((lead: any) => (
-                    <tr key={lead.id} className="hover:bg-accent/50 transition-colors cursor-pointer">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-foreground">
-                          {lead.customer_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-normal text-muted-foreground">{lead.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <LeadStatusBadge status={lead.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-normal text-muted-foreground">
-                          {new Date(lead.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          href={`/agent/leads/${lead.id}`}
-                          className="font-medium text-primary hover:text-primary/80 hover:underline underline-offset-4 transition-colors"
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-sm font-normal text-muted-foreground">
-                      No pending leads
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-              </table>
-              </div>
-            </CardContent>
+          {/* My Pending Leads - Using DataTable */}
+          <Card
+            header={{
+              title: 'My Pending Leads',
+              actions: (
+                <Link
+                  href="/agent/leads"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  View all
+                </Link>
+              ),
+            }}
+            className="mb-8"
+            padding="none"
+          >
+            <DataTable
+              columns={pendingLeadsColumns}
+              data={pendingLeads || []}
+              sortable
+              keyExtractor={(row) => row.id}
+              emptyState={
+                <p className="text-sm text-muted-foreground">No pending leads</p>
+              }
+            />
           </Card>
 
-          {/* Recent Leads */}
-          <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle>My Recent Leads</CardTitle>
-            <Link
-              href="/agent/leads"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Address
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {leads && leads.length > 0 ? (
-                  leads.map((lead: any) => (
-                    <tr key={lead.id} className="hover:bg-accent/50 transition-colors cursor-pointer">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-foreground">
-                          {lead.customer_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-normal text-muted-foreground">{lead.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <LeadStatusBadge status={lead.status} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-normal text-muted-foreground max-w-xs truncate">
-                          {lead.address}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-normal text-muted-foreground">
-                          {new Date(lead.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Link
-                          href={`/agent/leads/${lead.id}`}
-                          className="font-medium text-primary hover:text-primary/80 hover:underline underline-offset-4 transition-colors"
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-sm font-normal text-muted-foreground">
-                      No leads found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-              </table>
-              </div>
-            </CardContent>
+          {/* Recent Leads - Using DataTable */}
+          <Card
+            header={{
+              title: 'My Recent Leads',
+              actions: (
+                <Link
+                  href="/agent/leads"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  View all
+                </Link>
+              ),
+            }}
+            padding="none"
+          >
+            <DataTable
+              columns={recentLeadsColumns}
+              data={leads || []}
+              sortable
+              keyExtractor={(row) => row.id}
+              emptyState={
+                <p className="text-sm text-muted-foreground">No leads found</p>
+              }
+            />
           </Card>
         </PageLayout>
       </div>

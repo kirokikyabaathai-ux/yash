@@ -3,7 +3,9 @@
  * 
  * Displays a list of documents for a lead with filtering and actions.
  * Shows document metadata, status, and provides download/delete options.
- * Uses shadcn/ui Card and Button components for consistent styling.
+ * Uses Penpot design system components for consistent styling.
+ * 
+ * Requirements: 6.1, 6.2, 6.3
  */
 
 'use client';
@@ -13,8 +15,10 @@ import { Database } from '@/types/database';
 import { DocumentStatusBadge } from './DocumentStatusBadge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { Download, AlertTriangle, Trash2, FileText } from 'lucide-react';
+import { penpotSpacing, penpotTypography } from '@/lib/design-system/tokens';
 
 type Document = Database['public']['Tables']['documents']['Row'];
 
@@ -59,14 +63,16 @@ export function DocumentList({
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[3] }}>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="p-4 border rounded-lg bg-card">
-            <div className="space-y-3">
-              <Skeleton className="h-5 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          </div>
+          <Card key={i}>
+            <CardContent style={{ padding: penpotSpacing[4] }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[3] }}>
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
@@ -74,85 +80,110 @@ export function DocumentList({
 
   if (documents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-center">
-        <FileText className="h-12 w-12 text-muted-foreground mb-3" />
-        <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+          <FileText 
+            className="mb-3" 
+            size={48}
+            style={{ color: 'var(--penpot-neutral-secondary)' }}
+          />
+          <p style={{ 
+            fontSize: penpotTypography.body.small.fontSize,
+            color: 'var(--penpot-neutral-secondary)'
+          }}>
+            No documents uploaded yet
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[3] }}>
       {documents.map((doc) => (
-        <div 
-          key={doc.id} 
-          className="p-4 border rounded-lg bg-card hover:shadow-md hover:border-primary/50 transition-all"
+        <Card 
+          key={doc.id}
+          className="hover:shadow-md transition-all"
         >
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                <h4 className="text-sm font-medium truncate">
-                  {doc.file_name}
-                </h4>
-                <DocumentStatusBadge status={doc.status as any} />
+          <CardContent style={{ padding: penpotSpacing[4] }}>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between" style={{ gap: penpotSpacing[3] }}>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center mb-2" style={{ gap: penpotSpacing[2] }}>
+                  <h4 className="truncate" style={{ 
+                    fontSize: penpotTypography.body.regular.fontSize,
+                    fontWeight: penpotTypography.body.bold.fontWeight
+                  }}>
+                    {doc.file_name}
+                  </h4>
+                  <DocumentStatusBadge status={doc.status as any} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4" style={{ 
+                  fontSize: penpotTypography.body.small.fontSize,
+                  color: 'var(--penpot-neutral-secondary)'
+                }}>
+                  <span style={{ fontWeight: penpotTypography.body.bold.fontWeight }}>
+                    {getCategoryLabel(doc.document_category)}
+                  </span>
+                  <span className="hidden sm:inline">•</span>
+                  <span>{formatFileSize(doc.file_size)}</span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="hidden sm:inline">
+                    {doc.uploaded_at ? formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true }) : 'N/A'}
+                  </span>
+                  <span className="sm:hidden">
+                    {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                <div style={{ 
+                  marginTop: penpotSpacing[1],
+                  fontSize: penpotTypography.body.small.fontSize,
+                  color: 'var(--penpot-neutral-secondary)'
+                }}>
+                  Type: {doc.type}
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
-                <span className="font-medium">{getCategoryLabel(doc.document_category)}</span>
-                <span className="hidden sm:inline">•</span>
-                <span>{formatFileSize(doc.file_size)}</span>
-                <span className="hidden sm:inline">•</span>
-                <span className="hidden sm:inline">
-                  {doc.uploaded_at ? formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true }) : 'N/A'}
-                </span>
-                <span className="sm:hidden">
-                  {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString() : 'N/A'}
-                </span>
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                Type: {doc.type}
+
+              <div className="flex items-center justify-end sm:justify-start flex-shrink-0 sm:ml-4" style={{ gap: penpotSpacing[2] }}>
+                {onDownload && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onDownload(doc)}
+                    title="View document"
+                    aria-label={`View ${doc.file_name}`}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {canManage && doc.status === 'valid' && onMarkCorrupted && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMarkCorrupted(doc.id)}
+                    title="Mark as corrupted"
+                    aria-label={`Mark ${doc.file_name} as corrupted`}
+                    colorScheme="yellow"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {canManage && onDelete && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onDelete(doc.id)}
+                    title="Delete document"
+                    aria-label={`Delete ${doc.file_name}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
-
-            <div className="flex items-center gap-2 sm:ml-4 justify-end sm:justify-start flex-shrink-0">
-              {onDownload && (
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => onDownload(doc)}
-                  title="View document"
-                  aria-label={`View ${doc.file_name}`}
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-              )}
-
-              {canManage && doc.status === 'valid' && onMarkCorrupted && (
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => onMarkCorrupted(doc.id)}
-                  title="Mark as corrupted"
-                  aria-label={`Mark ${doc.file_name} as corrupted`}
-                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                >
-                  <AlertTriangle className="h-4 w-4" />
-                </Button>
-              )}
-
-              {canManage && onDelete && (
-                <Button
-                  variant="destructive"
-                  size="icon-sm"
-                  onClick={() => onDelete(doc.id)}
-                  title="Delete document"
-                  aria-label={`Delete ${doc.file_name}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );

@@ -11,6 +11,32 @@
 
 // Export all tokens
 export {
+  // Penpot design tokens
+  penpotColors,
+  penpotTypography,
+  penpotSpacing,
+  penpotShadows,
+  penpotRadii,
+  
+  // Penpot utility functions
+  getPenpotColor,
+  getPenpotSpacing,
+  getPenpotTypography,
+  getPenpotShadow,
+  getPenpotRadius,
+  isValidPenpotColor,
+  isValidPenpotSpacing,
+  
+  // Penpot types
+  type PenpotColorCategory,
+  type PenpotHeading,
+  type PenpotBodyStyle,
+  type PenpotLabelStyle,
+  type PenpotSpacing,
+  type PenpotRadius,
+  type PenpotShadow,
+  
+  // Legacy tokens for backward compatibility
   colorTokens,
   typographyTokens,
   spacingTokens,

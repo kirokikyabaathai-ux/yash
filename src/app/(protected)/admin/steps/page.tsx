@@ -2,8 +2,9 @@
  * Step Master Management Page
  * 
  * Admin interface for managing timeline step configurations.
+ * Refactored to use Penpot design system components.
  * 
- * Requirements: 6.1, 6.2, 6.3
+ * Requirements: 6.1, 6.2, 6.3, 6.4
  */
 
 'use client';
@@ -12,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { StepMasterList } from '@/components/admin/StepMasterList';
 import { StepMasterForm, type StepMaster, type StepMasterFormData } from '@/components/admin/StepMasterForm';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/organisms/Card';
 import {
   Sheet,
   SheetContent,
@@ -20,6 +21,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { Plus, AlertCircle, FileText } from 'lucide-react';
+import { PageLayout } from '@/components/layout/PageLayout';
 
 export default function StepMasterPage() {
   const [steps, setSteps] = useState<StepMaster[]>([]);
@@ -156,109 +159,89 @@ export default function StepMasterPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Timeline Step Management</h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Configure the workflow steps that all leads will follow. Drag and drop to reorder.
-              </p>
-            </div>
+        <PageLayout
+          title="Timeline Step Management"
+          description="Configure the workflow steps that all leads will follow. Drag and drop to reorder."
+          actions={
             <Button
               onClick={handleCreate}
               disabled={isLoading || isSaving}
               size="lg"
-              className="shadow-md"
+              variant="primary"
             >
-              <svg
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+              <Plus size={20} className="mr-2" />
               Create New Step
             </Button>
-          </div>
-        </div>
+          }
+        >
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
-            <svg className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
-
-        {/* Form Drawer */}
-        <Sheet open={showForm} onOpenChange={setShowForm}>
-          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
-            <div className="p-6 border-b bg-muted/30">
-              <SheetHeader>
-                <SheetTitle className="text-xl">
-                  {editingStep ? 'Edit Step' : 'Create New Step'}
-                </SheetTitle>
-                <SheetDescription className="text-sm">
-                  {editingStep 
-                    ? 'Update the step configuration below.' 
-                    : 'Configure a new timeline step for the lead workflow.'}
-                </SheetDescription>
-              </SheetHeader>
-            </div>
-            <div className="p-6">
-              <StepMasterForm
-                step={editingStep}
-                onSubmit={handleSubmit}
-                onCancel={handleCancel}
-                isLoading={isSaving}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        )}
-
-        {/* Step List */}
-        {!isLoading && (
-          <Card className="shadow-md">
-            <CardHeader className="border-b bg-muted/30">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">
-                  Timeline Steps
-                </CardTitle>
-                <span className="text-sm text-muted-foreground font-normal">
-                  {steps.length} {steps.length === 1 ? 'step' : 'steps'}
-                </span>
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle size={20} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
               </div>
-            </CardHeader>
-            <CardContent className="p-6">
+            </div>
+          )}
+
+          {/* Form Drawer */}
+          <Sheet open={showForm} onOpenChange={setShowForm}>
+            <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+              <div className="p-6 border-b bg-muted/30">
+                <SheetHeader>
+                  <SheetTitle className="text-xl">
+                    {editingStep ? 'Edit Step' : 'Create New Step'}
+                  </SheetTitle>
+                  <SheetDescription className="text-sm">
+                    {editingStep 
+                      ? 'Update the step configuration below.' 
+                      : 'Configure a new timeline step for the lead workflow.'}
+                  </SheetDescription>
+                </SheetHeader>
+              </div>
+              <div className="p-6">
+                <StepMasterForm
+                  step={editingStep}
+                  onSubmit={handleSubmit}
+                  onCancel={handleCancel}
+                  isLoading={isSaving}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Loading State */}
+          {isLoading && (
+            <Card padding="lg">
+              <div className="flex justify-center items-center py-12">
+                <div className="flex items-center gap-2">
+                  <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <p className="text-sm text-muted-foreground">Loading steps...</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Step List */}
+          {!isLoading && (
+            <Card
+              header={{
+                title: 'Timeline Steps',
+                subtitle: `${steps.length} ${steps.length === 1 ? 'step' : 'steps'}`,
+              }}
+              padding="lg"
+            >
               {steps.length === 0 ? (
                 <div className="text-center py-12">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  <h3 className="mt-4 text-lg font-medium text-foreground">No steps configured</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <FileText size={48} className="text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    No steps configured
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6">
                     Get started by creating your first timeline step.
                   </p>
-                  <Button
-                    onClick={handleCreate}
-                    className="mt-6"
-                  >
+                  <Button onClick={handleCreate} variant="primary">
                     Create First Step
                   </Button>
                 </div>
@@ -271,9 +254,9 @@ export default function StepMasterPage() {
                   isLoading={isSaving}
                 />
               )}
-            </CardContent>
-          </Card>
-        )}
+            </Card>
+          )}
+        </PageLayout>
       </div>
     </div>
   );

@@ -2,15 +2,18 @@
  * User List Component
  * 
  * Displays a table of users with actions to edit and disable/enable.
- * Requirements: 1.2, 1.4
+ * Uses Penpot design system components for consistent styling.
+ * 
+ * Requirements: 1.2, 1.4, 6.1, 6.2, 6.3
  */
 
 'use client';
 
 import type { Database } from '@/types/database';
-import { DataTable } from '@/components/ui/data-table';
+import { DataTable } from '@/components/ui/organisms/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { penpotTypography } from '@/lib/design-system/tokens';
 
 type User = Database['public']['Tables']['users']['Row'];
 
@@ -21,74 +24,93 @@ interface UserListProps {
 }
 
 export function UserList({ users, onEdit, onDisable }: UserListProps) {
-  const getRoleBadgeColor = (role: string) => {
-    const colors: Record<string, string> = {
-      admin: 'bg-purple-100 text-purple-800',
-      office: 'bg-blue-100 text-blue-800',
-      agent: 'bg-green-100 text-green-800',
-      installer: 'bg-yellow-100 text-yellow-800',
-      customer: 'bg-gray-100 text-gray-800',
+  const getRoleBadgeColor = (role: string): 'blue' | 'green' | 'yellow' | 'red' | 'gray' => {
+    const colors: Record<string, 'blue' | 'green' | 'yellow' | 'red' | 'gray'> = {
+      admin: 'blue',
+      office: 'blue',
+      agent: 'green',
+      installer: 'yellow',
+      customer: 'gray',
     };
-    return colors[role] || 'bg-gray-100 text-gray-800';
+    return colors[role] || 'gray';
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    return status === 'active'
-      ? 'bg-green-100 text-green-800'
-      : 'bg-red-100 text-red-800';
+  const getStatusBadgeColor = (status: string): 'green' | 'red' => {
+    return status === 'active' ? 'green' : 'red';
   };
 
   return (
     <DataTable
       data={users}
       keyExtractor={(user) => user.id}
-      emptyMessage="No users found. Create your first user to get started."
       columns={[
         {
+          key: 'name',
           header: 'Name',
-          accessor: (user) => (
-            <span className="font-medium text-foreground">{user.name}</span>
+          render: (value, user) => (
+            <span style={{ 
+              fontWeight: penpotTypography.body.bold.fontWeight,
+              fontSize: penpotTypography.body.regular.fontSize
+            }}>
+              {user.name}
+            </span>
           ),
         },
         {
+          key: 'email',
           header: 'Email',
-          accessor: (user) => (
-            <span className="text-muted-foreground">{user.email}</span>
+          render: (value, user) => (
+            <span style={{ 
+              color: 'var(--penpot-neutral-secondary)',
+              fontSize: penpotTypography.body.regular.fontSize
+            }}>
+              {user.email}
+            </span>
           ),
         },
         {
+          key: 'phone',
           header: 'Phone',
-          accessor: (user) => (
-            <span className="text-muted-foreground">{user.phone}</span>
+          render: (value, user) => (
+            <span style={{ 
+              color: 'var(--penpot-neutral-secondary)',
+              fontSize: penpotTypography.body.regular.fontSize
+            }}>
+              {user.phone}
+            </span>
           ),
         },
         {
+          key: 'role',
           header: 'Role',
-          accessor: (user) => (
-            <Badge variant="secondary" className={getRoleBadgeColor(user.role)}>
+          render: (value, user) => (
+            <Badge variant="solid" colorScheme={getRoleBadgeColor(user.role)} size="sm">
               {user.role}
             </Badge>
           ),
         },
         {
+          key: 'status',
           header: 'Status',
-          accessor: (user) => (
-            <Badge variant="secondary" className={getStatusBadgeColor(user.status)}>
+          render: (value, user) => (
+            <Badge variant="solid" colorScheme={getStatusBadgeColor(user.status)} size="sm">
               {user.status}
             </Badge>
           ),
         },
         {
+          key: 'created_at',
           header: 'Created',
-          accessor: (user) => (
-            <span className="text-muted-foreground">
+          render: (value, user) => (
+            <span style={{ color: 'var(--penpot-neutral-secondary)' }}>
               {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
             </span>
           ),
         },
         {
+          key: 'id',
           header: 'Actions',
-          accessor: (user) => (
+          render: (value, user) => (
             <div className="flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
@@ -97,7 +119,6 @@ export function UserList({ users, onEdit, onDisable }: UserListProps) {
                   e.stopPropagation();
                   onEdit(user);
                 }}
-                className="hover:bg-accent"
               >
                 Edit
               </Button>
@@ -108,11 +129,7 @@ export function UserList({ users, onEdit, onDisable }: UserListProps) {
                   e.stopPropagation();
                   onDisable(user.id, user.status);
                 }}
-                className={
-                  user.status === 'active'
-                    ? 'text-destructive hover:text-destructive hover:bg-destructive/10'
-                    : 'text-green-600 hover:text-green-700 hover:bg-green-50'
-                }
+                colorScheme={user.status === 'active' ? 'red' : 'green'}
               >
                 {user.status === 'active' ? 'Disable' : 'Enable'}
               </Button>
@@ -121,6 +138,16 @@ export function UserList({ users, onEdit, onDisable }: UserListProps) {
           className: 'text-right',
         },
       ]}
+      emptyState={
+        <div>
+          <p style={{ 
+            fontSize: penpotTypography.body.regular.fontSize,
+            color: 'var(--penpot-neutral-secondary)'
+          }}>
+            No users found. Create your first user to get started.
+          </p>
+        </div>
+      }
     />
   );
 }

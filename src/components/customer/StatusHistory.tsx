@@ -1,12 +1,15 @@
 /**
  * Status History Component
  * Shows customer the history of status changes with office team comments
+ * Refactored to use Penpot design system components.
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
+import { Body, Small } from '@/components/ui/atoms';
+import { Button } from '@/components/ui/button';
 
 interface StatusChange {
   id: string;
@@ -49,17 +52,17 @@ export function StatusHistory({ leadId }: StatusHistoryProps) {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        <div className="h-4 bg-muted rounded w-3/4"></div>
+        <div className="h-4 bg-muted rounded w-1/2"></div>
       </div>
     );
   }
 
   if (history.length === 0) {
     return (
-      <div className="text-sm text-gray-500">
+      <Small color="secondary">
         No status updates yet.
-      </div>
+      </Small>
     );
   }
 
@@ -69,10 +72,10 @@ export function StatusHistory({ leadId }: StatusHistoryProps) {
   return (
     <div className="space-y-4">
       {/* Latest Update */}
-      <div className="border-l-4 border-blue-500 pl-4 py-2">
+      <div className="border-l-4 border-primary pl-4 py-2">
         <div className="flex items-center justify-between mb-1">
           <LeadStatusBadge status={latestUpdate.new_status as any} />
-          <span className="text-xs text-gray-500">
+          <Small color="secondary">
             {new Date(latestUpdate.timestamp).toLocaleDateString('en-IN', {
               day: 'numeric',
               month: 'short',
@@ -80,49 +83,50 @@ export function StatusHistory({ leadId }: StatusHistoryProps) {
               hour: '2-digit',
               minute: '2-digit',
             })}
-          </span>
+          </Small>
         </div>
         {latestUpdate.remarks && (
-          <p className="text-sm text-gray-700 mt-2">
+          <Body className="mt-2">
             <span className="font-medium">Update:</span> {latestUpdate.remarks}
-          </p>
+          </Body>
         )}
-        <p className="text-xs text-gray-500 mt-1">
+        <Small color="secondary" className="mt-1">
           Updated by {latestUpdate.user_name}
-        </p>
+        </Small>
       </div>
 
       {/* Show More Button */}
       {olderUpdates.length > 0 && (
-        <button
+        <Button
+          variant="link"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          className="p-0 h-auto font-medium"
         >
           {isExpanded ? '− Hide' : '+ Show'} previous updates ({olderUpdates.length})
-        </button>
+        </Button>
       )}
 
       {/* Older Updates */}
       {isExpanded && olderUpdates.length > 0 && (
-        <div className="space-y-3 pt-2 border-t border-gray-200">
+        <div className="space-y-3 pt-2 border-t border-border">
           {olderUpdates.map((update) => (
-            <div key={update.id} className="border-l-2 border-gray-300 pl-4 py-1">
+            <div key={update.id} className="border-l-2 border-muted pl-4 py-1">
               <div className="flex items-center justify-between mb-1">
                 <LeadStatusBadge status={update.new_status as any} />
-                <span className="text-xs text-gray-500">
+                <Small color="secondary">
                   {new Date(update.timestamp).toLocaleDateString('en-IN', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',
                   })}
-                </span>
+                </Small>
               </div>
               {update.remarks && (
-                <p className="text-sm text-gray-600 mt-1">{update.remarks}</p>
+                <Body className="mt-1">{update.remarks}</Body>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <Small color="secondary" className="mt-1">
                 by {update.user_name}
-              </p>
+              </Small>
             </div>
           ))}
         </div>

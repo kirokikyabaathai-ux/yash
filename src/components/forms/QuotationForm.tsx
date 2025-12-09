@@ -1,6 +1,16 @@
+/**
+ * Quotation Form Component
+ * Refactored to use Penpot Design System components
+ * 
+ * @validates Requirements 6.1, 6.2, 6.3, 9.4, 9.5
+ */
+
 import { QuotationData } from '@/types/quotation';
 import React, { useState } from 'react';
-
+import { FormField } from '@/components/ui/molecules/FormField';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface Props {
   onSubmit: (data: QuotationData) => void;
@@ -38,97 +48,226 @@ const QuotationForm: React.FC<Props> = ({ onSubmit }) => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto my-8">
-      <h2 className="text-2xl font-bold mb-6 text-green-700 border-b pb-2">Create New Quotation</h2>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        
-        <div className="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded font-semibold text-gray-700">Customer Details</div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Customer Name</label>
-          <input required name="customerName" value={formData.customerName} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Contact No.</label>
-          <input required name="contactNo" value={formData.contactNo} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div className="col-span-1 md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Address</label>
-          <input required name="address" value={formData.address} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
+    <Card className="p-8 max-w-4xl mx-auto my-8">
+      <h2 className="text-2xl font-bold mb-6 text-[var(--penpot-success)] border-b pb-2">
+        Create New Quotation
+      </h2>
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Customer Details Section */}
+        <div className="space-y-4">
+          <h3 className="bg-[var(--penpot-bg-gray-50)] p-3 rounded-[8px] font-semibold text-[var(--penpot-neutral-dark)]">
+            Customer Details
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Customer Name" required>
+              <Input
+                type="text"
+                name="customerName"
+                value={formData.customerName}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="Contact No." required>
+              <Input
+                type="tel"
+                name="contactNo"
+                value={formData.contactNo}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+          </div>
+
+          <FormField label="Address" required>
+            <Input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              required
+            />
+          </FormField>
         </div>
 
-        <div className="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded font-semibold text-gray-700 mt-2">Application Details</div>
+        {/* Application Details Section */}
+        <div className="space-y-4">
+          <h3 className="bg-[var(--penpot-bg-gray-50)] p-3 rounded-[8px] font-semibold text-[var(--penpot-neutral-dark)]">
+            Application Details
+          </h3>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Application Number</label>
-          <input required name="applicationNumber" value={formData.applicationNumber} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Consumer Number</label>
-          <input required name="consumerNumber" value={formData.consumerNumber} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Date of Proposal</label>
-          <input type="date" required name="date" value={formData.date} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Proposal Quotation No.</label>
-          <input required name="quotationNo" value={formData.quotationNo} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Application Number" required>
+              <Input
+                type="text"
+                name="applicationNumber"
+                value={formData.applicationNumber}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
 
-        <div className="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded font-semibold text-gray-700 mt-2">Technical & Site Specs</div>
+            <FormField label="Consumer Number" required>
+              <Input
+                type="text"
+                name="consumerNumber"
+                value={formData.consumerNumber}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Proposed Capacity (KWP)</label>
-          <input required name="capacity" value={formData.capacity} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Site Location</label>
-          <input required name="siteLocation" value={formData.siteLocation} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-           <label className="block text-sm font-medium text-gray-700">Area Wise Capacity (Header)</label>
-           <input required name="areaCapacity" value={formData.areaCapacity} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-           <label className="block text-sm font-medium text-gray-700">Capacity (Table Column)</label>
-           <input required name="capacityKwp" value={formData.capacityKwp} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-           <label className="block text-sm font-medium text-gray-700">PV Modules Quantity</label>
-           <input required name="pvQuantity" value={formData.pvQuantity} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
+            <FormField label="Date of Proposal" required>
+              <Input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
 
-        <div className="col-span-1 md:col-span-2 bg-gray-50 p-3 rounded font-semibold text-gray-700 mt-2">Commercials</div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Supply Cost (Base System)</label>
-          <input required name="systemCost" value={formData.systemCost} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Subsidy Amount</label>
-          <input required name="subsidyAmount" value={formData.subsidyAmount} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Net Metering Status</label>
-          <input required name="netMeteringIncluded" value={formData.netMeteringIncluded} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Total System Cost Paid by Client</label>
-          <input required name="totalCost" value={formData.totalCost} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-        </div>
-        <div className="col-span-1 md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Total Amount in Words</label>
-          <input required name="amountInWords" value={formData.amountInWords} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
+            <FormField label="Proposal Quotation No." required>
+              <Input
+                type="text"
+                name="quotationNo"
+                value={formData.quotationNo}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+          </div>
         </div>
 
-        <div className="col-span-1 md:col-span-2 mt-6">
-          <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded transition duration-200">
+        {/* Technical & Site Specs Section */}
+        <div className="space-y-4">
+          <h3 className="bg-[var(--penpot-bg-gray-50)] p-3 rounded-[8px] font-semibold text-[var(--penpot-neutral-dark)]">
+            Technical & Site Specs
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Proposed Capacity (KWP)" required>
+              <Input
+                type="text"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="Site Location" required>
+              <Input
+                type="text"
+                name="siteLocation"
+                value={formData.siteLocation}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="Area Wise Capacity (Header)" required>
+              <Input
+                type="text"
+                name="areaCapacity"
+                value={formData.areaCapacity}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="Capacity (Table Column)" required>
+              <Input
+                type="text"
+                name="capacityKwp"
+                value={formData.capacityKwp}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="PV Modules Quantity" required>
+              <Input
+                type="text"
+                name="pvQuantity"
+                value={formData.pvQuantity}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+          </div>
+        </div>
+
+        {/* Commercials Section */}
+        <div className="space-y-4">
+          <h3 className="bg-[var(--penpot-bg-gray-50)] p-3 rounded-[8px] font-semibold text-[var(--penpot-neutral-dark)]">
+            Commercials
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Supply Cost (Base System)" required>
+              <Input
+                type="text"
+                name="systemCost"
+                value={formData.systemCost}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="Subsidy Amount" required>
+              <Input
+                type="text"
+                name="subsidyAmount"
+                value={formData.subsidyAmount}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="Net Metering Status" required>
+              <Input
+                type="text"
+                name="netMeteringIncluded"
+                value={formData.netMeteringIncluded}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+
+            <FormField label="Total System Cost Paid by Client" required>
+              <Input
+                type="text"
+                name="totalCost"
+                value={formData.totalCost}
+                onChange={handleChange}
+                required
+              />
+            </FormField>
+          </div>
+
+          <FormField label="Total Amount in Words" required>
+            <Input
+              type="text"
+              name="amountInWords"
+              value={formData.amountInWords}
+              onChange={handleChange}
+              required
+            />
+          </FormField>
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-4">
+          <Button type="submit" variant="primary" colorScheme="green" size="lg" fullWidth>
             Generate Quotation
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Card>
   );
 };
 

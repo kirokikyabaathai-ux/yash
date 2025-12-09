@@ -1,18 +1,70 @@
 /**
- * Design Tokens
+ * Design Tokens - Penpot Design System
  * 
- * This file exports design tokens that are used throughout the application.
- * These tokens are derived from CSS custom properties defined in globals.css.
+ * This file exports design tokens extracted from the Penpot design system.
+ * All values are exact matches to the Penpot specifications to ensure pixel-perfect accuracy.
  * 
  * Usage:
- * import { colorTokens, typographyTokens, spacingTokens } from '@/lib/design-system/tokens';
+ * import { penpotColors, penpotTypography, penpotSpacing } from '@/lib/design-system/tokens';
+ * 
+ * @see .kiro/specs/penpot-ui-modernization/design.md for full specifications
  */
 
 /**
- * Color Tokens
+ * Penpot Color Tokens
  * 
- * All color values used in the application should come from this palette.
- * These map to CSS custom properties defined in globals.css.
+ * Exact color values from the Penpot design system.
+ * All colors are specified as hex values matching the design specifications.
+ */
+export const penpotColors = {
+  // Primary brand color
+  primary: {
+    main: '#5E81F4',
+    light: '#9698D6',
+    dark: '#4D4CAC',
+  },
+  
+  // State colors
+  success: {
+    main: '#7CE7AC',
+  },
+  
+  warning: {
+    main: '#F4BE5E',
+  },
+  
+  error: {
+    main: '#FF808B',
+  },
+  
+  info: {
+    main: '#40E1FA',
+    light: '#2CE5F6',
+  },
+  
+  // Neutral colors
+  neutral: {
+    darkText: '#1C1D21',
+    secondaryText: '#8181A5',
+  },
+  
+  // Background colors
+  background: {
+    white: '#FFFFFF',
+    gray50: '#F6F6F6',
+    gray100: '#F5F5FA',
+    gray200: '#F0F0F3',
+  },
+  
+  // Border colors
+  border: {
+    light: '#ECECF2',
+  },
+} as const;
+
+/**
+ * Legacy color tokens for backward compatibility
+ * Maps to CSS custom properties defined in globals.css
  */
 export const colorTokens = {
   // Base colors
@@ -71,8 +123,95 @@ export const colorTokens = {
 } as const;
 
 /**
- * Typography Tokens
+ * Penpot Typography Tokens
  * 
+ * Exact typography values from the Penpot design system.
+ * Font Family: Lato (primary), with icon fonts for special characters
+ */
+export const penpotTypography = {
+  // Font families from Penpot
+  fontFamily: {
+    primary: 'Lato, sans-serif',
+    iconSolid: 'la-solid-900',
+    iconRegular: 'la-regular-400',
+    iconBrands: 'la-brands-400',
+  },
+  
+  // Heading styles (size/weight)
+  headings: {
+    h1: {
+      fontSize: '32px',
+      fontWeight: 700,
+      lineHeight: 1.2,
+    },
+    h2: {
+      fontSize: '26px',
+      fontWeight: 700,
+      lineHeight: 1.2,
+    },
+    h3: {
+      fontSize: '20px',
+      fontWeight: 700,
+      lineHeight: 1.3,
+    },
+    h4: {
+      fontSize: '18px',
+      fontWeight: 700,
+      lineHeight: 1.3,
+    },
+    h5: {
+      fontSize: '16px',
+      fontWeight: 700,
+      lineHeight: 1.4,
+    },
+  },
+  
+  // Body text styles
+  body: {
+    regular: {
+      fontSize: '14px',
+      fontWeight: 400,
+      lineHeight: 1.5,
+    },
+    bold: {
+      fontSize: '14px',
+      fontWeight: 700,
+      lineHeight: 1.5,
+    },
+    small: {
+      fontSize: '12px',
+      fontWeight: 400,
+      lineHeight: 1.5,
+    },
+    smallBold: {
+      fontSize: '12px',
+      fontWeight: 700,
+      lineHeight: 1.5,
+    },
+    light: {
+      fontSize: '14px',
+      fontWeight: 300,
+      lineHeight: 1.5,
+    },
+  },
+  
+  // Label styles
+  labels: {
+    regular: {
+      fontSize: '14px',
+      fontWeight: 700,
+      lineHeight: 1.4,
+    },
+    small: {
+      fontSize: '12px',
+      fontWeight: 700,
+      lineHeight: 1.4,
+    },
+  },
+} as const;
+
+/**
+ * Legacy typography tokens for backward compatibility
  * Font families, sizes, weights, and line heights used throughout the application.
  */
 export const typographyTokens = {
@@ -129,8 +268,27 @@ export const typographyTokens = {
 } as const;
 
 /**
- * Spacing Tokens
+ * Penpot Spacing Tokens
  * 
+ * Exact spacing values from the Penpot design system.
+ * Base unit: 4px
+ * Scale: 4px, 8px, 12px, 16px, 20px, 24px, 32px, 40px, 48px, 64px
+ */
+export const penpotSpacing = {
+  1: '4px',    // Base unit
+  2: '8px',
+  3: '12px',
+  4: '16px',
+  5: '20px',
+  6: '24px',
+  8: '32px',
+  10: '40px',
+  12: '48px',
+  16: '64px',
+} as const;
+
+/**
+ * Legacy spacing tokens for backward compatibility
  * Consistent spacing values for margins, padding, and gaps.
  * Based on Tailwind's default spacing scale (0.25rem = 4px base unit).
  */
@@ -173,8 +331,33 @@ export const spacingTokens = {
 } as const;
 
 /**
- * Border Radius Tokens
+ * Penpot Shadow Tokens
  * 
+ * Exact shadow values from the Penpot design system for elevation.
+ */
+export const penpotShadows = {
+  sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+  md: '0 4px 6px rgba(0, 0, 0, 0.07)',
+  lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+  xl: '0 20px 25px rgba(0, 0, 0, 0.15)',
+  none: 'none',
+} as const;
+
+/**
+ * Penpot Border Radius Tokens
+ * 
+ * Exact border radius values from the Penpot design system.
+ */
+export const penpotRadii = {
+  sm: '4px',
+  md: '8px',
+  lg: '12px',
+  full: '9999px',
+  none: '0',
+} as const;
+
+/**
+ * Legacy border radius tokens for backward compatibility
  * Consistent border radius values.
  */
 export const radiusTokens = {
@@ -189,8 +372,7 @@ export const radiusTokens = {
 } as const;
 
 /**
- * Shadow Tokens
- * 
+ * Legacy shadow tokens for backward compatibility
  * Consistent shadow values for elevation.
  */
 export const shadowTokens = {
@@ -226,7 +408,18 @@ export const transitionTokens = {
 } as const;
 
 /**
- * Type definitions for design tokens
+ * Type definitions for Penpot design tokens
+ */
+export type PenpotColorCategory = keyof typeof penpotColors;
+export type PenpotHeading = keyof typeof penpotTypography.headings;
+export type PenpotBodyStyle = keyof typeof penpotTypography.body;
+export type PenpotLabelStyle = keyof typeof penpotTypography.labels;
+export type PenpotSpacing = keyof typeof penpotSpacing;
+export type PenpotRadius = keyof typeof penpotRadii;
+export type PenpotShadow = keyof typeof penpotShadows;
+
+/**
+ * Type definitions for legacy design tokens
  */
 export type ColorToken = keyof typeof colorTokens;
 export type FontSize = keyof typeof typographyTokens.fontSize;
@@ -234,3 +427,150 @@ export type FontWeight = keyof typeof typographyTokens.fontWeight;
 export type Spacing = keyof typeof spacingTokens;
 export type Radius = keyof typeof radiusTokens;
 export type Shadow = keyof typeof shadowTokens;
+
+/**
+ * Utility Functions for Accessing Penpot Design Tokens
+ */
+
+/**
+ * Get a color value from the Penpot color palette
+ * 
+ * @param category - The color category (primary, success, warning, etc.)
+ * @param variant - The variant within the category (main, light, dark)
+ * @returns The hex color value
+ * 
+ * @example
+ * ```tsx
+ * const primaryColor = getPenpotColor('primary', 'main'); // Returns '#5E81F4'
+ * const successColor = getPenpotColor('success', 'main'); // Returns '#7CE7AC'
+ * ```
+ */
+export function getPenpotColor(
+  category: keyof typeof penpotColors,
+  variant: string
+): string {
+  const colorCategory = penpotColors[category] as Record<string, string>;
+  return colorCategory[variant] || colorCategory.main || '';
+}
+
+/**
+ * Get a spacing value from the Penpot spacing scale
+ * 
+ * @param scale - The spacing scale key (1-16)
+ * @returns The spacing value in pixels
+ * 
+ * @example
+ * ```tsx
+ * const spacing = getPenpotSpacing(4); // Returns '16px'
+ * const largeSpacing = getPenpotSpacing(8); // Returns '32px'
+ * ```
+ */
+export function getPenpotSpacing(scale: PenpotSpacing): string {
+  return penpotSpacing[scale];
+}
+
+/**
+ * Get a typography style from the Penpot typography system
+ * 
+ * @param type - The typography type ('heading', 'body', or 'label')
+ * @param variant - The variant within the type
+ * @returns An object with fontSize, fontWeight, and lineHeight
+ * 
+ * @example
+ * ```tsx
+ * const h1Style = getPenpotTypography('heading', 'h1');
+ * // Returns { fontSize: '32px', fontWeight: 700, lineHeight: 1.2 }
+ * 
+ * const bodyStyle = getPenpotTypography('body', 'regular');
+ * // Returns { fontSize: '14px', fontWeight: 400, lineHeight: 1.5 }
+ * ```
+ */
+export function getPenpotTypography(
+  type: 'heading' | 'body' | 'label',
+  variant: string
+): { fontSize: string; fontWeight: number; lineHeight: number } {
+  if (type === 'heading') {
+    return penpotTypography.headings[variant as PenpotHeading];
+  } else if (type === 'body') {
+    return penpotTypography.body[variant as PenpotBodyStyle];
+  } else if (type === 'label') {
+    return penpotTypography.labels[variant as PenpotLabelStyle];
+  }
+  
+  // Default fallback
+  return penpotTypography.body.regular;
+}
+
+/**
+ * Get a shadow value from the Penpot shadow system
+ * 
+ * @param size - The shadow size (sm, md, lg, xl)
+ * @returns The CSS box-shadow value
+ * 
+ * @example
+ * ```tsx
+ * const shadow = getPenpotShadow('md'); // Returns '0 4px 6px rgba(0, 0, 0, 0.07)'
+ * ```
+ */
+export function getPenpotShadow(size: PenpotShadow): string {
+  return penpotShadows[size];
+}
+
+/**
+ * Get a border radius value from the Penpot radius system
+ * 
+ * @param size - The radius size (sm, md, lg, full)
+ * @returns The border-radius value
+ * 
+ * @example
+ * ```tsx
+ * const radius = getPenpotRadius('md'); // Returns '8px'
+ * const rounded = getPenpotRadius('full'); // Returns '9999px'
+ * ```
+ */
+export function getPenpotRadius(size: PenpotRadius): string {
+  return penpotRadii[size];
+}
+
+/**
+ * Validate if a color value exists in the Penpot color system
+ * 
+ * @param hexColor - The hex color to validate
+ * @returns true if the color exists in the Penpot palette
+ * 
+ * @example
+ * ```tsx
+ * const isValid = isValidPenpotColor('#5E81F4'); // Returns true
+ * const isInvalid = isValidPenpotColor('#123456'); // Returns false
+ * ```
+ */
+export function isValidPenpotColor(hexColor: string): boolean {
+  const allColors: string[] = [];
+  
+  Object.values(penpotColors).forEach((category) => {
+    if (typeof category === 'object') {
+      Object.values(category).forEach((color) => {
+        allColors.push(color);
+      });
+    }
+  });
+  
+  return allColors.includes(hexColor.toUpperCase());
+}
+
+/**
+ * Validate if a spacing value exists in the Penpot spacing system
+ * 
+ * @param spacing - The spacing value to validate (e.g., '16px', '32px')
+ * @returns true if the spacing exists in the Penpot scale
+ * 
+ * @example
+ * ```tsx
+ * const isValid = isValidPenpotSpacing('16px'); // Returns true
+ * const isInvalid = isValidPenpotSpacing('15px'); // Returns false
+ * ```
+ */
+export function isValidPenpotSpacing(spacing: string): boolean {
+  const validSpacings = Object.values(penpotSpacing) as string[];
+  return validSpacings.includes(spacing);
+}

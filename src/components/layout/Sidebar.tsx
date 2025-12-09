@@ -92,11 +92,18 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   };
 
   const isActive = (href: string) => {
-    if (userRole) {
-      const fullPath = `/${userRole}${href}`;
-      return pathname === fullPath || pathname.startsWith(fullPath);
+    if (!userRole || !pathname) return false;
+    
+    const fullPath = `/${userRole}${href}`;
+    
+    // Exact match for dashboard
+    if (href === '/dashboard') {
+      return pathname === fullPath;
     }
-    return false;
+    
+    // For other routes, check if pathname starts with the full path
+    // and ensure it's followed by a slash or is an exact match
+    return pathname === fullPath || pathname.startsWith(`${fullPath}/`);
   };
 
   // Show loading state while session is loading
@@ -160,10 +167,13 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
                 <Button
                   key={item.href}
                   variant={active ? 'secondary' : 'ghost'}
-                  className="w-full justify-start"
+                  className={cn(
+                    "w-full justify-start",
+                    active && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary font-medium"
+                  )}
                   onClick={() => handleNavigation(item.href)}
                 >
-                  <Icon className="h-5 w-5 mr-3" />
+                  <Icon className={cn("h-5 w-5 mr-3", active && "text-primary")} />
                   <span>{item.label}</span>
                 </Button>
               );

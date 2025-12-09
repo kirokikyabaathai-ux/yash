@@ -2,18 +2,22 @@
  * Admin Dashboard Page
  * 
  * Displays all leads, metrics, system health, and user management interface.
+ * Refactored to use Penpot design system components.
+ * 
  * Requirements: 17.1, 17.3, 17.4, 17.5
+ * Validates: Requirements 6.1, 6.2, 6.3, 9.1, 9.2, 9.3
  */
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
 import { auth } from '@/lib/auth/auth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { DashboardCard } from '@/components/layout/DashboardCard';
-import { Users, TrendingUp, CheckCircle, Activity, AlertCircle, FileText } from 'lucide-react';
+import { Card, CardGrid } from '@/components/ui/organisms/Card';
+import { Users, TrendingUp, Activity, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import { DashboardTables } from './DashboardTables';
+import { ProgressBar } from '@/components/ui/molecules';
 
 export default async function AdminDashboardPage() {
   // Get the current session using NextAuth
@@ -58,7 +62,7 @@ export default async function AdminDashboardPage() {
   }
 
   // Get all leads for admin view
-  const { data: leads, error: leadsError } = await supabase
+  const { data: leads } = await supabase
     .from('leads')
     .select(`
       *,
@@ -79,7 +83,7 @@ export default async function AdminDashboardPage() {
     .limit(10);
 
   // Get all users for user management
-  const { data: users, error: usersError } = await supabase
+  const { data: users } = await supabase
     .from('users')
     .select('*')
     .order('created_at', { ascending: false })
@@ -94,9 +98,7 @@ export default async function AdminDashboardPage() {
     .from('documents')
     .select('*', { count: 'exact', head: true });
 
-  const { count: totalSteps } = await supabase
-    .from('step_master')
-    .select('*', { count: 'exact', head: true });
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,9 +107,9 @@ export default async function AdminDashboardPage() {
           title="Admin Dashboard"
           description={`Welcome back, ${profile.name}`}
         >
-          {/* Metrics Grid */}
+          {/* Metrics Grid - Using responsive grid */}
           {metrics && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
               <DashboardCard
                 title="Total Leads"
                 value={metrics.totalLeads}
@@ -157,278 +159,107 @@ export default async function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Leads by Status */}
+          {/* Leads by Status - Using ProgressBar component */}
           {metrics && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Leads by Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-              <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Ongoing</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-48 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{
-                        width: `${metrics.totalLeads > 0 ? (metrics.leadsByStatus.ongoing / metrics.totalLeads) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-12 text-right">
+            <Card
+              header={{
+                title: 'Leads by Status',
+              }}
+              className="mb-8"
+            >
+              <div className="space-y-4">
+                <ProgressBar
+                  label="Ongoing"
+                  value={metrics.totalLeads > 0 ? (metrics.leadsByStatus.ongoing / metrics.totalLeads) * 100 : 0}
+                  showPercentage={false}
+                  colorScheme="primary"
+                />
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium">
                     {metrics.leadsByStatus.ongoing}
                   </span>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Interested</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-48 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-green-600 dark:bg-green-400 h-2 rounded-full transition-all"
-                      style={{
-                        width: `${metrics.totalLeads > 0 ? (metrics.leadsByStatus.interested / metrics.totalLeads) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-12 text-right">
+
+                <ProgressBar
+                  label="Interested"
+                  value={metrics.totalLeads > 0 ? (metrics.leadsByStatus.interested / metrics.totalLeads) * 100 : 0}
+                  showPercentage={false}
+                  colorScheme="success"
+                />
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium">
                     {metrics.leadsByStatus.interested}
                   </span>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Not Interested</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-48 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-red-600 dark:bg-red-400 h-2 rounded-full transition-all"
-                      style={{
-                        width: `${metrics.totalLeads > 0 ? (metrics.leadsByStatus.not_interested / metrics.totalLeads) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-12 text-right">
+
+                <ProgressBar
+                  label="Not Interested"
+                  value={metrics.totalLeads > 0 ? (metrics.leadsByStatus.not_interested / metrics.totalLeads) * 100 : 0}
+                  showPercentage={false}
+                  colorScheme="error"
+                />
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium">
                     {metrics.leadsByStatus.not_interested}
                   </span>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Closed</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-48 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{
-                        width: `${metrics.totalLeads > 0 ? (metrics.leadsByStatus.closed / metrics.totalLeads) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-12 text-right">
+
+                <ProgressBar
+                  label="Closed"
+                  value={metrics.totalLeads > 0 ? (metrics.leadsByStatus.closed / metrics.totalLeads) * 100 : 0}
+                  showPercentage={false}
+                  colorScheme="primary"
+                />
+                <div className="flex justify-end">
+                  <span className="text-sm font-medium">
                     {metrics.leadsByStatus.closed}
                   </span>
-                  </div>
                 </div>
               </div>
-              </CardContent>
             </Card>
           )}
 
-          {/* Recent Leads */}
-          <Card className="mb-8">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle>Recent Leads</CardTitle>
-              <Link
-                href="/admin/leads"
-                className="text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                View all
+          {/* Data Tables */}
+          <DashboardTables leads={leads || []} users={users || []} />
+
+          {/* Quick Actions - Using CardGrid */}
+          <CardGrid columns={{ sm: 1, md: 3 }} gap="md">
+            <Card
+              header={{
+                title: 'Manage Steps',
+              }}
+            >
+              <Link href="/admin/steps" className="block">
+                <p className="text-sm text-muted-foreground">
+                  Configure timeline steps and workflow
+                </p>
               </Link>
-            </CardHeader>
-            <CardContent className="p-0">
-            <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created By
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created At
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {leads && leads.length > 0 ? (
-                  leads.map((lead: any) => (
-                    <tr key={lead.id} className="hover:bg-accent/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-foreground">
-                          {lead.customer_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">{lead.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <LeadStatusBadge status={lead.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">
-                          {lead.created_by_user?.name || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(lead.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-muted-foreground">
-                      No leads found
-                    </td>
-                  </tr>
-                )}
-                </tbody>
-              </table>
-            </div>
-            </CardContent>
-          </Card>
+            </Card>
 
-          {/* User Management */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle>User Management</CardTitle>
-              <Link
-                href="/admin/users"
-                className="text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                Manage users
+            <Card
+              header={{
+                title: 'Manage Users',
+              }}
+            >
+              <Link href="/admin/users" className="block">
+                <p className="text-sm text-muted-foreground">
+                  Create and manage user accounts
+                </p>
               </Link>
-            </CardHeader>
-            <CardContent className="p-0">
-            <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Created At
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {users && users.length > 0 ? (
-                  users.map((user: any) => (
-                    <tr key={user.id} className="hover:bg-accent/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-foreground">
-                          {user.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-muted text-foreground">
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.status === 'active'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                          }`}
-                        >
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-muted-foreground">
-                      No users found
-                    </td>
-                  </tr>
-                )}
-                </tbody>
-              </table>
-            </div>
-            </CardContent>
-          </Card>
+            </Card>
 
-          {/* Quick Actions */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href="/admin/steps">
-              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
-                <CardHeader>
-                  <CardTitle>Manage Steps</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Configure timeline steps and workflow
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href="/admin/users">
-              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
-                <CardHeader>
-                  <CardTitle>Manage Users</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Create and manage user accounts
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href="/admin/activity-log">
-              <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
-                <CardHeader>
-                  <CardTitle>Activity Log</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    View system activity and audit trail
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
+            <Card
+              header={{
+                title: 'Activity Log',
+              }}
+            >
+              <Link href="/admin/activity-log" className="block">
+                <p className="text-sm text-muted-foreground">
+                  View system activity and audit trail
+                </p>
+              </Link>
+            </Card>
+          </CardGrid>
         </PageLayout>
       </div>
     </div>

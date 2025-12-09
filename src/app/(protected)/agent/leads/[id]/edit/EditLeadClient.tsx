@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LeadForm } from '@/components/leads/LeadForm';
 import type { Lead, UpdateLeadRequest } from '@/types/api';
+import { PageLayout } from '@/components/layout/PageLayout';
+import { Card } from '@/components/ui/organisms/Card';
 
 interface EditLeadClientProps {
   lead: Lead;
@@ -49,27 +51,24 @@ export function EditLeadClient({ lead, leadId }: EditLeadClientProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <Link
-            href={`/agent/leads/${leadId}`}
-            className="text-sm text-primary hover:text-primary/80 mb-4 inline-block transition-colors"
-          >
-            ← Back to Lead Details
-          </Link>
-          <h1 className="text-3xl font-bold text-foreground">Edit Lead</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Update lead information for {lead.customer_name}
-          </p>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-          <LeadForm
-            lead={lead}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={isLoading}
-          />
-        </div>
+        <PageLayout
+          title="Edit Lead"
+          description={`Update lead information for ${lead.customer_name}`}
+          breadcrumbs={[
+            { label: 'My Leads', href: '/agent/leads' },
+            { label: lead.customer_name, href: `/agent/leads/${leadId}` },
+            { label: 'Edit' },
+          ]}
+        >
+          <Card padding="lg">
+            <LeadForm
+              lead={lead}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={isLoading}
+            />
+          </Card>
+        </PageLayout>
       </div>
     </div>
   );

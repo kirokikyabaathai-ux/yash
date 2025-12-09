@@ -2,19 +2,24 @@
  * Lead List Component
  * 
  * Displays a list of leads with filtering, search, and pagination.
+ * Uses Penpot design system components for consistent styling.
  * 
- * Requirements: 2.1, 2.4, 2.5, 18.1, 18.2, 18.3, 18.4, 18.5
+ * Requirements: 2.1, 2.4, 2.5, 18.1, 18.2, 18.3, 18.4, 18.5, 6.1, 6.2, 6.3
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Lead, LeadFilters } from '@/types/api';
 import { LeadStatusBadge } from './LeadStatusBadge';
-import { SearchBar } from './SearchBar';
+import { SearchBar } from '@/components/ui/molecules/SearchBar';
 import { FilterPanel, type FilterOptions } from './FilterPanel';
-import { DataTable } from '@/components/ui/data-table';
+import { DataTable } from '@/components/ui/organisms/DataTable';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { penpotSpacing, penpotTypography } from '@/lib/design-system/tokens';
 
 interface LeadListProps {
   leads: Lead[];
@@ -40,11 +45,35 @@ export function LeadList({
   baseUrl = '/leads', // Default to /leads for backward compatibility
 }: LeadListProps) {
   const totalPages = Math.ceil(total / pageSize);
+  const [searchValue, setSearchValue] = useState(filters.search || '');
 
-  const handleSearch = (searchTerm: string) => {
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchValue !== filters.search) {
+        onFilterChange({ 
+          ...filters, 
+          search: searchValue.trim() || undefined, 
+          page: 1 
+        });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
+  // Update local search value when filters change externally
+  useEffect(() => {
+    if (filters.search !== searchValue) {
+      setSearchValue(filters.search || '');
+    }
+  }, [filters.search]);
+
+  const handleSearchClear = () => {
+    setSearchValue('');
     onFilterChange({ 
       ...filters, 
-      search: searchTerm || undefined, 
+      search: undefined, 
       page: 1 
     });
   };
@@ -78,225 +107,319 @@ export function LeadList({
   };
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[4] }}>
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="flex flex-col sm:flex-row gap-4 items-start">
-          <div className="flex-1 w-full sm:w-auto">
-            <SearchBar
-              initialValue={filters.search}
-              onSearch={handleSearch}
-              placeholder="Search by name, phone, email, or address..."
+      <Card>
+        <CardContent style={{ padding: penpotSpacing[4] }}>
+          <div className="flex flex-col sm:flex-row gap-4 items-start">
+            <div className="flex-1 w-full sm:w-auto">
+              <SearchBar
+                value={searchValue}
+                onChange={setSearchValue}
+                onClear={handleSearchClear}
+                placeholder="Search by name, phone, email, or address..."
+                size="md"
+              />
+            </div>
+            <FilterPanel
+              initialFilters={{
+                status: filters.status,
+                dateFrom: filters.dateFrom,
+                dateTo: filters.dateTo,
+                currentStep: filters.currentStep,
+              }}
+              onFilterChange={handleFilterChange}
+              availableSteps={availableSteps}
             />
           </div>
-          <FilterPanel
-            initialFilters={{
-              status: filters.status,
-              dateFrom: filters.dateFrom,
-              dateTo: filters.dateTo,
-              currentStep: filters.currentStep,
-            }}
-            onFilterChange={handleFilterChange}
-            availableSteps={availableSteps}
-          />
-        </div>
-        
-        {/* Active Filters Summary */}
-        {hasActiveFilters && (
-          <div className="mt-3 flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-gray-600">Active filters:</span>
-            {filters.search && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Search: {filters.search}
+          
+          {/* Active Filters Summary */}
+          {hasActiveFilters && (
+            <div className="mt-3 flex flex-wrap gap-2 items-center">
+              <span style={{ 
+                fontSize: penpotTypography.body.small.fontSize,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                Active filters:
               </span>
-            )}
-            {filters.status && filters.status.length > 0 && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Status: {filters.status.join(', ')}
-              </span>
-            )}
-            {(filters.dateFrom || filters.dateTo) && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Date: {filters.dateFrom || '...'} to {filters.dateTo || '...'}
-              </span>
-            )}
-            {filters.currentStep && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Step: {availableSteps.find(s => s.id === filters.currentStep)?.step_name || filters.currentStep}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={handleClearAll}
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
-            >
-              Clear all
-            </button>
-          </div>
-        )}
-      </div>
+              {filters.search && (
+                <Badge variant="subtle" colorScheme="blue" size="sm">
+                  Search: {filters.search}
+                </Badge>
+              )}
+              {filters.status && filters.status.length > 0 && (
+                <Badge variant="subtle" colorScheme="blue" size="sm">
+                  Status: {filters.status.join(', ')}
+                </Badge>
+              )}
+              {(filters.dateFrom || filters.dateTo) && (
+                <Badge variant="subtle" colorScheme="blue" size="sm">
+                  Date: {filters.dateFrom || '...'} to {filters.dateTo || '...'}
+                </Badge>
+              )}
+              {filters.currentStep && (
+                <Badge variant="subtle" colorScheme="blue" size="sm">
+                  Step: {availableSteps.find(s => s.id === filters.currentStep)?.step_name || filters.currentStep}
+                </Badge>
+              )}
+              <Button
+                variant="link"
+                size="sm"
+                onClick={handleClearAll}
+              >
+                Clear all
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Results Summary */}
       <div className="flex justify-between items-center px-2">
-        <p className="text-sm text-gray-700">
+        <p style={{ 
+          fontSize: penpotTypography.body.small.fontSize,
+          color: 'var(--penpot-neutral-secondary)'
+        }}>
           Showing {leads.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} to{' '}
           {Math.min(currentPage * pageSize, total)} of {total} leads
         </p>
       </div>
 
-      {/* Lead List */}
-      {leads.length === 0 ? (
-        <div className="bg-card rounded-lg border p-12 text-center">
-          <p className="text-muted-foreground text-lg">No leads found</p>
-          <p className="text-muted-foreground text-sm mt-2">
-            Try adjusting your search or filter criteria
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Desktop Table View */}
-          <div className="hidden md:block">
-            <DataTable
-              data={leads}
-              keyExtractor={(lead) => lead.id}
-              columns={[
-                {
-                  header: 'Customer',
-                  accessor: (lead) => (
-                    <div>
-                      <div className="font-medium text-foreground">{lead.customer_name}</div>
-                      <div className="text-muted-foreground text-sm truncate max-w-xs mt-1">{lead.address}</div>
-                    </div>
-                  ),
-                },
-                {
-                  header: 'Contact',
-                  accessor: (lead) => (
-                    <div>
-                      <div className="text-foreground">{lead.phone}</div>
-                      {lead.email && <div className="text-muted-foreground text-sm mt-1">{lead.email}</div>}
-                    </div>
-                  ),
-                },
-                {
-                  header: 'Status',
-                  accessor: (lead) => <LeadStatusBadge status={lead.status} />,
-                },
-                {
-                  header: 'Created',
-                  accessor: (lead) => (
-                    <span className="text-muted-foreground">{formatDate(lead.created_at)}</span>
-                  ),
-                },
-                {
-                  header: 'Actions',
-                  accessor: (lead) => (
-                    <Link
-                      href={`${baseUrl}/${lead.id}`}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      View Details
-                    </Link>
-                  ),
-                  className: 'text-right',
-                },
-              ]}
-            />
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-4">
-            {leads.map((lead) => (
-              <div key={lead.id} className="bg-card rounded-lg border p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-base font-semibold">{lead.customer_name}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">{lead.address}</p>
+      {/* Lead List - Desktop */}
+      <div className="hidden md:block">
+        <DataTable
+          data={leads}
+          keyExtractor={(lead) => lead.id}
+          columns={[
+            {
+              key: 'customer_name',
+              header: 'Customer',
+              render: (value, lead) => (
+                <div>
+                  <div style={{ 
+                    fontWeight: penpotTypography.body.bold.fontWeight,
+                    fontSize: penpotTypography.body.regular.fontSize
+                  }}>
+                    {lead.customer_name}
                   </div>
-                  <LeadStatusBadge status={lead.status} />
+                  <div style={{ 
+                    color: 'var(--penpot-neutral-secondary)',
+                    fontSize: penpotTypography.body.small.fontSize,
+                    marginTop: penpotSpacing[1]
+                  }} className="truncate max-w-xs">
+                    {lead.address}
+                  </div>
                 </div>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Phone:</span>
-                    <span className="font-medium">{lead.phone}</span>
+              ),
+            },
+            {
+              key: 'phone',
+              header: 'Contact',
+              render: (value, lead) => (
+                <div>
+                  <div style={{ fontSize: penpotTypography.body.regular.fontSize }}>
+                    {lead.phone}
                   </div>
                   {lead.email && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span>{lead.email}</span>
+                    <div style={{ 
+                      color: 'var(--penpot-neutral-secondary)',
+                      fontSize: penpotTypography.body.small.fontSize,
+                      marginTop: penpotSpacing[1]
+                    }}>
+                      {lead.email}
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Created:</span>
-                    <span>{formatDate(lead.created_at)}</span>
-                  </div>
                 </div>
-
-                <div className="mt-4 pt-3 border-t">
-                  <Link
-                    href={`${baseUrl}/${lead.id}`}
-                    className="block w-full text-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors font-medium"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:space-x-2">
-          <button
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="w-full sm:w-auto px-3 py-2 sm:py-1 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-          >
-            Previous
-          </button>
-          
-          <div className="flex space-x-1 overflow-x-auto max-w-full">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum;
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (currentPage <= 3) {
-                pageNum = i + 1;
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = currentPage - 2 + i;
-              }
-
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => onPageChange(pageNum)}
-                  className={`px-3 py-2 sm:py-1 rounded-md text-sm font-medium touch-manipulation ${
-                    currentPage === pageNum
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                  }`}
+              ),
+            },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (value, lead) => <LeadStatusBadge status={lead.status} />,
+            },
+            {
+              key: 'created_at',
+              header: 'Created',
+              render: (value, lead) => (
+                <span style={{ color: 'var(--penpot-neutral-secondary)' }}>
+                  {formatDate(lead.created_at)}
+                </span>
+              ),
+            },
+            {
+              key: 'id',
+              header: 'Actions',
+              render: (value, lead) => (
+                <Link
+                  href={`${baseUrl}/${lead.id}`}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {pageNum}
-                </button>
-              );
-            })}
-          </div>
+                  <Button variant="link" size="sm">
+                    View Details
+                  </Button>
+                </Link>
+              ),
+              className: 'text-right',
+            },
+          ]}
+          pagination={{
+            currentPage,
+            totalPages,
+            onPageChange,
+            variant: 'primary',
+          }}
+          emptyState={
+            <div>
+              <p style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                No leads found
+              </p>
+              <p style={{ 
+                fontSize: penpotTypography.body.small.fontSize,
+                color: 'var(--penpot-neutral-secondary)',
+                marginTop: penpotSpacing[2]
+              }}>
+                Try adjusting your search or filter criteria
+              </p>
+            </div>
+          }
+        />
+      </div>
 
-          <button
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="w-full sm:w-auto px-3 py-2 sm:py-1 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      {/* Mobile Card View */}
+      <div className="md:hidden" style={{ display: 'flex', flexDirection: 'column', gap: penpotSpacing[4] }}>
+        {leads.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p style={{ 
+                fontSize: penpotTypography.body.regular.fontSize,
+                color: 'var(--penpot-neutral-secondary)'
+              }}>
+                No leads found
+              </p>
+              <p style={{ 
+                fontSize: penpotTypography.body.small.fontSize,
+                color: 'var(--penpot-neutral-secondary)',
+                marginTop: penpotSpacing[2]
+              }}>
+                Try adjusting your search or filter criteria
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {leads.map((lead) => (
+              <Card key={lead.id}>
+                <CardContent style={{ padding: penpotSpacing[4] }}>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 style={{ 
+                        fontSize: penpotTypography.body.regular.fontSize,
+                        fontWeight: penpotTypography.body.bold.fontWeight
+                      }}>
+                        {lead.customer_name}
+                      </h3>
+                      <p style={{ 
+                        color: 'var(--penpot-neutral-secondary)',
+                        fontSize: penpotTypography.body.small.fontSize,
+                        marginTop: penpotSpacing[1]
+                      }}>
+                        {lead.address}
+                      </p>
+                    </div>
+                    <LeadStatusBadge status={lead.status} />
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: penpotSpacing[2],
+                    fontSize: penpotTypography.body.small.fontSize
+                  }}>
+                    <div className="flex justify-between">
+                      <span style={{ color: 'var(--penpot-neutral-secondary)' }}>Phone:</span>
+                      <span style={{ fontWeight: penpotTypography.body.bold.fontWeight }}>
+                        {lead.phone}
+                      </span>
+                    </div>
+                    {lead.email && (
+                      <div className="flex justify-between">
+                        <span style={{ color: 'var(--penpot-neutral-secondary)' }}>Email:</span>
+                        <span>{lead.email}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span style={{ color: 'var(--penpot-neutral-secondary)' }}>Created:</span>
+                      <span>{formatDate(lead.created_at)}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: penpotSpacing[4], paddingTop: penpotSpacing[3] }} className="border-t">
+                    <Link href={`${baseUrl}/${lead.id}`} className="block">
+                      <Button variant="primary" size="md" fullWidth>
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            
+            {/* Mobile Pagination */}
+            {totalPages > 1 && (
+              <div className="flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  fullWidth
+                >
+                  Previous
+                </Button>
+                
+                <div className="flex justify-center gap-1 overflow-x-auto">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => onPageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  fullWidth
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

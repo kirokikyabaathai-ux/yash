@@ -2,7 +2,9 @@
  * Activity Log List Component
  * 
  * Displays activity logs with filtering by lead, user, action type, and date range.
- * Requirements: 2.1, 2.6, 12.5
+ * Refactored to use Penpot design system components.
+ * 
+ * Requirements: 2.1, 2.6, 12.5, 6.1, 6.2, 6.3, 6.4
  */
 
 'use client';
@@ -11,10 +13,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { format } from 'date-fns';
-import { DataTable } from '@/components/ui/data-table';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { DataTable } from '@/components/ui/organisms/DataTable';
+import { Badge } from '@/components/ui/atoms';
+import { Input } from '@/components/ui/atoms';
 import {
   Select,
   SelectContent,
@@ -23,7 +24,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/organisms/Card';
+import { FormField } from '@/components/ui/molecules/FormField';
+import { Body, Small, H3 } from '@/components/ui/atoms';
 
 type ActivityLog = Database['public']['Tables']['activity_log']['Row'];
 type User = Database['public']['Tables']['users']['Row'];
@@ -124,26 +127,26 @@ export function ActivityLogList() {
     setFilters({});
   };
 
-  const getActionBadgeColor = (action: string) => {
-    if (action.includes('create')) return 'bg-green-100 text-green-800';
-    if (action.includes('update') || action.includes('modify')) return 'bg-blue-100 text-blue-800';
-    if (action.includes('delete')) return 'bg-red-100 text-red-800';
-    if (action.includes('complete')) return 'bg-purple-100 text-purple-800';
-    return 'bg-gray-100 text-gray-800';
+  const getActionBadgeColor = (action: string): 'green' | 'blue' | 'red' | 'gray' => {
+    if (action.includes('create')) return 'green';
+    if (action.includes('update') || action.includes('modify')) return 'blue';
+    if (action.includes('delete')) return 'red';
+    if (action.includes('complete')) return 'blue';
+    return 'gray';
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card
+        header={{
+          title: 'Filters',
+        }}
+        padding="lg"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Lead Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="lead-filter">Lead</Label>
+            <FormField label="Lead" htmlFor="lead-filter">
               <Select
                 value={filters.leadId || 'all'}
                 onValueChange={(value) => handleFilterChange('leadId', value === 'all' ? '' : value)}
@@ -160,11 +163,10 @@ export function ActivityLogList() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
             {/* User Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="user-filter">User</Label>
+            <FormField label="User" htmlFor="user-filter">
               <Select
                 value={filters.userId || 'all'}
                 onValueChange={(value) => handleFilterChange('userId', value === 'all' ? '' : value)}
@@ -181,11 +183,10 @@ export function ActivityLogList() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
             {/* Action Type Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="action-filter">Action Type</Label>
+            <FormField label="Action Type" htmlFor="action-filter">
               <Input
                 id="action-filter"
                 type="text"
@@ -193,29 +194,27 @@ export function ActivityLogList() {
                 onChange={(e) => handleFilterChange('actionType', e.target.value)}
                 placeholder="e.g., lead, document, step"
               />
-            </div>
+            </FormField>
 
             {/* Date From Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="date-from">Date From</Label>
+            <FormField label="Date From" htmlFor="date-from">
               <Input
                 id="date-from"
                 type="date"
                 value={filters.dateFrom || ''}
                 onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
               />
-            </div>
+            </FormField>
 
             {/* Date To Filter */}
-            <div className="space-y-2">
-              <Label htmlFor="date-to">Date To</Label>
+            <FormField label="Date To" htmlFor="date-to">
               <Input
                 id="date-to"
                 type="date"
                 value={filters.dateTo || ''}
                 onChange={(e) => handleFilterChange('dateTo', e.target.value)}
               />
-            </div>
+            </FormField>
 
             {/* Clear Filters Button */}
             <div className="flex items-end">
@@ -228,89 +227,103 @@ export function ActivityLogList() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </Card>
 
       {/* Activity Log List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity Log ({logs.length} entries)</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card
+        header={{
+          title: `Activity Log (${logs.length} entries)`,
+        }}
+        padding="lg"
+      >
           <DataTable
             data={logs}
             keyExtractor={(log) => log.id}
             loading={loading}
-            loadingMessage="Loading activity logs..."
-            emptyMessage="No activity logs found. Try adjusting your filter criteria."
+            emptyState={
+              <div className="text-center py-8">
+                <Body color="secondary">
+                  No activity logs found. Try adjusting your filter criteria.
+                </Body>
+              </div>
+            }
             columns={[
               {
+                key: 'action',
                 header: 'Action',
-                accessor: (log) => (
+                render: (value, log) => (
                   <Badge
-                    variant="secondary"
-                    className={getActionBadgeColor(log.action)}
+                    variant="solid"
+                    colorScheme={getActionBadgeColor(log.action)}
+                    size="sm"
                   >
                     {log.action}
                   </Badge>
                 ),
               },
               {
+                key: 'entity_type',
                 header: 'Entity',
-                accessor: (log) => (
-                  <span className="text-muted-foreground">{log.entity_type}</span>
+                render: (value) => (
+                  <Small color="secondary">{value}</Small>
                 ),
               },
               {
+                key: 'user_id',
                 header: 'User',
-                accessor: (log) => (
+                render: (value, log) => (
                   log.user ? (
-                    <div className="text-sm">
-                      <div className="font-medium text-foreground">{log.user.name}</div>
-                      <div className="text-muted-foreground text-xs mt-1">
+                    <div className="space-y-1">
+                      <div className="font-bold text-foreground">
+                        {log.user.name}
+                      </div>
+                      <Small color="secondary">
                         {log.user.email} • {log.user.role}
-                      </div>
+                      </Small>
                     </div>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <Small color="secondary">—</Small>
                   )
                 ),
               },
               {
+                key: 'lead_id',
                 header: 'Lead',
-                accessor: (log) => (
+                render: (value, log) => (
                   log.lead ? (
-                    <div className="text-sm">
-                      <div className="font-medium text-foreground">{log.lead.customer_name}</div>
-                      <div className="text-muted-foreground text-xs mt-1">
-                        {log.lead.phone}
+                    <div className="space-y-1">
+                      <div className="font-bold text-foreground">
+                        {log.lead.customer_name}
                       </div>
+                      <Small color="secondary">
+                        {log.lead.phone}
+                      </Small>
                     </div>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <Small color="secondary">—</Small>
                   )
                 ),
               },
               {
+                key: 'timestamp',
                 header: 'Timestamp',
-                accessor: (log) => (
-                  <span className="text-muted-foreground text-sm">
+                render: (value, log) => (
+                  <Small color="secondary">
                     {log.timestamp
                       ? format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss')
                       : 'N/A'}
-                  </span>
+                  </Small>
                 ),
               },
               {
+                key: 'entity_id',
                 header: 'Details',
-                accessor: (log) => (
-                  <div className="space-y-2">
+                render: (value, log) => (
+                  <div className="flex flex-col gap-2">
                     {log.entity_id && (
-                      <div className="text-xs">
-                        <code className="bg-muted px-1 rounded">
-                          {log.entity_id}
-                        </code>
-                      </div>
+                      <code className="bg-muted px-2 py-1 rounded text-xs">
+                        {log.entity_id}
+                      </code>
                     )}
                     {(log.old_value || log.new_value) && (
                       <details className="text-xs">
@@ -320,7 +333,7 @@ export function ActivityLogList() {
                         <div className="mt-2 space-y-2">
                           {log.old_value && (
                             <div>
-                              <div className="font-medium mb-1">Old Value:</div>
+                              <div className="font-bold mb-1">Old Value:</div>
                               <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
                                 {JSON.stringify(log.old_value, null, 2)}
                               </pre>
@@ -328,7 +341,7 @@ export function ActivityLogList() {
                           )}
                           {log.new_value && (
                             <div>
-                              <div className="font-medium mb-1">New Value:</div>
+                              <div className="font-bold mb-1">New Value:</div>
                               <pre className="p-2 bg-muted rounded text-xs overflow-x-auto">
                                 {JSON.stringify(log.new_value, null, 2)}
                               </pre>
@@ -342,7 +355,6 @@ export function ActivityLogList() {
               },
             ]}
           />
-        </CardContent>
       </Card>
     </div>
   );

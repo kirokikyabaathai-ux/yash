@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { LoadingButton } from '@/components/ui/loading-button';
+import { FormField } from '@/components/ui/molecules/FormField';
 
 interface CustomerProfileFormProps {
   onSubmit: (data: CustomerProfileFormData) => Promise<void>;
@@ -93,16 +94,21 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             const { documents } = await docsResponse.json();
             console.log('Loaded documents:', documents);
             const docsMap: Record<string, { url: string; name: string; id: string }> = {};
-            documents.forEach((doc: any) => {
-              // Skip profile document as it's not a file upload
-              if (doc.document_category === 'profile') return;
-              
-              docsMap[doc.document_category] = {
-                url: doc.public_url || doc.file_path,
-                name: doc.file_name,
-                id: doc.id,
-              };
-            });
+            
+            // Check if documents is an array before calling forEach
+            if (Array.isArray(documents)) {
+              documents.forEach((doc: any) => {
+                // Skip profile document as it's not a file upload
+                if (doc.document_category === 'profile') return;
+                
+                docsMap[doc.document_category] = {
+                  url: doc.public_url || doc.file_path,
+                  name: doc.file_name,
+                  id: doc.id,
+                };
+              });
+            }
+            
             console.log('Documents map:', docsMap);
             setUploadedDocuments(docsMap);
           }
@@ -389,12 +395,9 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
 
       {/* Personal Information */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+        <h3 className="text-lg font-semibold text-[var(--penpot-neutral-dark)]">Personal Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Name <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Name" required error={errors.name}>
             <Input
               type="text"
               id="name"
@@ -402,14 +405,12 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               value={formData.name}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={errors.name ? 'border-destructive' : ''}
-              aria-invalid={!!errors.name}
+              state={errors.name ? 'error' : 'default'}
             />
-            {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
-          </div>
+          </FormField>
 
           <div>
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="gender" className="block text-sm font-bold text-[var(--penpot-neutral-dark)] mb-2">
               Gender
             </label>
             <Select
@@ -432,12 +433,9 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
 
       {/* Address Information */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Address Information</h3>
+        <h3 className="text-lg font-semibold text-[var(--penpot-neutral-dark)]">Address Information</h3>
         <div className="grid grid-cols-1 gap-6">
-          <div>
-            <label htmlFor="address_line_1" className="block text-sm font-medium text-gray-700">
-              Address Line 1 <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Address Line 1" required error={errors.address_line_1}>
             <Input
               type="text"
               id="address_line_1"
@@ -445,18 +443,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               value={formData.address_line_1}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={errors.address_line_1 ? 'border-destructive' : ''}
-              aria-invalid={!!errors.address_line_1}
+              state={errors.address_line_1 ? 'error' : 'default'}
             />
-            {errors.address_line_1 && (
-              <p className="mt-1 text-sm text-destructive">{errors.address_line_1}</p>
-            )}
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="address_line_2" className="block text-sm font-medium text-gray-700">
-              Address Line 2
-            </label>
+          <FormField label="Address Line 2">
             <Input
               type="text"
               id="address_line_2"
@@ -465,13 +456,10 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label htmlFor="pin_code" className="block text-sm font-medium text-gray-700">
-                Pin Code <span className="text-red-500">*</span>
-              </label>
+            <FormField label="Pin Code" required error={errors.pin_code}>
               <Input
                 type="text"
                 inputMode="numeric"
@@ -482,16 +470,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                 disabled={isLoading || isSubmitted}
                 maxLength={6}
                 placeholder="123456"
-                className={errors.pin_code ? 'border-destructive' : ''}
-                aria-invalid={!!errors.pin_code}
+                state={errors.pin_code ? 'error' : 'default'}
               />
-              {errors.pin_code && <p className="mt-1 text-sm text-destructive">{errors.pin_code}</p>}
-            </div>
+            </FormField>
 
-            <div>
-              <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                State <span className="text-red-500">*</span>
-              </label>
+            <FormField label="State" required error={errors.state}>
               <Input
                 type="text"
                 id="state"
@@ -499,16 +482,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                 value={formData.state}
                 onChange={handleChange}
                 disabled={isLoading || isSubmitted}
-                className={errors.state ? 'border-destructive' : ''}
-                aria-invalid={!!errors.state}
+                state={errors.state ? 'error' : 'default'}
               />
-              {errors.state && <p className="mt-1 text-sm text-destructive">{errors.state}</p>}
-            </div>
+            </FormField>
 
-            <div>
-              <label htmlFor="district" className="block text-sm font-medium text-gray-700">
-                District <span className="text-red-500">*</span>
-              </label>
+            <FormField label="District" required error={errors.district}>
               <Input
                 type="text"
                 id="district"
@@ -516,23 +494,18 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                 value={formData.district}
                 onChange={handleChange}
                 disabled={isLoading || isSubmitted}
-                className={errors.district ? 'border-destructive' : ''}
-                aria-invalid={!!errors.district}
+                state={errors.district ? 'error' : 'default'}
               />
-              {errors.district && <p className="mt-1 text-sm text-destructive">{errors.district}</p>}
-            </div>
+            </FormField>
           </div>
         </div>
       </div>
 
       {/* Bank Account Details */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Bank Account Details</h3>
+        <h3 className="text-lg font-semibold text-[var(--penpot-neutral-dark)]">Bank Account Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="account_holder_name" className="block text-sm font-medium text-gray-700">
-              Account Holder Name <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Account Holder Name" required error={errors.account_holder_name}>
             <Input
               type="text"
               id="account_holder_name"
@@ -540,18 +513,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               value={formData.account_holder_name}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={errors.account_holder_name ? 'border-destructive' : ''}
-              aria-invalid={!!errors.account_holder_name}
+              state={errors.account_holder_name ? 'error' : 'default'}
             />
-            {errors.account_holder_name && (
-              <p className="mt-1 text-sm text-destructive">{errors.account_holder_name}</p>
-            )}
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="bank_account_number" className="block text-sm font-medium text-gray-700">
-              Bank Account Number <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Bank Account Number" required error={errors.bank_account_number}>
             <Input
               type="text"
               inputMode="numeric"
@@ -560,18 +526,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               value={formData.bank_account_number}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={errors.bank_account_number ? 'border-destructive' : ''}
-              aria-invalid={!!errors.bank_account_number}
+              state={errors.bank_account_number ? 'error' : 'default'}
             />
-            {errors.bank_account_number && (
-              <p className="mt-1 text-sm text-destructive">{errors.bank_account_number}</p>
-            )}
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="bank_name" className="block text-sm font-medium text-gray-700">
-              Bank Name <span className="text-red-500">*</span>
-            </label>
+          <FormField label="Bank Name" required error={errors.bank_name}>
             <Input
               type="text"
               id="bank_name"
@@ -579,16 +538,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               value={formData.bank_name}
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
-              className={errors.bank_name ? 'border-destructive' : ''}
-              aria-invalid={!!errors.bank_name}
+              state={errors.bank_name ? 'error' : 'default'}
             />
-            {errors.bank_name && <p className="mt-1 text-sm text-destructive">{errors.bank_name}</p>}
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="ifsc_code" className="block text-sm font-medium text-gray-700">
-              IFSC Code <span className="text-red-500">*</span>
-            </label>
+          <FormField label="IFSC Code" required error={errors.ifsc_code}>
             <Input
               type="text"
               id="ifsc_code"
@@ -598,17 +552,15 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               disabled={isLoading || isSubmitted}
               maxLength={11}
               placeholder="ABCD0123456"
-              className={errors.ifsc_code ? 'border-destructive' : ''}
-              aria-invalid={!!errors.ifsc_code}
+              state={errors.ifsc_code ? 'error' : 'default'}
             />
-            {errors.ifsc_code && <p className="mt-1 text-sm text-destructive">{errors.ifsc_code}</p>}
-          </div>
+          </FormField>
         </div>
       </div>
 
       {/* Document Upload */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Document Upload</h3>
+        <h3 className="text-lg font-semibold text-[var(--penpot-neutral-dark)]">Document Upload</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Helper function to render file input with progress */}
           {[

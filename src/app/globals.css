@@ -37,12 +37,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
   --font-serif: 'Source Serif 4', 'Geist', 'Geist Fallback', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --radius: 0rem;
+  --radius: 0.5rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
@@ -67,7 +67,48 @@
 }
 
 :root {
-  --radius: 0rem;
+  /* Penpot Design System Colors */
+  --penpot-primary: #5E81F4;
+  --penpot-primary-light: #9698D6;
+  --penpot-primary-dark: #4D4CAC;
+  --penpot-success: #7CE7AC;
+  --penpot-warning: #F4BE5E;
+  --penpot-error: #FF808B;
+  --penpot-info: #40E1FA;
+  --penpot-info-light: #2CE5F6;
+  --penpot-neutral-dark: #1C1D21;
+  --penpot-neutral-secondary: #8181A5;
+  --penpot-bg-white: #FFFFFF;
+  --penpot-bg-gray-50: #F6F6F6;
+  --penpot-bg-gray-100: #F5F5FA;
+  --penpot-bg-gray-200: #F0F0F3;
+  --penpot-border-light: #ECECF2;
+  
+  /* Penpot Spacing Tokens */
+  --penpot-spacing-1: 4px;
+  --penpot-spacing-2: 8px;
+  --penpot-spacing-3: 12px;
+  --penpot-spacing-4: 16px;
+  --penpot-spacing-5: 20px;
+  --penpot-spacing-6: 24px;
+  --penpot-spacing-8: 32px;
+  --penpot-spacing-10: 40px;
+  --penpot-spacing-12: 48px;
+  --penpot-spacing-16: 64px;
+  
+  /* Penpot Border Radius Tokens */
+  --penpot-radius-sm: 4px;
+  --penpot-radius-md: 8px;
+  --penpot-radius-lg: 12px;
+  --penpot-radius-full: 9999px;
+  
+  /* Penpot Shadow Tokens */
+  --penpot-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --penpot-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --penpot-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --penpot-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+  
+  --radius: 0.5rem;
   --background: oklch(0.97 0.02 225.66);
   --foreground: oklch(0.15 0.02 269.18);
   --card: oklch(0.98 0.01 228.79);
@@ -153,7 +194,7 @@
   --sidebar-border: oklch(0.90 0.01 238.47 / 15%);
   --sidebar-ring: oklch(0.66 0.13 227.15);
   --destructive-foreground: oklch(1.0000 0 0);
-  --radius: 0rem;
+  --radius: 0.5rem;
   --font-sans: 'Source Code Pro', 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-serif: 'Source Serif 4', 'Geist', 'Geist Fallback', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: 'Source Code Pro', 'Geist Mono', 'Geist Mono Fallback', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;

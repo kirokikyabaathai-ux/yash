@@ -65,7 +65,7 @@ export function LandingPage() {
               {session?.user ? (
                 <Button 
                   size="lg"
-                  className="flex-1 sm:flex-none text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
+                  className="flex-1 sm:flex-none font-semibold shadow-md hover:shadow-lg transition-shadow"
                   onClick={goToDashboard}
                 >
                   Go to Dashboard
@@ -73,15 +73,16 @@ export function LandingPage() {
               ) : (
                 <>
                   <Button 
-                    variant="outline" 
+                    variant="outline"
+                    size="lg"
                     onClick={() => openAuthModal('login')} 
-                    className="flex-1 sm:flex-none text-sm sm:text-base font-medium"
+                    className="flex-1 sm:flex-none font-medium"
                   >
                     Login
                   </Button>
                   <Button 
                     size="lg"
-                    className="flex-1 sm:flex-none text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-shadow"
+                    className="flex-1 sm:flex-none font-semibold shadow-md hover:shadow-lg transition-shadow"
                     onClick={() => openAuthModal('signup')}
                   >
                     Sign Up

@@ -201,11 +201,11 @@ export function LeadDetailClient({
             <CardContent className="space-y-2">
               {/* Edit Lead Button - For agents editing their own leads */}
               {userRole === 'agent' && (
-                <Button asChild className="w-full">
-                  <Link href={`/agent/leads/${lead.id}/edit`}>
+                <Link href={`/agent/leads/${lead.id}/edit`} className="w-full">
+                  <Button className="w-full">
                     Edit Lead
-                  </Link>
-                </Button>
+                  </Button>
+                </Link>
               )}
 
               {/* Mark as Interested Button */}
@@ -239,18 +239,18 @@ export function LeadDetailClient({
                 </Button>
               )}
               
-              <Button asChild variant="outline" className="w-full">
-                <a href={`tel:${lead.phone}`}>
+              <a href={`tel:${lead.phone}`} className="w-full block">
+                <Button variant="outline" className="w-full">
                   Call Customer
-                </a>
-              </Button>
+                </Button>
+              </a>
               
               {lead.email && (
-                <Button asChild variant="outline" className="w-full">
-                  <a href={`mailto:${lead.email}`}>
+                <a href={`mailto:${lead.email}`} className="w-full block">
+                  <Button variant="outline" className="w-full">
                     Email Customer
-                  </a>
-                </Button>
+                  </Button>
+                </a>
               )}
             </CardContent>
           </Card>
