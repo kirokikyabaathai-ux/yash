@@ -5,12 +5,17 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LeadForm } from '@/components/leads/LeadForm';
 import type { CreateLeadRequest } from '@/types/api';
+import { toast } from '@/lib/toast';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export function LeadFormWrapper() {
   const router = useRouter();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [createdLeadId, setCreatedLeadId] = useState<string>('');
 
   const handleSubmit = async (data: CreateLeadRequest | any) => {
     try {
@@ -28,21 +33,19 @@ export function LeadFormWrapper() {
       }
 
       const result = await response.json();
+      toast.success('Lead created successfully!');
       
-      // Ask user if they want to fill customer form now
-      const fillForm = confirm(
-        'Lead created successfully!\n\nWould you like to fill the customer profile form now?'
-      );
-      
-      if (fillForm) {
-        router.push(`/customer/profile/new?leadId=${result.id}`);
-      } else {
-        router.push(`/office/leads/${result.id}`);
-      }
+      // Show dialog to ask if user wants to fill customer form
+      setCreatedLeadId(result.id);
+      setShowConfirm(true);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to create lead');
+      toast.error(error instanceof Error ? error.message : 'Failed to create lead');
       throw error;
     }
+  };
+
+  const handleConfirmFillForm = () => {
+    router.push(`/customer/profile/new?leadId=${createdLeadId}`);
   };
 
   const handleCancel = () => {
@@ -50,10 +53,25 @@ export function LeadFormWrapper() {
   };
 
   return (
-    <LeadForm
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      defaultSource="office"
-    />
+    <>
+      <LeadForm
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+      />
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={(open) => {
+          setShowConfirm(open);
+          if (!open && createdLeadId) {
+            router.push(`/office/leads/${createdLeadId}`);
+          }
+        }}
+        title="Fill Customer Profile?"
+        description="Would you like to fill the customer profile form now?"
+        confirmText="Fill Form"
+        cancelText="Later"
+        onConfirm={handleConfirmFillForm}
+      />
+    </>
   );
 }

@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
         step_documents (
           id,
           document_category,
-          submission_type
+          submission_type,
+          process_type
         )
       `)
       .order('order_index', { ascending: true });
@@ -165,6 +166,7 @@ export async function POST(request: NextRequest) {
         step_id: newStep.id,
         document_category: doc.document_category,
         submission_type: doc.submission_type || 'file',
+        process_type: doc.process_type || 'submission',
       }));
 
       const { error: docsError } = await supabase
@@ -185,7 +187,8 @@ export async function POST(request: NextRequest) {
         step_documents (
           id,
           document_category,
-          submission_type
+          submission_type,
+          process_type
         )
       `)
       .eq('id', newStep.id)

@@ -23,6 +23,8 @@ import type { TimelineStepData } from '@/components/timeline/TimelineStep';
 import { getPolishedCardClasses, standardTransitions } from '@/lib/design-system/polish';
 import { dataDisplayClasses } from '@/lib/design-system/visual-hierarchy';
 import { cn } from '@/lib/utils';
+import { toast } from '@/lib/toast';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface LeadDetailClientProps {
   lead: Lead & {
@@ -47,6 +49,17 @@ export function LeadDetailClient({
   const [timelineSteps, setTimelineSteps] = useState<TimelineStepData[]>([]);
   const [isLoadingSteps, setIsLoadingSteps] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -213,26 +226,32 @@ export function LeadDetailClient({
                 <Button
                   variant="default"
                   className="w-full bg-green-600 hover:bg-green-700"
-                  onClick={async () => {
-                    if (confirm('Mark this lead as interested? This means the customer has agreed to proceed.')) {
-                      try {
-                        const response = await fetch(`/api/leads/${lead.id}/status`, {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            status: 'lead_interested',
-                            remarks: 'Customer agreed to proceed with solar installation',
-                          }),
-                        });
-                        if (response.ok) {
-                          handleStatusChange();
-                        } else {
-                          alert('Failed to update status');
+                  onClick={() => {
+                    setConfirmDialog({
+                      open: true,
+                      title: 'Mark as Interested',
+                      description: 'Mark this lead as interested? This means the customer has agreed to proceed with solar installation.',
+                      onConfirm: async () => {
+                        try {
+                          const response = await fetch(`/api/leads/${lead.id}/status`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              status: 'lead_interested',
+                              remarks: 'Customer agreed to proceed with solar installation',
+                            }),
+                          });
+                          if (response.ok) {
+                            handleStatusChange();
+                            toast.success('Lead marked as interested');
+                          } else {
+                            toast.error('Failed to update status');
+                          }
+                        } catch (error) {
+                          toast.error('Error updating status');
                         }
-                      } catch (error) {
-                        alert('Error updating status');
-                      }
-                    }
+                      },
+                    });
                   }}
                 >
                   Mark as Interested
@@ -313,6 +332,15 @@ export function LeadDetailClient({
           />
         )}
       </div>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+      />
     </PageLayout>
   );
 }

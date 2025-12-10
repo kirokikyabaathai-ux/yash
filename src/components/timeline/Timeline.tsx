@@ -13,6 +13,7 @@ import { type TimelineStepData } from './TimelineStep';
 import { StepCompletionModal } from './StepCompletionModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface TimelineProps {
   leadId: string;
@@ -29,6 +30,17 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completingStep, setCompletingStep] = useState<TimelineStepData | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
   const timelineContainerRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   
@@ -135,41 +147,46 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
     }
   };
 
-  const handleReopen = async (stepId: string) => {
-    if (!window.confirm('Are you sure you want to reopen this step?')) {
-      return;
-    }
+  const handleHaltSubmit = async (data: { remarks?: string }) => {
+    if (!completingStep) return;
 
     try {
       setIsActionLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/leads/${leadId}/steps/${stepId}/reopen`, {
+      const response = await fetch(`/api/leads/${leadId}/steps/${completingStep.id}/halt`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to reopen step');
+        throw new Error(errorData.error?.message || 'Failed to halt step');
       }
 
-      // Update the local state with the reopened step
+      const result = await response.json();
+
+      // Update the local state with the halted step
       setSteps((prevSteps) =>
         prevSteps.map((step) =>
-          step.id === stepId
+          step.id === completingStep.id
             ? {
                 ...step,
-                status: 'pending' as const,
-                completed_by: null,
-                completed_by_name: null,
-                completed_at: null,
-                remarks: null,
-                attachments: null,
+                status: 'halted' as const,
+                completed_by: userId,
+                completed_by_name: result.data?.completed_by_name || null,
+                completed_at: result.data?.completed_at || new Date().toISOString(),
+                remarks: data.remarks || null,
               }
             : step
         )
       );
 
+      setCompletingStep(null);
+      
       if (onStepComplete) {
         onStepComplete();
       }
@@ -178,6 +195,104 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
     } finally {
       setIsActionLoading(false);
     }
+  };
+
+  const handleSkipSubmit = async (data: { remarks?: string }) => {
+    if (!completingStep) return;
+
+    try {
+      setIsActionLoading(true);
+      setError(null);
+
+      const response = await fetch(`/api/leads/${leadId}/steps/${completingStep.id}/skip`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to skip step');
+      }
+
+      const result = await response.json();
+
+      // Update the local state with the skipped step
+      setSteps((prevSteps) =>
+        prevSteps.map((step) =>
+          step.id === completingStep.id
+            ? {
+                ...step,
+                status: 'skipped' as const,
+                completed_by: userId,
+                completed_by_name: result.data?.completed_by_name || null,
+                completed_at: result.data?.completed_at || new Date().toISOString(),
+                remarks: data.remarks || null,
+              }
+            : step
+        )
+      );
+
+      setCompletingStep(null);
+      
+      if (onStepComplete) {
+        onStepComplete();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleReopen = (stepId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Reopen Step',
+      description: 'Are you sure you want to reopen this step? This will allow it to be completed again.',
+      onConfirm: async () => {
+        try {
+          setIsActionLoading(true);
+          setError(null);
+
+          const response = await fetch(`/api/leads/${leadId}/steps/${stepId}/reopen`, {
+            method: 'POST',
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Failed to reopen step');
+          }
+
+          // Update the local state with the reopened step
+          setSteps((prevSteps) =>
+            prevSteps.map((step) =>
+              step.id === stepId
+                ? {
+                    ...step,
+                    status: 'pending' as const,
+                    completed_by: null,
+                    completed_by_name: null,
+                    completed_at: null,
+                    remarks: null,
+                    attachments: null,
+                  }
+                : step
+            )
+          );
+
+          if (onStepComplete) {
+            onStepComplete();
+          }
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
   if (error) {
@@ -226,7 +341,10 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
   }
 
   const getStatusColor = (status: string) => {
-    return status === 'completed' ? 'bg-green-500 dark:bg-green-600' : 'bg-muted';
+    if (status === 'completed') return 'bg-green-500 dark:bg-green-600';
+    if (status === 'halted') return 'bg-red-500 dark:bg-red-600';
+    if (status === 'skipped') return 'bg-orange-500 dark:bg-orange-600';
+    return 'bg-muted';
   };
 
   const formatDate = (dateString: string) => {
@@ -272,11 +390,12 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
               if (nextStepIndex === -1) return null;
               
               const nextStep = steps[nextStepIndex];
-              const allPreviousCompleted = steps
+              // Allow completion if all previous steps are completed OR skipped
+              const allPreviousCompletedOrSkipped = steps
                 .slice(0, nextStepIndex)
-                .every((s) => s.status === 'completed');
+                .every((s) => s.status === 'completed' || s.status === 'skipped');
               
-              if (!allPreviousCompleted) return null;
+              if (!allPreviousCompletedOrSkipped) return null;
               if (!canEditStep(nextStep)) return null;
               if (isProjectClosed && !canModifyClosedProject) return null;
 
@@ -299,8 +418,14 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
       <Card>
         <CardContent className="pt-6">
           <div ref={timelineContainerRef} className="overflow-x-auto pb-4">
-            <div className="relative flex items-start justify-between min-w-max">
-              {steps.map((step, index) => (
+            <div className="relative flex items-start justify-between min-w-max px-1 py-2">
+              {steps.map((step, index) => {
+                // Hide skipped steps from customers
+                if (step.status === 'skipped' && userRole === 'customer') {
+                  return null;
+                }
+                
+                return (
               <React.Fragment key={step.id}>
                 <div 
                   ref={(el) => {
@@ -310,14 +435,14 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
                       stepRefs.current.delete(step.id);
                     }
                   }}
-                  className="flex flex-col items-center relative z-10 flex-shrink-0 group"
+                  className="flex flex-col items-center justify-center relative z-10 flex-shrink-0 group"
                 >
                   <div
                     className={`w-6 h-6 rounded-full ${getStatusColor(
                       step.status
                     )} flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg cursor-pointer ${
                       step.status === 'pending' && 
-                      steps.slice(0, index).every((s) => s.status === 'completed')
+                      steps.slice(0, index).every((s) => s.status === 'completed' || s.status === 'skipped')
                         ? 'animate-pulse ring-2 ring-primary ring-offset-2'
                         : ''
                     }`}
@@ -327,12 +452,68 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     )}
+                    {step.status === 'halted' && (
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                    {step.status === 'skipped' && (
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                      </svg>
+                    )}
                   </div>
 
                   <div className="mt-4 text-center w-32 min-h-[80px] transition-transform duration-200 group-hover:scale-105">
                     <div className="font-medium text-sm text-foreground mb-1">
                       {step.step_name}
                     </div>
+                    
+                    {/* Status Badge with Edit Icon for Admin (Completed/Halted/Skipped) */}
+                    {userRole === 'admin' && (step.status === 'completed' || step.status === 'halted' || step.status === 'skipped') && (
+                      <div 
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 mb-1"
+                        style={{
+                          backgroundColor: step.status === 'completed' 
+                            ? '#dcfce7' 
+                            : step.status === 'halted' 
+                            ? '#fee2e2' 
+                            : '#fed7aa',
+                          color: step.status === 'completed' 
+                            ? '#166534' 
+                            : step.status === 'halted' 
+                            ? '#991b1b' 
+                            : '#9a3412'
+                        }}
+                        onClick={() => handleReopen(step.id)}
+                        title="Click to reopen this step"
+                      >
+                        <span className="capitalize">{step.status}</span>
+                        <svg 
+                          className="w-3 h-3" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </div>
+                    )}
+                    
+                    {/* In Progress Badge for Current Pending Step */}
+                    {step.status === 'pending' && 
+                     steps.slice(0, index).every((s) => s.status === 'completed' || s.status === 'skipped') && (
+                      <div 
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mb-1"
+                        style={{
+                          backgroundColor: '#dbeafe',
+                          color: '#1e40af'
+                        }}
+                      >
+                        <span>In Progress</span>
+                      </div>
+                    )}
+                    
                     {step.completed_at && (
                       <div className="text-xs text-muted-foreground">
                         {formatDate(step.completed_at)}
@@ -351,12 +532,17 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
                     className={`flex-1 h-1 relative z-0 mt-3 transition-colors duration-300 ${
                       step.status === 'completed'
                         ? 'bg-green-500 dark:bg-green-600'
+                        : step.status === 'halted'
+                        ? 'bg-red-500 dark:bg-red-600'
+                        : step.status === 'skipped'
+                        ? 'bg-orange-500 dark:bg-orange-600'
                         : 'bg-muted'
                     }`}
                   />
                 )}
               </React.Fragment>
-              ))}
+                );
+              })}
             </div>
           </div>
         </CardContent>
@@ -371,7 +557,17 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
             <div>
               <p className="text-sm font-medium text-muted-foreground">Overall Progress</p>
               <p className="text-2xl font-bold text-foreground">
-                {steps.filter((s) => s.status === 'completed').length} / {steps.length} Steps
+                {steps.filter((s) => s.status === 'completed').length} / {userRole === 'customer' ? steps.filter((s) => s.status !== 'skipped').length : steps.length} Steps
+                {userRole !== 'customer' && steps.filter((s) => s.status === 'skipped').length > 0 && (
+                  <span className="text-sm text-orange-600 dark:text-orange-400 ml-2">
+                    ({steps.filter((s) => s.status === 'skipped').length} skipped)
+                  </span>
+                )}
+                {steps.filter((s) => s.status === 'halted').length > 0 && (
+                  <span className="text-sm text-red-600 dark:text-red-400 ml-2">
+                    ({steps.filter((s) => s.status === 'halted').length} halted)
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex-1 sm:ml-8">
@@ -395,11 +591,23 @@ export function Timeline({ leadId, userRole, userId, leadStatus, leadInstallerId
           isOpen={true}
           onClose={() => setCompletingStep(null)}
           onSubmit={handleCompleteSubmit}
+          onHalt={userRole === 'admin' ? handleHaltSubmit : undefined}
+          onSkip={userRole === 'admin' ? handleSkipSubmit : undefined}
           isLoading={isActionLoading}
           leadInstallerId={leadInstallerId}
           leadId={leadId}
+          userRole={userRole}
         />
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+      />
     </div>
   );
 }

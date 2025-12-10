@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PPAForm from '@/components/forms/PPAForm';
 import type { PPAData } from '@/types/ppa';
+import { toast } from '@/lib/toast';
 
 interface PPAFormWrapperProps {
   leadId: string;
@@ -35,11 +36,11 @@ export function PPAFormWrapper({ leadId }: PPAFormWrapperProps) {
         throw new Error(error.message || 'Failed to save PPA');
       }
       
-      alert('PPA saved successfully!');
+      toast.success('PPA saved successfully!');
       router.back();
     } catch (error) {
       console.error('Error creating PPA:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create PPA');
+      toast.error(error instanceof Error ? error.message : 'Failed to create PPA');
     } finally {
       setIsLoading(false);
     }

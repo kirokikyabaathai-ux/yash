@@ -10,7 +10,6 @@
 
 import { useState } from 'react';
 import type { Lead, CreateLeadRequest, UpdateLeadRequest } from '@/types/api';
-import type { LeadSource } from '@/types/database';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -29,17 +28,15 @@ interface LeadFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   hideSource?: boolean;
-  defaultSource?: LeadSource;
 }
 
-export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSource = false, defaultSource = 'agent' }: LeadFormProps) {
+export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSource = false }: LeadFormProps) {
   const [formData, setFormData] = useState({
     customer_name: lead?.customer_name || '',
     phone: lead?.phone || '',
     email: lead?.email || '',
     address: lead?.address || '',
-    notes: lead?.notes || '',
-    source: (lead?.source || defaultSource) as LeadSource,
+    notes: lead?.notes || ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -81,8 +78,7 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSour
       phone: formData.phone,
       email: formData.email || undefined,
       address: formData.address,
-      notes: formData.notes || undefined,
-      ...(!lead && { source: formData.source }),
+      notes: formData.notes || undefined
     };
 
     await onSubmit(submitData);
@@ -164,29 +160,7 @@ export function LeadForm({ lead, onSubmit, onCancel, isLoading = false, hideSour
         </FormField>
 
         {/* Source (only for new leads and when not hidden) */}
-        {!lead && !hideSource && (
-          <FormField
-            label="Source"
-            required
-            htmlFor="source"
-          >
-            <Select
-              value={formData.source}
-              onValueChange={(value) => handleChange({ target: { name: 'source', value } } as any)}
-              disabled={isLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="agent">Agent</SelectItem>
-                <SelectItem value="office">Office</SelectItem>
-                <SelectItem value="customer">Customer</SelectItem>
-                <SelectItem value="self">Self</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
-        )}
+  
       </div>
 
       {/* Address */}

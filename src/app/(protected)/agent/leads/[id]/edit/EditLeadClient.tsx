@@ -11,6 +11,7 @@ import { LeadForm } from '@/components/leads/LeadForm';
 import type { Lead, UpdateLeadRequest } from '@/types/api';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { Card } from '@/components/ui/organisms/Card';
+import { toast } from '@/lib/toast';
 
 interface EditLeadClientProps {
   lead: Lead;
@@ -38,7 +39,7 @@ export function EditLeadClient({ lead, leadId }: EditLeadClientProps) {
       router.refresh();
     } catch (error) {
       console.error('Error updating lead:', error);
-      alert('Failed to update lead. Please try again.');
+      toast.error('Failed to update lead. Please try again.');
     } finally {
       setIsLoading(false);
     }

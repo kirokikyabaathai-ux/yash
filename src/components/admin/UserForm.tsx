@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/lib/toast';
 
 type User = Database['public']['Tables']['users']['Row'];
 type UserRole = Database['public']['Tables']['users']['Row']['role'];
@@ -167,7 +168,7 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   const copyToClipboard = () => {
     if (formData.password) {
       navigator.clipboard.writeText(formData.password);
-      alert('Password copied to clipboard!');
+      toast.success('Password copied to clipboard!');
     }
   };
 

@@ -15,6 +15,7 @@ import type { StepMaster } from './StepMasterForm';
 import { Badge } from '@/components/ui/atoms';
 import { Button } from '@/components/ui/button';
 import { H3, Body, Small } from '@/components/ui/atoms';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface StepMasterListProps {
   steps: StepMaster[];
@@ -33,6 +34,17 @@ export function StepMasterList({
 }: StepMasterListProps) {
   const [localSteps, setLocalSteps] = useState<StepMaster[]>(steps);
   const [hasChanges, setHasChanges] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   // Update local steps when props change (only if no pending changes)
   React.useEffect(() => {
@@ -58,13 +70,14 @@ export function StepMasterList({
   };
 
   const handleDeleteClick = (step: StepMaster) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${step.step_name}"? This will affect all leads using this step.`
-      )
-    ) {
-      onDelete(step.id);
-    }
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Step',
+      description: `Are you sure you want to delete "${step.step_name}"? This will affect all leads using this step.`,
+      onConfirm: () => {
+        onDelete(step.id);
+      },
+    });
   };
 
   if (localSteps.length === 0) {
@@ -282,6 +295,16 @@ export function StepMasterList({
           they appear in the timeline for all leads.
         </Small>
       </div>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        variant="destructive"
+      />
     </div>
   );
 }

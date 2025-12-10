@@ -84,7 +84,8 @@ export async function GET(
           step_documents (
             id,
             document_category,
-            submission_type
+            submission_type,
+            process_type
           )
         )
       `)

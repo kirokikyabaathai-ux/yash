@@ -116,9 +116,8 @@ export async function POST(request: NextRequest) {
       errors.push({ field: 'address', message: 'Address is required' });
     }
 
-    if (!body.source) {
-      errors.push({ field: 'source', message: 'Source is required' });
-    }
+   body.source =  session.user.role
+   
 
     if (errors.length > 0) {
       return NextResponse.json(

@@ -6,7 +6,7 @@
  * 
  * Requirements: 9.1, 9.2, 9.3, 9.5
  */
-
+"use server"
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';

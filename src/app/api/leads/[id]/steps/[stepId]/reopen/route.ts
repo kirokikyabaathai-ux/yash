@@ -1,7 +1,7 @@
 /**
  * Reopen Step API Route
  * 
- * POST /api/leads/[id]/steps/[stepId]/reopen - Reopen a completed timeline step
+ * POST /api/leads/[id]/steps/[stepId]/reopen - Reopen a completed, halted, or skipped timeline step
  * 
  * Requirements: 7.1, 7.2
  */
@@ -93,13 +93,13 @@ export async function POST(
       );
     }
 
-    // Check if step is completed
-    if (leadStep.status !== 'completed') {
+    // Check if step is completed, halted, or skipped
+    if (leadStep.status !== 'completed' && leadStep.status !== 'halted' && leadStep.status !== 'skipped') {
       return NextResponse.json(
         {
           error: {
             code: 'INVALID_STATUS',
-            message: 'Only completed steps can be reopened',
+            message: 'Only completed, halted, or skipped steps can be reopened',
           },
         },
         { status: 400 }

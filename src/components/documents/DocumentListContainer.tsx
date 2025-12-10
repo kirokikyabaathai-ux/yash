@@ -9,6 +9,8 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { DocumentList } from './DocumentList';
 import { Database } from '@/types/database';
+import { toast } from '@/lib/toast';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 type Document = Database['public']['Tables']['documents']['Row'];
 
@@ -20,6 +22,17 @@ interface DocumentListContainerProps {
 export function DocumentListContainer({ leadId, userRole }: DocumentListContainerProps) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
   const supabase = createClient();
 
   const fetchDocuments = async () => {
@@ -61,70 +74,88 @@ export function DocumentListContainer({ leadId, userRole }: DocumentListContaine
       }
     } catch (error) {
       console.error('Download error:', error);
-      alert('Failed to download document');
+      toast.error('Failed to download document');
     }
   };
 
-  const handleDelete = async (documentId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) {
-      return;
-    }
+  const handleDelete = (documentId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Document',
+      description: 'Are you sure you want to delete this document? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          const doc = documents.find(d => d.id === documentId);
+          if (!doc) return;
 
-    try {
-      const doc = documents.find(d => d.id === documentId);
-      if (!doc) return;
+          // Delete from storage
+          const { error: storageError } = await supabase
+            .storage
+            .from('solar-projects')
+            .remove([doc.file_path]);
 
-      // Delete from storage
-      const { error: storageError } = await supabase
-        .storage
-        .from('solar-projects')
-        .remove([doc.file_path]);
+          if (storageError) throw storageError;
 
-      if (storageError) throw storageError;
+          // Delete from database
+          const { error: dbError } = await supabase
+            .from('documents')
+            .delete()
+            .eq('id', documentId);
 
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', documentId);
+          if (dbError) throw dbError;
 
-      if (dbError) throw dbError;
-
-      fetchDocuments();
-    } catch (error) {
-      console.error('Delete error:', error);
-      alert('Failed to delete document');
-    }
+          fetchDocuments();
+          toast.success('Document deleted successfully');
+        } catch (error) {
+          console.error('Delete error:', error);
+          toast.error('Failed to delete document');
+        }
+      },
+    });
   };
 
-  const handleMarkCorrupted = async (documentId: string) => {
-    if (!confirm('Mark this document as corrupted?')) {
-      return;
-    }
+  const handleMarkCorrupted = (documentId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Mark as Corrupted',
+      description: 'Mark this document as corrupted? This will flag it for re-upload.',
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase
+            .from('documents')
+            .update({ status: 'corrupted' })
+            .eq('id', documentId);
 
-    try {
-      const { error } = await supabase
-        .from('documents')
-        .update({ status: 'corrupted' })
-        .eq('id', documentId);
+          if (error) throw error;
 
-      if (error) throw error;
-
-      fetchDocuments();
-    } catch (error) {
-      console.error('Mark corrupted error:', error);
-      alert('Failed to mark document as corrupted');
-    }
+          fetchDocuments();
+          toast.success('Document marked as corrupted');
+        } catch (error) {
+          console.error('Mark corrupted error:', error);
+          toast.error('Failed to mark document as corrupted');
+        }
+      },
+    });
   };
 
   return (
-    <DocumentList
-      documents={documents}
-      canManage={canManage}
-      isLoading={loading}
-      onDownload={handleDownload}
-      onDelete={handleDelete}
-      onMarkCorrupted={handleMarkCorrupted}
-    />
+    <>
+      <DocumentList
+        documents={documents}
+        canManage={canManage}
+        isLoading={loading}
+        onDownload={handleDownload}
+        onDelete={handleDelete}
+        onMarkCorrupted={handleMarkCorrupted}
+      />
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        variant="destructive"
+      />
+    </>
   );
 }

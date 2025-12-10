@@ -10,6 +10,7 @@ import { CustomerProfileForm } from '@/components/customers/CustomerProfileForm'
 import type { CustomerProfileFormData } from '@/types/customer';
 import type { Lead } from '@/types/api';
 import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
+import { toast } from '@/lib/toast';
 
 interface CustomerProfileFormWrapperProps {
   leadData?: Lead | null;
@@ -117,7 +118,7 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
         throw new Error(error.message || 'Failed to save customer profile');
       }
       
-      alert('Customer profile saved successfully!');
+      toast.success('Customer profile saved successfully!');
       
       // Get session and redirect to role-based dashboard
       const sessionResponse = await fetch('/api/auth/session');
@@ -128,7 +129,7 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
       router.refresh();
     } catch (error) {
       console.error('Error creating customer profile:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create customer profile');
+      toast.error(error instanceof Error ? error.message : 'Failed to create customer profile');
     } finally {
       setIsLoading(false);
     }

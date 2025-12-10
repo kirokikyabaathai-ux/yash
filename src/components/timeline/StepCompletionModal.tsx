@@ -24,15 +24,20 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { TimelineStepData } from './TimelineStep';
 import { useRouter } from 'next/navigation';
+import { toast } from '@/lib/toast';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface StepCompletionModalProps {
   step: TimelineStepData;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: { remarks?: string; attachments?: string[] }) => Promise<void>;
+  onHalt?: (data: { remarks?: string }) => Promise<void>;
+  onSkip?: (data: { remarks?: string }) => Promise<void>;
   isLoading?: boolean;
   leadInstallerId?: string | null;
   leadId?: string;
+  userRole?: string;
 }
 
 interface DocumentStatus {
@@ -40,6 +45,7 @@ interface DocumentStatus {
   submitted: boolean;
   label: string;
   submission_type?: 'form' | 'file';
+  process_type?: 'submission' | 'verification';
   documentId?: string; // Cache the document ID
 }
 
@@ -48,14 +54,28 @@ export function StepCompletionModal({
   isOpen,
   onClose,
   onSubmit,
+  onHalt,
+  onSkip,
   isLoading = false,
   leadInstallerId,
   leadId,
+  userRole,
 }: StepCompletionModalProps) {
   const [remarks, setRemarks] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [documentStatuses, setDocumentStatuses] = useState<DocumentStatus[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
   const router = useRouter();
 
   // Fetch document statuses when modal opens
@@ -88,6 +108,7 @@ export function StepCompletionModal({
           submitted: docMap.has(doc.document_category),
           documentId: docMap.get(doc.document_category), // Cache the ID
           submission_type: doc.submission_type,
+          process_type: doc.process_type || 'submission',
           label: doc.document_category.split('_').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1)
           ).join(' '),
@@ -141,6 +162,46 @@ export function StepCompletionModal({
     setErrors({});
   };
 
+  const handleHalt = () => {
+    if (!onHalt) return;
+    
+    setConfirmDialog({
+      open: true,
+      title: 'Halt Step',
+      description: 'Are you sure you want to halt this step? This will mark it as halted and stop progress.',
+      onConfirm: async () => {
+        const data: { remarks?: string } = {};
+        if (remarks.trim()) {
+          data.remarks = remarks.trim();
+        }
+
+        await onHalt(data);
+        setRemarks('');
+        setErrors({});
+      },
+    });
+  };
+
+  const handleSkip = () => {
+    if (!onSkip) return;
+    
+    setConfirmDialog({
+      open: true,
+      title: 'Skip Step',
+      description: 'Are you sure you want to skip this step? This will mark it as skipped and move to the next step.',
+      onConfirm: async () => {
+        const data: { remarks?: string } = {};
+        if (remarks.trim()) {
+          data.remarks = remarks.trim();
+        }
+
+        await onSkip(data);
+        setRemarks('');
+        setErrors({});
+      },
+    });
+  };
+
   const handleOpenChange = (open: boolean) => {
     if (!open && !isLoading) {
       setRemarks('');
@@ -170,14 +231,14 @@ export function StepCompletionModal({
         break;
       case 'cash_memo':
         // TODO: Add cash memo form route
-        alert('Cash Memo form not yet implemented');
+        toast.warning('Cash Memo form not yet implemented');
         break;
       case 'vendor_agreement':
         // TODO: Add vendor agreement form route
-        alert('Vendor Agreement form not yet implemented');
+        toast.warning('Vendor Agreement form not yet implemented');
         break;
       default:
-        alert(`Form for ${category} not yet implemented`);
+        toast.warning(`Form for ${category} not yet implemented`);
     }
   };
 
@@ -187,7 +248,7 @@ export function StepCompletionModal({
     const documentId = docStatus?.documentId;
 
     if (!documentId) {
-      alert('No data found for ' + category);
+      toast.error('No data found for ' + category);
       return;
     }
 
@@ -207,14 +268,14 @@ export function StepCompletionModal({
           break;
         case 'cash_memo':
           // TODO: Add cash memo view route
-          alert('Cash Memo view not yet implemented');
+          toast.warning('Cash Memo view not yet implemented');
           break;
         case 'vendor_agreement':
           // TODO: Add vendor agreement view route
-          alert('Vendor Agreement view not yet implemented');
+          toast.warning('Vendor Agreement view not yet implemented');
           break;
         default:
-          alert(`View for ${category} not yet implemented`);
+          toast.warning(`View for ${category} not yet implemented`);
       }
   };
 
@@ -245,10 +306,10 @@ export function StepCompletionModal({
 
         // Refresh document statuses
         await fetchDocumentStatuses();
-        alert('File uploaded successfully');
+        toast.success('File uploaded successfully');
       } catch (error) {
         console.error('Error uploading file:', error);
-        alert('Failed to upload file');
+        toast.error('Failed to upload file');
       }
     };
     input.click();
@@ -260,7 +321,7 @@ export function StepCompletionModal({
     const documentId = docStatus?.documentId;
 
     if (!documentId) {
-      alert('No file found for ' + category);
+      toast.error('No file found for ' + category);
       return;
     }
 
@@ -273,39 +334,42 @@ export function StepCompletionModal({
       window.open(url, '_blank');
     } catch (error) {
       console.error('Error viewing file:', error);
-      alert('Failed to view file');
+      toast.error('Failed to view file');
     }
   };
 
-  const handleDeleteDocument = async (category: string) => {
+  const handleDeleteDocument = (category: string) => {
     // Get document ID from cached statuses
     const docStatus = documentStatuses.find(d => d.category === category);
     const documentId = docStatus?.documentId;
 
     if (!documentId) {
-      alert('Document not found for ' + category);
+      toast.error('Document not found for ' + category);
       return;
     }
     
-    if (!confirm(`Are you sure you want to delete this ${category}? This action cannot be undone.`)) {
-      return;
-    }
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Document',
+      description: `Are you sure you want to delete this ${category.replace(/_/g, ' ')}? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          // Delete document using the generic document endpoint
+          const deleteResponse = await fetch(`/api/documents/${documentId}`, {
+            method: 'DELETE',
+          });
 
-    try {
-      // Delete document using the generic document endpoint
-      const deleteResponse = await fetch(`/api/documents/${documentId}`, {
-        method: 'DELETE',
-      });
+          if (!deleteResponse.ok) throw new Error('Failed to delete document');
 
-      if (!deleteResponse.ok) throw new Error('Failed to delete document');
-
-      // Refresh document statuses
-      await fetchDocumentStatuses();
-      alert('Document deleted successfully');
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      alert('Failed to delete document');
-    }
+          // Refresh document statuses
+          await fetchDocumentStatuses();
+          toast.success('Document deleted successfully');
+        } catch (error) {
+          console.error('Error deleting document:', error);
+          toast.error('Failed to delete document');
+        }
+      },
+    });
   };
 
   return (
@@ -391,7 +455,6 @@ export function StepCompletionModal({
           {/* Required Documents */}
           {step.step_documents && step.step_documents.length > 0 && (
             <div className="space-y-2">
-              <Label>Required Documents</Label>
               <div className="rounded-md border border-border bg-muted/50 p-4">
                 {loadingDocs ? (
                   <div className="flex items-center justify-center py-4">
@@ -400,131 +463,98 @@ export function StepCompletionModal({
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      The following documents are required for this step:
-                    </p>
-                    <ul className="space-y-2">
+                    <div className="space-y-3">
                       {documentStatuses.map((docStatus) => (
-                        <li key={docStatus.category} className="flex items-center gap-2 text-sm">
-                          <div className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                        <div 
+                          key={docStatus.category} 
+                          className={`rounded-lg border p-3 transition-colors ${
                             docStatus.submitted 
-                              ? 'bg-green-100 dark:bg-green-900/30' 
-                              : 'bg-red-100 dark:bg-red-900/30'
-                          }`}>
-                            {docStatus.submitted ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                            )}
-                          </div>
-                          <div className="flex-1 flex items-center justify-between">
-                            <div>
-                              <span className={`font-medium ${
-                                docStatus.submitted 
-                                  ? 'text-foreground' 
-                                  : 'text-destructive'
-                              }`}>
-                                {docStatus.label}
-                              </span>
-                              <span className={`ml-2 text-xs ${
-                                docStatus.submitted 
-                                  ? 'text-green-600 dark:text-green-400' 
-                                  : 'text-red-600 dark:text-red-400'
-                              }`}>
-                                {docStatus.submitted ? '✓ Submitted' : '✗ Not submitted'}
-                              </span>
-                            </div>
-                            <div className="flex gap-2">
-                              {docStatus.submission_type === 'form' ? (
-                                // Form submission type
-                                !docStatus.submitted ? (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleFillForm(docStatus.category)}
-                                    disabled={isLoading}
-                                  >
-                                    Fill Form
-                                  </Button>
-                                ) : (
-                                  <>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleViewForm(docStatus.category)}
-                                      disabled={isLoading}
-                                    >
-                                      View
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleDeleteDocument(docStatus.category)}
-                                      disabled={isLoading}
-                                      className="text-destructive hover:text-destructive"
-                                    >
-                                      Delete
-                                    </Button>
-                                  </>
-                                )
+                              ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' 
+                              : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Status Icon */}
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${
+                              docStatus.submitted 
+                                ? 'bg-green-100 dark:bg-green-900/30' 
+                                : 'bg-red-100 dark:bg-red-900/30'
+                            }`}>
+                              {docStatus.submitted ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                               ) : (
-                                // File submission type
-                                !docStatus.submitted ? (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleUploadFile(docStatus.category)}
-                                    disabled={isLoading}
-                                  >
-                                    Upload File
-                                  </Button>
-                                ) : (
-                                  <>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleViewFile(docStatus.category)}
-                                      disabled={isLoading}
-                                    >
-                                      View
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleDeleteDocument(docStatus.category)}
-                                      disabled={isLoading}
-                                      className="text-destructive hover:text-destructive"
-                                    >
-                                      Delete
-                                    </Button>
-                                  </>
-                                )
+                                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                               )}
                             </div>
+
+                            {/* Document Info and Actions */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex-1">
+                                  <p className={`text-sm font-medium ${
+                                    docStatus.submitted 
+                                      ? 'text-green-700 dark:text-green-300' 
+                                      : 'text-red-700 dark:text-red-300'
+                                  }`}>
+                                    {docStatus.submitted 
+                                      ? `✓ ${docStatus.label} ${docStatus.process_type === 'verification' ? 'Verification' : 'Submission'} completed` 
+                                      : `${docStatus.label} ${docStatus.process_type === 'verification' ? 'Verification' : 'Submission'} not completed. Please complete it.`
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex gap-2 flex-wrap">
+                                {!docStatus.submitted ? (
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => docStatus.submission_type === 'form' 
+                                      ? handleFillForm(docStatus.category)
+                                      : handleUploadFile(docStatus.category)
+                                    }
+                                    disabled={isLoading}
+                                    className="text-white"
+                                    style={{ backgroundColor: '#22c55e' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#22c55e'}
+                                  >
+                                    Complete {docStatus.label} {docStatus.process_type === 'verification' ? 'Verification' : 'Submission'}
+                                  </Button>
+                                ) : (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => docStatus.submission_type === 'form'
+                                        ? handleViewForm(docStatus.category)
+                                        : handleViewFile(docStatus.category)
+                                      }
+                                      disabled={isLoading}
+                                      className="bg-white dark:bg-gray-800"
+                                    >
+                                      View
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleDeleteDocument(docStatus.category)}
+                                      disabled={isLoading}
+                                      className="text-destructive hover:text-destructive bg-white dark:bg-gray-800"
+                                    >
+                                      Delete
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </li>
+                        </div>
                       ))}
-                    </ul>
-                    {documentStatuses.some(doc => !doc.submitted) && (
-                      <div className="mt-3 pt-3 border-t rounded-md bg-destructive/10 border border-destructive/20 p-3">
-                        <p className="text-sm text-destructive font-medium">
-                          ⚠ You must upload and submit all required documents before completing this step.
-                        </p>
-                      </div>
-                    )}
-                    {documentStatuses.every(doc => doc.submitted) && (
-                      <div className="mt-3 pt-3 border-t rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3">
-                        <p className="text-sm text-green-800 dark:text-green-400 font-medium">
-                          ✓ All required documents have been submitted
-                        </p>
-                      </div>
-                    )}
+                    </div>
                   </>
                 )}
               </div>
@@ -534,25 +564,45 @@ export function StepCompletionModal({
             </div>
           )}
 
-          {/* Attachments Info */}
-          {step.attachments_allowed && (
-            <div className="rounded-md bg-primary/10 border border-primary/20 p-3">
-              <p className="text-sm text-primary">
-                <strong>Note:</strong> Attachments can be uploaded separately through the
-                document management section.
-              </p>
-            </div>
-          )}
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <div className="flex gap-2 flex-1 flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              {userRole === 'admin' && onSkip && (
+                <Button
+                  type="button"
+                  onClick={handleSkip}
+                  disabled={isLoading}
+                  className="text-white"
+                  style={{ backgroundColor: '#FFA500' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FF8C00'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFA500'}
+                >
+                  {isLoading ? 'Skipping...' : 'Skip'}
+                </Button>
+              )}
+              {userRole === 'admin' && onHalt && (
+                <Button
+                  type="button"
+                  onClick={handleHalt}
+                  disabled={isLoading}
+                  className="text-white"
+                  style={{ backgroundColor: '#DC143C' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#B22222'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#DC143C'}
+                >
+                  {isLoading ? 'Halting...' : 'Halt'}
+                </Button>
+              )}
+            </div>
             <Button
               type="submit"
               disabled={isLoading}
@@ -562,6 +612,14 @@ export function StepCompletionModal({
           </DialogFooter>
         </form>
       </DialogContent>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        variant="destructive"
+      />
     </Dialog>
   );
 }

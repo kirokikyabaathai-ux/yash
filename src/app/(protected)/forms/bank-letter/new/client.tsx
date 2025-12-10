@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BankLetterForm from '@/components/forms/BankLetterForm';
 import type { BankLetterData } from '@/types/bank-letter';
+import { toast } from '@/lib/toast';
 
 interface BankLetterFormWrapperProps {
   leadId: string;
@@ -35,11 +36,11 @@ export function BankLetterFormWrapper({ leadId }: BankLetterFormWrapperProps) {
         throw new Error(error.message || 'Failed to save bank letter');
       }
       
-      alert('Bank letter saved successfully!');
+      toast.success('Bank letter saved successfully!');
       router.back();
     } catch (error) {
       console.error('Error creating bank letter:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create bank letter');
+      toast.error(error instanceof Error ? error.message : 'Failed to create bank letter');
     } finally {
       setIsLoading(false);
     }

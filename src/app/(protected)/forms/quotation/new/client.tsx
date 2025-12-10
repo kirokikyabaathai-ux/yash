@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import QuotationForm from '@/components/forms/QuotationForm';
 import type { QuotationData } from '@/types/quotation';
+import { toast } from '@/lib/toast';
 
 interface QuotationFormWrapperProps {
   leadId: string;
@@ -35,11 +36,11 @@ export function QuotationFormWrapper({ leadId }: QuotationFormWrapperProps) {
         throw new Error(error.message || 'Failed to save quotation');
       }
       
-      alert('Quotation saved successfully!');
+      toast.success('Quotation saved successfully!');
       router.back();
     } catch (error) {
       console.error('Error creating quotation:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create quotation');
+      toast.error(error instanceof Error ? error.message : 'Failed to create quotation');
     } finally {
       setIsLoading(false);
     }

@@ -22,6 +22,10 @@ import {
 } from '@/components/ui/select';
 import { LoadingButton } from '@/components/ui/loading-button';
 import { FormField } from '@/components/ui/molecules/FormField';
+import { Combobox } from '@/components/ui/combobox';
+import { INDIAN_STATES, getDistrictsByState } from '@/data/indian-states-districts';
+import { toast } from '@/lib/toast';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface CustomerProfileFormProps {
   onSubmit: (data: CustomerProfileFormData) => Promise<void>;
@@ -33,6 +37,17 @@ interface CustomerProfileFormProps {
 
 export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, leadId, leadData }: CustomerProfileFormProps) {
   const router = useRouter();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
   const [formData, setFormData] = useState<Partial<CustomerProfileFormData>>({
     name: '',
     gender: undefined,
@@ -130,6 +145,13 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
     loadData();
   }, [leadData, leadId]);
 
+  // Load districts when state changes or form loads with state data
+  useEffect(() => {
+    if (formData.state) {
+      setAvailableDistricts(getDistrictsByState(formData.state));
+    }
+  }, [formData.state]);
+
   const [files, setFiles] = useState<{
     aadhaar_front?: File;
     aadhaar_back?: File;
@@ -144,6 +166,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [deletingDocuments, setDeletingDocuments] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -244,6 +267,29 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
     }
   };
 
+  const handleStateChange = (stateName: string) => {
+    setFormData((prev) => ({ ...prev, state: stateName, district: '' }));
+    setAvailableDistricts(getDistrictsByState(stateName));
+    if (errors.state) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.state;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleDistrictChange = (districtName: string) => {
+    setFormData((prev) => ({ ...prev, district: districtName }));
+    if (errors.district) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.district;
+        return newErrors;
+      });
+    }
+  };
+
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files: fileList } = e.target;
     if (!fileList || !fileList[0] || !leadId) return;
@@ -330,54 +376,60 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
       window.open(url, '_blank');
     } catch (error) {
       console.error('Error viewing document:', error);
-      alert(error instanceof Error ? error.message : 'Failed to view document');
+      toast.error(error instanceof Error ? error.message : 'Failed to view document');
     }
   }, []);
 
-  const handleDeleteDocument = useCallback(async (documentCategory: string, documentId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
+  const handleDeleteDocument = useCallback((documentCategory: string, documentId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Document',
+      description: 'Are you sure you want to delete this document? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          console.log('Deleting document:', { documentCategory, documentId });
+          setDeletingDocuments((prev) => ({ ...prev, [documentCategory]: true }));
 
-    try {
-      console.log('Deleting document:', { documentCategory, documentId });
-      setDeletingDocuments((prev) => ({ ...prev, [documentCategory]: true }));
+          const response = await fetch(`/api/documents/delete?documentId=${documentId}`, {
+            method: 'DELETE',
+          });
 
-      const response = await fetch(`/api/documents/delete?documentId=${documentId}`, {
-        method: 'DELETE',
-      });
+          if (!response.ok) {
+            const error = await response.json();
+            console.error('Delete error response:', error);
+            throw new Error(error.error || 'Delete failed');
+          }
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('Delete error response:', error);
-        throw new Error(error.error || 'Delete failed');
-      }
+          console.log('Document deleted successfully');
+          toast.success('Document deleted successfully');
 
-      console.log('Document deleted successfully');
+          // Remove from uploaded documents
+          setUploadedDocuments((prev) => {
+            const newDocs = { ...prev };
+            delete newDocs[documentCategory];
+            return newDocs;
+          });
 
-      // Remove from uploaded documents
-      setUploadedDocuments((prev) => {
-        const newDocs = { ...prev };
-        delete newDocs[documentCategory];
-        return newDocs;
-      });
-
-      // Clear any file input
-      const fileInput = document.getElementById(documentCategory) as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
-      }
-    } catch (error) {
-      console.error(`Error deleting ${documentCategory}:`, error);
-      setErrors((prev) => ({
-        ...prev,
-        [documentCategory]: error instanceof Error ? error.message : 'Delete failed',
-      }));
-    } finally {
-      setDeletingDocuments((prev) => {
-        const newDeleting = { ...prev };
-        delete newDeleting[documentCategory];
-        return newDeleting;
-      });
-    }
+          // Clear any file input
+          const fileInput = document.getElementById(documentCategory) as HTMLInputElement;
+          if (fileInput) {
+            fileInput.value = '';
+          }
+        } catch (error) {
+          console.error(`Error deleting ${documentCategory}:`, error);
+          setErrors((prev) => ({
+            ...prev,
+            [documentCategory]: error instanceof Error ? error.message : 'Delete failed',
+          }));
+        } finally {
+          setDeletingDocuments((prev) => {
+            const newDeleting = { ...prev };
+            delete newDeleting[documentCategory];
+            return newDeleting;
+          });
+        }
+      },
+    });
   }, []);
 
   return (
@@ -475,26 +527,36 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             </FormField>
 
             <FormField label="State" required error={errors.state}>
-              <Input
-                type="text"
+              <Combobox
                 id="state"
-                name="state"
+                options={INDIAN_STATES.map(state => ({
+                  value: state.name,
+                  label: state.name
+                }))}
                 value={formData.state}
-                onChange={handleChange}
+                onValueChange={handleStateChange}
+                placeholder="Select State"
+                searchPlaceholder="Search state..."
+                emptyText="No state found."
                 disabled={isLoading || isSubmitted}
-                state={errors.state ? 'error' : 'default'}
+                className={errors.state ? 'border-red-500' : ''}
               />
             </FormField>
 
             <FormField label="District" required error={errors.district}>
-              <Input
-                type="text"
+              <Combobox
                 id="district"
-                name="district"
+                options={availableDistricts.map(district => ({
+                  value: district,
+                  label: district
+                }))}
                 value={formData.district}
-                onChange={handleChange}
-                disabled={isLoading || isSubmitted}
-                state={errors.district ? 'error' : 'default'}
+                onValueChange={handleDistrictChange}
+                placeholder="Select District"
+                searchPlaceholder="Search district..."
+                emptyText={formData.state ? "No district found." : "Please select a state first."}
+                disabled={isLoading || isSubmitted || !formData.state}
+                className={errors.district ? 'border-red-500' : ''}
               />
             </FormField>
           </div>
@@ -664,7 +726,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               type="button"
               onClick={async () => {
                 if (!leadId) {
-                  alert('Cannot save draft: No lead ID provided');
+                  toast.error('Cannot save draft: No lead ID provided');
                   return;
                 }
 
@@ -680,7 +742,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                   });
 
                   if (response.ok) {
-                    alert('Draft saved successfully! You can continue filling the form later.');
+                    toast.success('Draft saved successfully! You can continue filling the form later.');
                     // Get session to determine role-based redirect
                     const sessionResponse = await fetch('/api/auth/session');
                     const session = await sessionResponse.json();
@@ -689,15 +751,15 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                   } else {
                     const error = await response.json();
                     if (error.error === 'Cannot edit submitted profile') {
-                      alert('This profile has already been submitted and cannot be edited.');
+                      toast.error('This profile has already been submitted and cannot be edited.');
                       setIsSubmitted(true);
                     } else {
-                      alert(`Failed to save draft: ${error.error || 'Unknown error'}`);
+                      toast.error(`Failed to save draft: ${error.error || 'Unknown error'}`);
                     }
                   }
                 } catch (error) {
                   console.error('Error saving draft:', error);
-                  alert('Failed to save draft. Please try again.');
+                  toast.error('Failed to save draft. Please try again.');
                 }
               }}
               disabled={isLoading || isSubmitted}
@@ -717,6 +779,14 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        variant="destructive"
+      />
     </form>
   );
 }
