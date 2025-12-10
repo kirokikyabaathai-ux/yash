@@ -134,6 +134,7 @@ export async function createClientWithSession(accessToken: string) {
  * Creates a Supabase client with auth context for NextAuth users
  * 
  * ⚠️ SECURITY: This uses service role and bypasses RLS policies ⚠️
+ * ⚠️ CURRENTLY UNUSED - Commented out to avoid requiring service role key in builds
  * 
  * This function provides a safer interface for NextAuth integration by:
  * 1. Requiring explicit user ID parameter
@@ -166,6 +167,7 @@ export async function createClientWithSession(accessToken: string) {
  * @returns Supabase client with service role (RLS bypassed)
  * @throws Error if called in browser context
  */
+/*
 export function createClientWithAuth(userId: string) {
   // Runtime check to ensure we're on the server
   if (typeof window !== 'undefined') {
@@ -183,11 +185,20 @@ export function createClientWithAuth(userId: string) {
     );
   }
 
+  // Check if service role key is available
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY environment variable is not set. ' +
+      'This is required for createClientWithAuth(). ' +
+      'Add it to your .env.local file or deployment environment.'
+    );
+  }
+
   // Use service role client which bypasses RLS
   // The caller is responsible for filtering queries by userId
   const client = createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
     {
       auth: {
         autoRefreshToken: false,
@@ -198,3 +209,4 @@ export function createClientWithAuth(userId: string) {
 
   return client;
 }
+*/

@@ -170,9 +170,9 @@ export function TimelineStep({
                 <Badge
                   variant={
                     step.status === 'completed'
-                      ? 'default'
+                      ? 'solid'
                       : step.status === 'pending'
-                      ? 'secondary'
+                      ? 'subtle'
                       : 'outline'
                   }
                   className={

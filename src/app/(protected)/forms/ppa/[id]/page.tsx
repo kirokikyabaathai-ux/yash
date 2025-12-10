@@ -40,7 +40,7 @@ export default async function PPAViewPage({ params }: PageProps) {
     );
   }
 
-  const ppaData = document.form_json as PPAData;
+  const ppaData = document.form_json as unknown as PPAData;
 
   return (
     <div className="container mx-auto p-6">

@@ -55,7 +55,7 @@ const typographyVariants = cva(
   }
 )
 
-export interface TypographyProps extends React.ComponentProps<"p">, VariantProps<typeof typographyVariants> {
+export interface TypographyProps extends Omit<React.HTMLAttributes<HTMLElement>, "color">, VariantProps<typeof typographyVariants> {
   /**
    * Render as a child component (using Radix Slot)
    */

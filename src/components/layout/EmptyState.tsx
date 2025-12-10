@@ -33,7 +33,7 @@ export interface EmptyStateProps {
   action?: {
     label: string;
     onClick: () => void;
-    variant?: 'default' | 'secondary' | 'outline';
+    variant?: 'primary' | 'outline' | 'ghost' | 'link';
   };
   
   /**

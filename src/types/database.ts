@@ -463,54 +463,6 @@ export type Database = {
           },
         ]
       }
-      quotations: {
-        Row: {
-          created_at: string
-          created_by: string
-          id: string
-          lead_id: string
-          pdf_path: string | null
-          quotation_data: Json
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          id?: string
-          lead_id: string
-          pdf_path?: string | null
-          quotation_data: Json
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          id?: string
-          lead_id?: string
-          pdf_path?: string | null
-          quotation_data?: Json
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quotations_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quotations_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       step_documents: {
         Row: {
           created_at: string
@@ -632,7 +584,110 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_mandatory_documents: { Args: { p_lead_id: string }; Returns: Json }
+      complete_step: {
+        Args: {
+          p_attachments?: string[]
+          p_lead_id: string
+          p_remarks?: string
+          p_step_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      delete_lead_document: {
+        Args: { p_document_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      generate_unique_user_id: {
+        Args: { role_type: string; suffix: string }
+        Returns: string
+      }
+      get_document_history: {
+        Args: { p_document_category: string; p_lead_id: string }
+        Returns: {
+          document_category: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          lead_id: string
+          mime_type: string
+          replaced_by: string
+          status: string
+          uploaded_at: string
+          uploaded_by: string
+          uploader_email: string
+          uploader_name: string
+          version: number
+        }[]
+      }
+      get_lead_document_stats: {
+        Args: { p_lead_id: string }
+        Returns: {
+          categories_count: number
+          latest_upload: string
+          total_documents: number
+          total_size: number
+        }[]
+      }
+      get_lead_documents: {
+        Args: { p_document_category?: string; p_lead_id: string }
+        Returns: {
+          document_category: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          lead_id: string
+          mime_type: string
+          status: string
+          type: string
+          uploaded_at: string
+          uploaded_by: string
+          uploader_email: string
+          uploader_name: string
+        }[]
+      }
+      initialize_lead_timeline: { Args: { p_lead_id: string }; Returns: Json }
+      link_customer_to_lead: {
+        Args: {
+          p_address?: string
+          p_customer_id: string
+          p_customer_name: string
+          p_email?: string
+          p_phone: string
+        }
+        Returns: Json
+      }
+      normalize_phone: { Args: { phone_input: string }; Returns: string }
+      update_lead_status: { Args: { p_lead_id: string }; Returns: Json }
+      upload_lead_document: {
+        Args: {
+          p_document_category: string
+          p_file_name: string
+          p_file_path: string
+          p_file_size: number
+          p_lead_id: string
+          p_metadata?: Json
+          p_mime_type: string
+          p_type?: string
+          p_uploaded_by: string
+        }
+        Returns: {
+          document_category: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          lead_id: string
+          mime_type: string
+          status: string
+          uploaded_at: string
+          uploaded_by: string
+          version: number
+        }[]
+      }
     }
     Enums: {
       customer_profile_status: "draft" | "submitted"
@@ -743,3 +798,50 @@ export type Enums<
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      customer_profile_status: ["draft", "submitted"],
+      submission_type_enum: ["form", "file"],
+    },
+  },
+} as const
+
+// Lead Status Type
+export type LeadStatus = 'lead' | 'lead_interested' | 'lead_processing' | 'lead_completed' | 'lead_cancelled';
+
+// Step Status Type
+export type StepStatus = 'pending' | 'completed' | 'upcoming';
+
+// Document Status Type
+export type DocumentStatus = 'valid' | 'corrupted' | 'replaced';
+
+// Document Type
+export type DocumentType = 'mandatory' | 'customer' | 'optional';
+
+// Lead Source Type
+export type LeadSource = 'office' | 'agent' | 'self';
+
+// User Role Type
+export type UserRole = 'admin' | 'customer' | 'office' | 'agent';
+
+// User Status Type
+export type UserStatus = 'active' | 'inactive';

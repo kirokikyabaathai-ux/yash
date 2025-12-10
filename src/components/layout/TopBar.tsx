@@ -83,7 +83,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
           {onMobileMenuToggle && (
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={onMobileMenuToggle}
               className="lg:hidden"
               aria-label="Open menu"
@@ -119,7 +119,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
               {/* Profile Button */}
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 onClick={handleProfileClick}
                 aria-label="View profile"
                 title="View profile"
@@ -130,7 +130,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
               {/* Logout Button */}
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 onClick={handleLogout}
                 aria-label="Logout"
                 title="Logout"

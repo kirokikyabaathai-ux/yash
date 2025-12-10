@@ -149,7 +149,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             <span className="text-sm font-medium px-2">Menu</span>
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={onMobileClose}
               aria-label="Close menu"
             >
@@ -166,7 +166,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               return (
                 <Button
                   key={item.href}
-                  variant={active ? 'secondary' : 'ghost'}
+                  variant="ghost"
                   className={cn(
                     "w-full justify-start",
                     active && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary font-medium"
@@ -213,7 +213,7 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
   return (
     <Button
       variant="ghost"
-      size="icon"
+      size="sm"
       onClick={onClick}
       className="lg:hidden"
       aria-label="Open menu"

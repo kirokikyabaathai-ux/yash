@@ -76,7 +76,7 @@ export const STATUS_VARIANTS: Record<
     className: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100',
   },
   lead_cancelled: {
-    variant: 'destructive',
+    variant: 'outline',
     className: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100',
   },
 };

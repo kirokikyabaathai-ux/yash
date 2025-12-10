@@ -79,7 +79,7 @@ export function LeadDetail({
               </Button>
             )}
             {canDelete && onDelete && (
-              <Button variant="destructive" size="md" onClick={() => setShowDeleteConfirm(true)}>
+              <Button variant="outline" size="md" className="text-red-600 hover:text-red-700" onClick={() => setShowDeleteConfirm(true)}>
                 Delete
               </Button>
             )}
@@ -276,7 +276,7 @@ export function LeadDetail({
             <Button variant="outline" size="md" onClick={() => setShowDeleteConfirm(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" size="md" onClick={handleDelete}>
+            <Button variant="outline" size="md" className="text-red-600 hover:text-red-700" onClick={handleDelete}>
               Delete Lead
             </Button>
           </DialogFooter>

@@ -171,9 +171,10 @@ export function DocumentList({
 
                 {canManage && onDelete && (
                   <Button
-                    variant="destructive"
+                    variant="outline"
                     size="sm"
                     onClick={() => onDelete(doc.id)}
+                    className="text-red-600 hover:text-red-700"
                     title="Delete document"
                     aria-label={`Delete ${doc.file_name}`}
                   >
