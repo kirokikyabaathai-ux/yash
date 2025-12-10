@@ -117,7 +117,7 @@ export function DocumentUploader({
       accept={acceptedFileTypes.join(',')}
       maxSize={maxSizeMB * 1024 * 1024}
       onUpload={handleUpload}
-      error={error}
+      error={error || undefined}
       disabled={disabled}
     />
   );

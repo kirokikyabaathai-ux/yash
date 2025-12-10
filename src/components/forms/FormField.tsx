@@ -41,12 +41,13 @@ export function FormField({
       <div>
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
-            return React.cloneElement(child as React.ReactElement<any>, {
+            const childElement = child as React.ReactElement<any>;
+            return React.cloneElement(childElement, {
               id: fieldId,
               'aria-invalid': !!error,
               'aria-describedby': [errorId, helpTextId].filter(Boolean).join(' ') || undefined,
               className: cn(
-                child.props.className,
+                childElement.props.className,
                 error && 'border-destructive focus-visible:ring-destructive'
               ),
             });

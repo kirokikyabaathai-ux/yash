@@ -211,7 +211,7 @@ export function LeadDetailClient({
               {/* Mark as Interested Button */}
               {lead.status === 'lead' && ['admin', 'office', 'agent'].includes(userRole) && (
                 <Button
-                  variant="default"
+                  variant="primary"
                   className="w-full bg-green-600 hover:bg-green-700"
                   onClick={async () => {
                     if (confirm('Mark this lead as interested? This means the customer has agreed to proceed.')) {

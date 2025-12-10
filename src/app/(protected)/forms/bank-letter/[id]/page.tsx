@@ -40,7 +40,7 @@ export default async function BankLetterViewPage({ params }: PageProps) {
     );
   }
 
-  const bankLetterData = document.form_json as BankLetterData;
+  const bankLetterData = document.form_json as unknown as BankLetterData;
 
   return (
     <div className="container mx-auto p-6">

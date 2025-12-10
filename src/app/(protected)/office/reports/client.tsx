@@ -134,7 +134,7 @@ export function OfficeReportsClient() {
           title="Reports & Analytics"
           description="View comprehensive reports and analytics"
           actions={
-            <Button onClick={exportReport} variant="default">
+            <Button onClick={exportReport}>
               <Download className="h-4 w-4 mr-2" />
               Export Report
             </Button>

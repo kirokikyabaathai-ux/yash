@@ -350,9 +350,10 @@ export function FileUpload({
                 {onDelete && (
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
                     size="sm"
                     onClick={handleDelete}
+                    className="text-red-600 hover:text-red-700"
                     aria-label={`Delete ${uploadedFile.name}`}
                   >
                     <svg

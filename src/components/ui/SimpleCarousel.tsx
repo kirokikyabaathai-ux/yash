@@ -85,7 +85,7 @@ export function SimpleCarousel({
         <>
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={goToPrev}
             className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
             aria-label="Previous slide"
@@ -94,7 +94,7 @@ export function SimpleCarousel({
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={goToNext}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full"
             aria-label="Next slide"

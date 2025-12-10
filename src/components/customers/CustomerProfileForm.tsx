@@ -596,7 +596,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                   <div className="flex items-center gap-2 ml-2">
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="outline"
                       size="sm"
                       onClick={() => handleViewDocument(uploadedDocuments[id].id)}
                       className="flex items-center gap-1"
@@ -610,11 +610,11 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                     </Button>
                     <LoadingButton
                       type="button"
-                      variant="destructive"
+                      variant="outline"
                       size="sm"
                       onClick={() => handleDeleteDocument(id, uploadedDocuments[id].id)}
                       loading={deletingDocuments[id]}
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 text-red-600 hover:text-red-700"
                       title="Delete document"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -701,7 +701,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                 }
               }}
               disabled={isLoading || isSubmitted}
-              variant="secondary"
+              variant="outline"
               className="w-full sm:w-auto"
             >
               Save as Draft
