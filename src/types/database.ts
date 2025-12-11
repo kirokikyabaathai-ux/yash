@@ -967,7 +967,7 @@ export const Constants = {
 export type LeadStatus = 'lead' | 'lead_interested' | 'lead_processing' | 'lead_completed' | 'lead_cancelled';
 
 // Step Status Type
-export type StepStatus = 'pending' | 'completed' | 'upcoming';
+export type StepStatus = 'pending' | 'completed' | 'upcoming' | 'halted' | 'skipped';
 
 // Document Status Type
 export type DocumentStatus = 'valid' | 'corrupted' | 'replaced';

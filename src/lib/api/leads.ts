@@ -39,7 +39,7 @@ export async function createLead(
     email: data.email || null,
     address: data.address,
     notes: data.notes || null,
-    source: data.source,
+    source: data.source || 'office',
     created_by: userId,
     status: 'lead', // Initial status as per Requirement 2.2
   };

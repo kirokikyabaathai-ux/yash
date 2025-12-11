@@ -116,8 +116,14 @@ export async function POST(request: NextRequest) {
       errors.push({ field: 'address', message: 'Address is required' });
     }
 
-   body.source =  session.user.role
-   
+    // Set source based on user role
+    if (session.user.role === 'agent') {
+      body.source = 'agent';
+    } else if (session.user.role === 'office' || session.user.role === 'admin') {
+      body.source = 'office';
+    } else if (session.user.role === 'customer') {
+      body.source = 'self';
+    }
 
     if (errors.length > 0) {
       return NextResponse.json(
