@@ -2,6 +2,7 @@
 
 import { SessionProvider as NextAuthSessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
+import { SupabaseSessionSync } from "./SupabaseSessionSync";
 
 /**
  * SessionProvider wrapper component
@@ -13,6 +14,7 @@ import { ReactNode } from "react";
  * - Provides session context to all child components
  * - Configures session refresh interval (5 minutes)
  * - Enables automatic session updates
+ * - Syncs NextAuth session with Supabase client
  * 
  * Requirements: 3.1, 3.2
  */
@@ -31,6 +33,7 @@ export function SessionProvider({ children, session }: SessionProviderProps) {
       // Refetch session when window regains focus
       refetchOnWindowFocus={true}
     >
+      <SupabaseSessionSync />
       {children}
     </NextAuthSessionProvider>
   );
