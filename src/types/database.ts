@@ -376,8 +376,13 @@ export type Database = {
       }
       materials: {
         Row: {
+          category: string | null
+          configured_at: string | null
+          configured_by: string | null
           created_at: string | null
+          description: string | null
           id: string
+          is_active: boolean | null
           lead_id: string | null
           material_name: string
           quantity: number | null
@@ -386,8 +391,13 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
+          configured_at?: string | null
+          configured_by?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
+          is_active?: boolean | null
           lead_id?: string | null
           material_name: string
           quantity?: number | null
@@ -396,8 +406,13 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
+          configured_at?: string | null
+          configured_by?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
+          is_active?: boolean | null
           lead_id?: string | null
           material_name?: string
           quantity?: number | null
@@ -407,10 +422,78 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "materials_configured_by_fkey"
+            columns: ["configured_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "materials_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materials_verification: {
+        Row: {
+          created_at: string | null
+          id: string
+          lead_id: string
+          material_id: string
+          received_quantity: number | null
+          remarks: string | null
+          updated_at: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lead_id: string
+          material_id: string
+          received_quantity?: number | null
+          remarks?: string | null
+          updated_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string
+          material_id?: string
+          received_quantity?: number | null
+          remarks?: string | null
+          updated_at?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_verification_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materials_verification_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: true
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materials_verification_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -584,7 +667,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_material_to_catalog: {
+        Args: {
+          p_material_name: string
+          p_description?: string
+          p_unit?: string
+          p_category?: string
+        }
+        Returns: string
+      }
       check_mandatory_documents: { Args: { p_lead_id: string }; Returns: Json }
+      check_materials_verification_status: {
+        Args: { p_lead_id: string }
+        Returns: Json
+      }
       complete_step: {
         Args: {
           p_attachments?: string[]
@@ -592,6 +688,13 @@ export type Database = {
           p_remarks?: string
           p_step_id: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      configure_lead_materials: {
+        Args: {
+          p_lead_id: string
+          p_materials: Json
         }
         Returns: Json
       }
@@ -649,6 +752,34 @@ export type Database = {
           uploader_name: string
         }[]
       }
+      get_lead_materials_with_verification: {
+        Args: { p_lead_id: string }
+        Returns: {
+          material_id: string
+          material_name: string
+          category: string
+          description: string
+          required_quantity: number
+          unit: string
+          received: boolean
+          received_quantity: number
+          verification_status: string
+          remarks: string
+          verified_by_name: string
+          verified_at: string
+        }[]
+      }
+      get_materials_catalog: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          material_id: string
+          material_name: string
+          description: string
+          unit: string
+          category: string
+          is_active: boolean
+        }[]
+      }
       initialize_lead_timeline: { Args: { p_lead_id: string }; Returns: Json }
       link_customer_to_lead: {
         Args: {
@@ -687,6 +818,13 @@ export type Database = {
           uploaded_by: string
           version: number
         }[]
+      }
+      verify_lead_materials: {
+        Args: {
+          p_lead_id: string
+          p_verifications: Json
+        }
+        Returns: Json
       }
     }
     Enums: {
@@ -845,3 +983,9 @@ export type UserRole = 'admin' | 'customer' | 'office' | 'agent';
 
 // User Status Type
 export type UserStatus = 'active' | 'inactive';
+
+// Material Category Type
+export type MaterialCategory = 'panel' | 'inverter' | 'structure' | 'cable' | 'accessory' | 'other';
+
+// Material Verification Status Type
+export type MaterialVerificationStatus = 'pending' | 'verified' | 'quantity_mismatch' | 'missing' | 'damaged';
