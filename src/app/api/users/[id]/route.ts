@@ -353,9 +353,9 @@ export async function DELETE(
     }
 
     // Get session token for edge function authentication
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session: authSession } } = await supabase.auth.getSession();
     
-    if (!session?.access_token) {
+    if (!authSession?.access_token) {
       return NextResponse.json(
         {
           error: {
@@ -374,7 +374,7 @@ export async function DELETE(
         userId: id,
       },
       headers: {
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${authSession.access_token}`,
       },
     });
 

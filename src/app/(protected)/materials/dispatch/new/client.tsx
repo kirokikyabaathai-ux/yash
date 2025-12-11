@@ -58,7 +58,7 @@ export function MaterialDispatchWrapper({ leadId }: MaterialDispatchWrapperProps
         description: m.description,
         unit: m.unit || 'pcs',
         category: m.category,
-        is_active: m.is_active
+        is_active: m.is_active ?? true
       })) || [];
 
       setAvailableMaterials(catalog);

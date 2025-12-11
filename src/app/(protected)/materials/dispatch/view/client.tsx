@@ -61,7 +61,7 @@ export function MaterialDispatchView({ leadId }: MaterialDispatchViewProps) {
           throw error;
         }
       } else if (doc?.form_json) {
-        setDispatchData(doc.form_json as MaterialDispatchData);
+        setDispatchData(doc.form_json as unknown as MaterialDispatchData);
       }
     } catch (error) {
       console.error('Error loading dispatch data:', error);

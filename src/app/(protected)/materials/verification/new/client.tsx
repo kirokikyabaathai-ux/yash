@@ -442,7 +442,7 @@ export function MaterialsVerificationWrapper({ leadId }: MaterialsVerificationWr
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span className="font-medium">Dispatched:</span>
-                        <Badge variant="secondary" className="font-mono">
+                        <Badge variant="outline" className="font-mono">
                           {material.quantity} {material.unit}
                         </Badge>
                       </div>

@@ -112,7 +112,7 @@ export function MaterialVerificationView({ leadId }: MaterialVerificationViewPro
           throw error;
         }
       } else if (doc?.form_json) {
-        const data = doc.form_json as MaterialVerificationData;
+        const data = doc.form_json as unknown as MaterialVerificationData;
         setVerificationData(data);
 
         // Load material details from dispatch document
@@ -329,7 +329,7 @@ export function MaterialVerificationView({ leadId }: MaterialVerificationViewPro
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium text-muted-foreground">Received:</span>
-                        <Badge variant="secondary" className="font-mono">
+                        <Badge variant="outline" className="font-mono">
                           {verification.received_quantity} {unit}
                         </Badge>
                       </div>
