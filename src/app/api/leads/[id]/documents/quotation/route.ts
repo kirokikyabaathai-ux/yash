@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { numberToWords } from '@/lib/utils/number-to-words';
 
 export async function POST(
   request: NextRequest,
@@ -34,6 +35,19 @@ export async function POST(
       );
     }
 
+    // Calculate totalCost and amountInWords
+    const systemCost = parseFloat(form_data.systemCost || '0');
+    const subsidyAmount = parseFloat(form_data.subsidyAmount || '0');
+    const totalCost = systemCost - subsidyAmount;
+    const amountInWords = numberToWords(totalCost);
+
+    // Add calculated fields to form_data
+    const enrichedFormData = {
+      ...form_data,
+      totalCost: totalCost.toString(),
+      amountInWords: amountInWords,
+    };
+
     // Check if quotation document already exists
     const { data: existingDoc } = await supabase
       .from('documents')
@@ -50,7 +64,7 @@ export async function POST(
       const { data: updatedDoc, error: updateError } = await supabase
         .from('documents')
         .update({
-          form_json: form_data,
+          form_json: enrichedFormData,
           is_submitted: true,
           updated_at: new Date().toISOString(),
         })
@@ -77,11 +91,11 @@ export async function POST(
           document_category: 'quotation',
           file_path: `forms/quotation_${leadId}.json`,
           file_name: 'Quotation Form',
-          file_size: JSON.stringify(form_data).length,
+          file_size: JSON.stringify(enrichedFormData).length,
           mime_type: 'application/json',
           uploaded_by: user.id,
           status: 'valid',
-          form_json: form_data,
+          form_json: enrichedFormData,
           is_submitted: true,
         })
         .select()

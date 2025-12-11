@@ -11,6 +11,7 @@ export interface CustomerProfile {
   
   // Personal Information
   name: string;
+  father_name: string | null;
   gender: Gender | null;
   
   // Address Information
@@ -24,6 +25,8 @@ export interface CustomerProfile {
   account_holder_name: string;
   bank_account_number: string;
   bank_name: string;
+  branch_name: string | null;
+  bank_address: string | null;
   ifsc_code: string;
   
   // Document References
@@ -44,6 +47,7 @@ export interface CreateCustomerProfileRequest {
   user_id?: string;
   lead_id?: string;
   name: string;
+  father_name?: string;
   gender?: Gender;
   address_line_1: string;
   address_line_2?: string;
@@ -53,6 +57,8 @@ export interface CreateCustomerProfileRequest {
   account_holder_name: string;
   bank_account_number: string;
   bank_name: string;
+  branch_name?: string;
+  bank_address?: string;
   ifsc_code: string;
 }
 

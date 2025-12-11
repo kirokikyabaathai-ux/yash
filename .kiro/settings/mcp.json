@@ -8,7 +8,11 @@
         "--access-token",
         "sbp_f3d702a3a60e7f2de4ea3eda7467d6d6d24d0b18"
       ],
-      "env": {}
+      "env": {},
+      "autoApprove": [
+        "execute_sql",
+        "list_tables"
+      ]
     },
     "penpot": {
       "command": "npx",

@@ -212,22 +212,35 @@ export function StepCompletionModal({
   };
 
   // Form submission handlers
-  const handleFillForm = (category: string) => {
+  const handleFillForm = (category: string, isEdit: boolean = false) => {
     if (!leadId) return;
+    
+    // Get document ID if editing
+    const docStatus = documentStatuses.find(d => d.category === category);
+    const documentId = docStatus?.documentId;
+    
+    // If editing and no document found, show error
+    if (isEdit && !documentId) {
+      toast.error('Document not found for editing');
+      return;
+    }
+    
+    // Build URL with edit parameter if editing
+    const editParam = isEdit && documentId ? `&edit=true&documentId=${documentId}` : '';
     
     // Route based on category
     switch (category) {
       case 'profile':
-        router.push(`/customer/profile/new?leadId=${leadId}`);
+        router.push(`/customer/profile/new?leadId=${leadId}${editParam}`);
         break;
       case 'quotation':
-        router.push(`/forms/quotation/new?leadId=${leadId}`);
+        router.push(`/forms/quotation/new?leadId=${leadId}${editParam}`);
         break;
       case 'ppa':
-        router.push(`/forms/ppa/new?leadId=${leadId}`);
+        router.push(`/forms/ppa/new?leadId=${leadId}${editParam}`);
         break;
       case 'bank_letter':
-        router.push(`/forms/bank-letter/new?leadId=${leadId}`);
+        router.push(`/forms/bank-letter/new?leadId=${leadId}${editParam}`);
         break;
       case 'cash_memo':
         // TODO: Add cash memo form route
@@ -537,16 +550,32 @@ export function StepCompletionModal({
                                     >
                                       View
                                     </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleDeleteDocument(docStatus.category)}
-                                      disabled={isLoading}
-                                      className="text-destructive hover:text-destructive bg-white dark:bg-gray-800"
-                                    >
-                                      Delete
-                                    </Button>
+                                    {userRole === 'admin' && (
+                                      <>
+                                        {docStatus.submission_type === 'form' && (
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleFillForm(docStatus.category, true)}
+                                            disabled={isLoading}
+                                            className="bg-white dark:bg-gray-800"
+                                          >
+                                            Edit
+                                          </Button>
+                                        )}
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => handleDeleteDocument(docStatus.category)}
+                                          disabled={isLoading}
+                                          className="text-destructive hover:text-destructive bg-white dark:bg-gray-800"
+                                        >
+                                          Delete
+                                        </Button>
+                                      </>
+                                    )}
                                   </>
                                 )}
                               </div>

@@ -46,5 +46,5 @@ export function PPAFormWrapper({ leadId }: PPAFormWrapperProps) {
     }
   };
 
-  return <PPAForm onSubmit={handleSubmit} />;
+  return <PPAForm onSubmit={handleSubmit} leadId={leadId} />;
 }

@@ -50,6 +50,7 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
   });
   const [formData, setFormData] = useState<Partial<CustomerProfileFormData>>({
     name: '',
+    father_name: '',
     gender: undefined,
     address_line_1: '',
     address_line_2: '',
@@ -59,6 +60,8 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
     account_holder_name: '',
     bank_account_number: '',
     bank_name: '',
+    branch_name: '',
+    bank_address: '',
     ifsc_code: '',
     lead_id: leadId,
   });
@@ -73,21 +76,27 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
           // Load profile data from documents table
           const profileResponse = await fetch(`/api/leads/${leadId}/documents?category=profile`);
           if (profileResponse.ok) {
-            const { documents } = await profileResponse.json();
+            const responseData = await profileResponse.json();
+            console.log('Profile response:', responseData);
+            
+            // Handle both array and object with documents property
+            const documents = Array.isArray(responseData) ? responseData : responseData.documents;
             const profileDoc = documents?.find((d: any) => d.document_category === 'profile');
             
+            console.log('Profile document found:', profileDoc);
+            
             if (profileDoc) {
-              // Check if already submitted
-              if (profileDoc.is_submitted) {
-                setIsSubmitted(true);
-              }
+              // Note: We don't set isSubmitted here to allow editing
+              // The form can be re-submitted to update the profile
               
               // Load form data from form_json
               if (profileDoc.form_json) {
                 const formJson = profileDoc.form_json;
+                console.log('Loading form data:', formJson);
                 setFormData((prev) => ({
                   ...prev,
                   name: formJson.name || prev.name,
+                  father_name: formJson.father_name || prev.father_name,
                   gender: formJson.gender || prev.gender,
                   address_line_1: formJson.address_line_1 || prev.address_line_1,
                   address_line_2: formJson.address_line_2 || prev.address_line_2,
@@ -97,6 +106,8 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
                   account_holder_name: formJson.account_holder_name || prev.account_holder_name,
                   bank_account_number: formJson.bank_account_number || prev.bank_account_number,
                   bank_name: formJson.bank_name || prev.bank_name,
+                  branch_name: formJson.branch_name || prev.branch_name,
+                  bank_address: formJson.bank_address || prev.bank_address,
                   ifsc_code: formJson.ifsc_code || prev.ifsc_code,
                 }));
               }
@@ -106,21 +117,38 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
           // Load existing documents
           const docsResponse = await fetch(`/api/leads/${leadId}/documents`);
           if (docsResponse.ok) {
-            const { documents } = await docsResponse.json();
-            console.log('Loaded documents:', documents);
+            const responseData = await docsResponse.json();
+            console.log('Documents response:', responseData);
+            
+            // Handle both array and object with documents property
+            const documents = Array.isArray(responseData) ? responseData : responseData.documents;
             const docsMap: Record<string, { url: string; name: string; id: string }> = {};
             
             // Check if documents is an array before calling forEach
             if (Array.isArray(documents)) {
               documents.forEach((doc: any) => {
-                // Skip profile document as it's not a file upload
+                console.log('Processing document:', doc.document_category, doc);
+                
+                // Skip profile form document (it's not a file upload)
                 if (doc.document_category === 'profile') return;
                 
-                docsMap[doc.document_category] = {
-                  url: doc.public_url || doc.file_path,
-                  name: doc.file_name,
-                  id: doc.id,
-                };
+                // Only include valid, submitted file documents
+                if (doc.status !== 'valid') return;
+                
+                // Only include actual file documents (aadhaar, pan, etc.)
+                const fileDocCategories = [
+                  'aadhaar_front', 'aadhaar_back', 'electricity_bill',
+                  'bank_passbook', 'cancelled_cheque', 'pan_card', 'itr_documents'
+                ];
+                
+                if (fileDocCategories.includes(doc.document_category)) {
+                  console.log('Adding document to map:', doc.document_category);
+                  docsMap[doc.document_category] = {
+                    url: doc.public_url || doc.file_path,
+                    name: doc.file_name,
+                    id: doc.id,
+                  };
+                }
               });
             }
             
@@ -203,6 +231,14 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
 
     if (!formData.bank_name?.trim()) {
       newErrors.bank_name = 'Bank name is required';
+    }
+
+    if (!formData.branch_name?.trim()) {
+      newErrors.branch_name = 'Branch name is required';
+    }
+
+    if (!formData.bank_address?.trim()) {
+      newErrors.bank_address = 'Bank address is required';
     }
 
     if (!formData.ifsc_code?.trim()) {
@@ -461,6 +497,18 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
             />
           </FormField>
 
+          <FormField label="Father's Name">
+            <Input
+              type="text"
+              id="father_name"
+              name="father_name"
+              value={formData.father_name}
+              onChange={handleChange}
+              disabled={isLoading || isSubmitted}
+              placeholder="Shree..."
+            />
+          </FormField>
+
           <div>
             <label htmlFor="gender" className="block text-sm font-bold text-[var(--penpot-neutral-dark)] mb-2">
               Gender
@@ -601,6 +649,30 @@ export function CustomerProfileForm({ onSubmit, onCancel, isLoading = false, lea
               onChange={handleChange}
               disabled={isLoading || isSubmitted}
               state={errors.bank_name ? 'error' : 'default'}
+            />
+          </FormField>
+
+          <FormField label="Branch Name" required error={errors.branch_name}>
+            <Input
+              type="text"
+              id="branch_name"
+              name="branch_name"
+              value={formData.branch_name}
+              onChange={handleChange}
+              disabled={isLoading || isSubmitted}
+              state={errors.branch_name ? 'error' : 'default'}
+            />
+          </FormField>
+
+          <FormField label="Bank Address" required error={errors.bank_address}>
+            <Input
+              type="text"
+              id="bank_address"
+              name="bank_address"
+              value={formData.bank_address}
+              onChange={handleChange}
+              disabled={isLoading || isSubmitted}
+              state={errors.bank_address ? 'error' : 'default'}
             />
           </FormField>
 

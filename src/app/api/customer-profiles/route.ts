@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
         .from('customer_profiles')
         .update({
           name: body.name,
+          father_name: body.father_name,
           gender: body.gender,
           address_line_1: body.address_line_1,
           address_line_2: body.address_line_2,
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
           account_holder_name: body.account_holder_name,
           bank_account_number: body.bank_account_number,
           bank_name: body.bank_name,
+          bank_address: body.bank_address,
           ifsc_code: body.ifsc_code,
           aadhaar_front_path: body.aadhaar_front_path,
           aadhaar_back_path: body.aadhaar_back_path,
@@ -130,6 +132,7 @@ export async function POST(request: NextRequest) {
           user_id: targetUserId,
           lead_id: body.lead_id,
           name: body.name,
+          father_name: body.father_name,
           gender: body.gender,
           address_line_1: body.address_line_1,
           address_line_2: body.address_line_2,
@@ -139,6 +142,7 @@ export async function POST(request: NextRequest) {
           account_holder_name: body.account_holder_name,
           bank_account_number: body.bank_account_number,
           bank_name: body.bank_name,
+          bank_address: body.bank_address,
           ifsc_code: body.ifsc_code,
           aadhaar_front_path: body.aadhaar_front_path,
           aadhaar_back_path: body.aadhaar_back_path,

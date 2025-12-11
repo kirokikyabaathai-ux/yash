@@ -5,7 +5,7 @@
  * @validates Requirements 6.1, 6.2, 6.3, 9.4, 9.5
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { PPAData } from '@/types/ppa';
 import { FormField } from '@/components/ui/molecules/FormField';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,11 @@ import { Card } from '@/components/ui/card';
 interface Props {
   onSubmit: (data: PPAData) => void;
   initialData?: PPAData;
+  leadId?: string;
 }
 
-const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
+const PPAForm: React.FC<Props> = ({ onSubmit, initialData, leadId }) => {
+  
   const [formData, setFormData] = useState<PPAData>(initialData || {
     agreementDate: '',
     consumerId: '',
@@ -29,6 +31,87 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
     pinCode: '',
     plantCapacity: '',
   });
+  
+  const [disabledFields, setDisabledFields] = useState<Set<string>>(new Set());
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Pre-fill data from lead and existing documents
+  useEffect(() => {
+    const fetchPreFillData = async () => {
+      if (!leadId) {
+        setIsLoadingData(false);
+        return;
+      }
+
+      const fieldsToDisable = new Set<string>();
+
+      try {
+        // Fetch lead data
+        const leadResponse = await fetch(`/api/leads/${leadId}`);
+        if (leadResponse.ok) {
+          const data = await leadResponse.json();
+          const lead = data.lead || data;
+          
+          if (lead && lead.customer_name) {
+            setFormData(prev => ({ ...prev, prosumerName: lead.customer_name }));
+            fieldsToDisable.add('prosumerName');
+          }
+        }
+
+        // Fetch documents for profile and quotation data
+        const docsResponse = await fetch(`/api/leads/${leadId}/documents`);
+        if (docsResponse.ok) {
+          const data = await docsResponse.json();
+          const documents = data.documents || data;
+          const docsArray = Array.isArray(documents) ? documents : [];
+          
+          // Check for existing PPA document (for edit mode)
+          const ppaDoc = docsArray.find((d: any) => d.document_category === 'ppa' && d.form_json);
+          if (ppaDoc?.form_json) {
+            const ppa = ppaDoc.form_json;
+            // Load all PPA data for editing
+            setFormData(prev => ({ ...prev, ...ppa }));
+            // Don't disable fields when editing - allow changes
+          } else {
+            // Only pre-fill from profile and quotation if no existing PPA
+            const profileDoc = docsArray.find((d: any) => d.document_category === 'profile' && d.form_json);
+            if (profileDoc?.form_json) {
+              const profile = profileDoc.form_json;
+              const updates: Partial<PPAData> = {};
+              
+              if (profile.state) { updates.state = profile.state; fieldsToDisable.add('state'); }
+              if (profile.district) { updates.district = profile.district; fieldsToDisable.add('district'); }
+              if (profile.pin_code) { updates.pinCode = profile.pin_code; fieldsToDisable.add('pinCode'); }
+              if (profile.address_line_1) { updates.village = profile.address_line_1; fieldsToDisable.add('village'); }
+              if (profile.father_name) { updates.fatherName = profile.father_name; fieldsToDisable.add('fatherName'); }
+              
+              setFormData(prev => ({ ...prev, ...updates }));
+            }
+            
+            // Get quotation data
+            const quotationDoc = docsArray.find((d: any) => d.document_category === 'quotation' && d.form_json);
+            if (quotationDoc?.form_json) {
+              const quotation = quotationDoc.form_json;
+              const updates: Partial<PPAData> = {};
+              
+              if (quotation.capacity) { updates.plantCapacity = quotation.capacity; fieldsToDisable.add('plantCapacity'); }
+              if (quotation.consumerNumber) { updates.consumerId = quotation.consumerNumber; fieldsToDisable.add('consumerId'); }
+              
+              setFormData(prev => ({ ...prev, ...updates }));
+            }
+          }
+        }
+        
+        setDisabledFields(fieldsToDisable);
+      } catch (error) {
+        console.error('Error fetching pre-fill data:', error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchPreFillData();
+  }, [leadId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -70,6 +153,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
                 name="consumerId"
                 value={formData.consumerId}
                 onChange={handleChange}
+                disabled={!isLoadingData && disabledFields.has('consumerId')}
                 placeholder="e.g., 1002794244"
                 required
               />
@@ -90,6 +174,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
                 name="prosumerName"
                 value={formData.prosumerName}
                 onChange={handleChange}
+                disabled={!isLoadingData && disabledFields.has('prosumerName')}
                 required
               />
             </FormField>
@@ -100,6 +185,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
                 name="fatherName"
                 value={formData.fatherName}
                 onChange={handleChange}
+                disabled={!isLoadingData && disabledFields.has('fatherName')}
                 placeholder="Shree..."
                 required
               />
@@ -119,6 +205,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
               name="village"
               value={formData.village}
               onChange={handleChange}
+              disabled={!isLoadingData && disabledFields.has('village')}
               placeholder="Vill. Tangarghat"
               required
             />
@@ -131,6 +218,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
                 name="district"
                 value={formData.district}
                 onChange={handleChange}
+                disabled={!isLoadingData && disabledFields.has('district')}
                 required
               />
             </FormField>
@@ -141,6 +229,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
+                disabled={!isLoadingData && disabledFields.has('state')}
                 placeholder="CHHATTISGARH"
                 required
               />
@@ -152,6 +241,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
                 name="pinCode"
                 value={formData.pinCode}
                 onChange={handleChange}
+                disabled={!isLoadingData && disabledFields.has('pinCode')}
                 pattern="[0-9]{6}"
                 placeholder="496107"
                 required
@@ -172,6 +262,7 @@ const PPAForm: React.FC<Props> = ({ onSubmit, initialData }) => {
               name="plantCapacity"
               value={formData.plantCapacity}
               onChange={handleChange}
+              disabled={!isLoadingData && disabledFields.has('plantCapacity')}
               placeholder="3.00"
               step="0.01"
               required

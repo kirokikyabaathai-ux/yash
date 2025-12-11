@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
 
       // Only include fields that are provided
       if (draftData.name !== undefined) updateData.name = draftData.name || '';
+      if (draftData.father_name !== undefined) updateData.father_name = draftData.father_name || '';
       if (draftData.gender !== undefined) updateData.gender = draftData.gender;
       if (draftData.address_line_1 !== undefined)
         updateData.address_line_1 = draftData.address_line_1 || '';
@@ -128,6 +129,8 @@ export async function POST(request: NextRequest) {
         updateData.bank_account_number = draftData.bank_account_number || '';
       if (draftData.bank_name !== undefined)
         updateData.bank_name = draftData.bank_name || '';
+      if (draftData.bank_address !== undefined)
+        updateData.bank_address = draftData.bank_address || '';
       if (draftData.ifsc_code !== undefined)
         updateData.ifsc_code = draftData.ifsc_code || '';
 
@@ -152,6 +155,7 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           lead_id: leadId,
           name: draftData.name || '',
+          father_name: draftData.father_name || '',
           gender: draftData.gender || null,
           address_line_1: draftData.address_line_1 || '',
           address_line_2: draftData.address_line_2 || null,
@@ -161,6 +165,7 @@ export async function POST(request: NextRequest) {
           account_holder_name: draftData.account_holder_name || '',
           bank_account_number: draftData.bank_account_number || '',
           bank_name: draftData.bank_name || '',
+          bank_address: draftData.bank_address || '',
           ifsc_code: draftData.ifsc_code || '',
           status: 'draft',
         })

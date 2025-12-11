@@ -92,6 +92,7 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
       // Save profile form data to documents table with document references
       const profileFormData = {
         name: data.name,
+        father_name: data.father_name,
         gender: data.gender,
         address_line_1: data.address_line_1,
         address_line_2: data.address_line_2,
@@ -101,6 +102,8 @@ export function CustomerProfileFormWrapper({ leadData }: CustomerProfileFormWrap
         account_holder_name: data.account_holder_name,
         bank_account_number: data.bank_account_number,
         bank_name: data.bank_name,
+        branch_name: data.branch_name,
+        bank_address: data.bank_address,
         ifsc_code: data.ifsc_code,
         documents: documentMetadata, // Include uploaded document references
       };

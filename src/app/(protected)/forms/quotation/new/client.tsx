@@ -46,5 +46,5 @@ export function QuotationFormWrapper({ leadId }: QuotationFormWrapperProps) {
     }
   };
 
-  return <QuotationForm onSubmit={handleSubmit} />;
+  return <QuotationForm onSubmit={handleSubmit} leadId={leadId} />;
 }

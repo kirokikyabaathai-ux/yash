@@ -17,6 +17,7 @@ export interface StepDocument {
   id: number;
   document_category: string;
   submission_type: 'form' | 'file';
+  process_type?: 'submission' | 'verification';
 }
 
 export interface TimelineStepData {

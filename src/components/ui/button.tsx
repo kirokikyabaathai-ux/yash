@@ -51,7 +51,7 @@ const buttonVariants = cva(
       {
         variant: "primary",
         colorScheme: "green",
-        className: "bg-[var(--penpot-success)] text-[var(--penpot-neutral-dark)]",
+        className: "bg-[var(--penpot-primary)] text-white",
       },
       {
         variant: "primary",

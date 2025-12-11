@@ -12,6 +12,7 @@ interface CustomerProfile {
   user_id?: string;
   lead_id?: string;
   name: string;
+  father_name?: string;
   gender?: string;
   address_line_1: string;
   address_line_2?: string;
@@ -21,6 +22,8 @@ interface CustomerProfile {
   account_holder_name: string;
   bank_account_number: string;
   bank_name: string;
+  branch_name?: string;
+  bank_address?: string;
   ifsc_code: string;
   aadhaar_front_path?: string;
   aadhaar_back_path?: string;
@@ -80,6 +83,12 @@ export function CustomerProfileView({ profile, userRole }: CustomerProfileViewPr
             <dt className="text-sm font-medium text-gray-500">Name</dt>
             <dd className="mt-1 text-sm text-gray-900">{profile.name}</dd>
           </div>
+          {profile.father_name && (
+            <div>
+              <dt className="text-sm font-medium text-gray-500">Father's Name</dt>
+              <dd className="mt-1 text-sm text-gray-900">{profile.father_name}</dd>
+            </div>
+          )}
           {profile.gender && (
             <div>
               <dt className="text-sm font-medium text-gray-500">Gender</dt>
@@ -134,6 +143,18 @@ export function CustomerProfileView({ profile, userRole }: CustomerProfileViewPr
             <dt className="text-sm font-medium text-gray-500">Bank Name</dt>
             <dd className="mt-1 text-sm text-gray-900">{profile.bank_name}</dd>
           </div>
+          {profile.branch_name && (
+            <div>
+              <dt className="text-sm font-medium text-gray-500">Branch Name</dt>
+              <dd className="mt-1 text-sm text-gray-900">{profile.branch_name}</dd>
+            </div>
+          )}
+          {profile.bank_address && (
+            <div>
+              <dt className="text-sm font-medium text-gray-500">Bank Address</dt>
+              <dd className="mt-1 text-sm text-gray-900">{profile.bank_address}</dd>
+            </div>
+          )}
           <div>
             <dt className="text-sm font-medium text-gray-500">IFSC Code</dt>
             <dd className="mt-1 text-sm text-gray-900">{profile.ifsc_code}</dd>

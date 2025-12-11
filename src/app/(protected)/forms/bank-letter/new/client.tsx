@@ -46,5 +46,5 @@ export function BankLetterFormWrapper({ leadId }: BankLetterFormWrapperProps) {
     }
   };
 
-  return <BankLetterForm onSubmit={handleSubmit} />;
+  return <BankLetterForm onSubmit={handleSubmit} leadId={leadId} />;
 }
