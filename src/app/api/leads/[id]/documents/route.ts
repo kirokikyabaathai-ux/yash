@@ -6,23 +6,25 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { id: leadId } = await params;
+    const session = await auth();
+    const user = session?.user;
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: { message: 'Unauthorized' } },
         { status: 401 }
       );
     }
+
+    const supabase = await createClient();
+    const { id: leadId } = await params;
 
     const { searchParams } = new URL(request.url);
     const stepId = searchParams.get('stepId');
@@ -116,17 +118,18 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { id: leadId } = await params;
+    const session = await auth();
+    const user = session?.user;
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: { message: 'Unauthorized' } },
         { status: 401 }
       );
     }
+
+    const supabase = await createClient();
+    const { id: leadId } = await params;
 
     const body = await request.json();
     const { type, document_category, file_path, file_name, file_size, mime_type } = body;

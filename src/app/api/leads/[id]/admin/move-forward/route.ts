@@ -8,27 +8,25 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { id: leadId } = await params;
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
+
+    const supabase = await createClient();
+    const { id: leadId } = await params;
 
     // Verify user is admin
     const { data: userData, error: userError } = await supabase

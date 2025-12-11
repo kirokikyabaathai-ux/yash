@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import {
   AppError,
   AuthenticationError,
@@ -58,21 +59,14 @@ export function withErrorHandling(handler: ApiHandler): ApiHandler {
  */
 export function withAuth(handler: ApiHandler): ApiHandler {
   return withErrorHandling(async (request: NextRequest, context?: any) => {
-    const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user: authUser },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError) {
-      throw new AuthenticationError('Authentication failed', ErrorCodes.UNAUTHORIZED);
-    }
+    const session = await auth();
+    const authUser = session?.user;
 
     if (!authUser) {
       throw new AuthenticationError('Authentication required', ErrorCodes.UNAUTHORIZED);
     }
+
+    const supabase = await createClient();
 
     // Fetch user profile
     const { data: profile, error: profileError } = await supabase

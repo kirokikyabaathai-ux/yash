@@ -14,28 +14,63 @@
  */
 
 import { createServerClient } from '@supabase/ssr';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { auth } from '@/lib/auth/auth';
 import type { Database } from '@/types/database';
 
 /**
  * Creates a Supabase client for use in Server Components and API Routes
  * 
- * This client automatically handles:
- * - Cookie-based session management from Next.js cookies
- * - Automatic token refresh via NextAuth
- * - RLS policy enforcement based on authenticated user
- * 
- * With NextAuth integration:
- * - Reads Supabase Auth cookies set during login
- * - Falls back to NextAuth session tokens if cookies expired
- * - Auto-refreshes tokens to keep RLS working
+ * Uses NextAuth session tokens directly via Authorization header.
+ * This avoids setSession/refreshSession calls that can fail.
  * 
  * @returns Supabase client instance with server-side cookie handling
  */
 export async function createClient() {
   const cookieStore = await cookies();
 
+  // Get NextAuth session with Supabase tokens
+  let supabaseAccessToken: string | undefined;
+  
+  try {
+    const session = await auth();
+    supabaseAccessToken = (session as any)?.supabaseAccessToken;
+  } catch (error) {
+    // Ignore - will use cookie-based auth
+  }
+
+  // If we have a token from NextAuth, create client with Authorization header
+  // This bypasses the need for setSession/refreshSession which can fail
+  if (supabaseAccessToken) {
+    const client = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                cookieStore.set(name, value, options);
+              });
+            } catch (error) {
+              // Ignore in Server Components
+            }
+          },
+        },
+        global: {
+          headers: {
+            Authorization: `Bearer ${supabaseAccessToken}`,
+          },
+        },
+      }
+    );
+    return client;
+  }
+
+  // Fallback: cookie-based auth (for cases without NextAuth session)
   const client = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -50,41 +85,12 @@ export async function createClient() {
               cookieStore.set(name, value, options);
             });
           } catch (error) {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Ignore in Server Components
           }
         },
       },
     }
   );
-
-  // Check if Supabase Auth session exists in cookies
-  const { data: { user } } = await client.auth.getUser();
-  
-  // If no user from cookies, try to restore session from NextAuth
-  if (!user) {
-    try {
-      const { auth } = await import('@/lib/auth/auth');
-      const session = await auth();
-      
-      if (session && (session as any).supabaseAccessToken) {
-        // Set the session using the stored token
-        const { error } = await client.auth.setSession({
-          access_token: (session as any).supabaseAccessToken,
-          refresh_token: (session as any).supabaseRefreshToken,
-        });
-        
-        if (error) {
-          console.error('Failed to set Supabase session from NextAuth:', error);
-        } else {
-          console.log('Successfully restored Supabase session from NextAuth');
-        }
-      }
-    } catch (error) {
-      console.error('Error restoring Supabase session:', error);
-    }
-  }
 
   return client;
 }

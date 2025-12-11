@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 
 /**
  * GET /api/users/[id]
@@ -21,16 +22,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const supabase = await createClient();
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         {
           error: {
@@ -42,6 +37,9 @@ export async function GET(
         { status: 401 }
       );
     }
+
+    const { id } = await params;
+    const supabase = await createClient();
 
     // Get user profile to check role
     const { data: userProfile, error: profileError } = await supabase
@@ -126,16 +124,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const supabase = await createClient();
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         {
           error: {
@@ -147,6 +139,9 @@ export async function PATCH(
         { status: 401 }
       );
     }
+
+    const { id } = await params;
+    const supabase = await createClient();
 
     // Get user profile to check role
     const { data: userProfile, error: profileError } = await supabase
@@ -290,16 +285,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const supabase = await createClient();
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         {
           error: {
@@ -311,6 +300,9 @@ export async function DELETE(
         { status: 401 }
       );
     }
+
+    const { id } = await params;
+    const supabase = await createClient();
 
     // Get user profile to check role
     const { data: userProfile, error: profileError } = await supabase

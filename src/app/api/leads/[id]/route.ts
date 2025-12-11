@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { getLead, updateLead, deleteLead } from '@/lib/api/leads';
 import type { UpdateLeadRequest } from '@/types/api';
 
@@ -27,15 +28,11 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const supabase = await createClient();
+    // Check authentication using NextAuth
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         {
           error: {
@@ -90,15 +87,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const supabase = await createClient();
+    // Check authentication using NextAuth
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         {
           error: {
@@ -189,15 +182,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const supabase = await createClient();
+    // Check authentication using NextAuth
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         {
           error: {

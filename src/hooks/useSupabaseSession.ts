@@ -3,8 +3,12 @@
 /**
  * Hook to sync NextAuth session with Supabase client session
  * 
- * This ensures that the client-side Supabase client always has
- * the correct session tokens from NextAuth, preventing refresh token errors.
+ * NOTE: With the current setup using Authorization headers on server-side,
+ * client-side session sync is not strictly necessary for API calls.
+ * This hook is kept minimal to avoid session sync errors.
+ * 
+ * If you need client-side Supabase queries with RLS, you'll need to
+ * ensure tokens are fresh or use server-side queries instead.
  */
 
 import { useEffect } from 'react';
@@ -12,44 +16,27 @@ import { useSession } from 'next-auth/react';
 import { createClient } from '@/lib/supabase/client';
 
 export function useSupabaseSession() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   useEffect(() => {
     const syncSession = async () => {
       const supabase = createClient();
 
-      if (status === 'authenticated' && session) {
-        const supabaseAccessToken = (session as any).supabaseAccessToken;
-        const supabaseRefreshToken = (session as any).supabaseRefreshToken;
-
-        if (supabaseAccessToken && supabaseRefreshToken) {
-          try {
-            // Set the session in the client-side Supabase client
-            const { error } = await supabase.auth.setSession({
-              access_token: supabaseAccessToken,
-              refresh_token: supabaseRefreshToken,
-            });
-
-            if (error) {
-              console.error('Failed to set Supabase session from NextAuth:', error);
-            } else {
-              console.log('Successfully restored Supabase session from NextAuth');
-            }
-          } catch (error) {
-            console.error('Failed to set Supabase session from NextAuth:', error);
-          }
-        }
-      } else if (status === 'unauthenticated') {
+      if (status === 'unauthenticated') {
         // Clear Supabase session when user logs out
         try {
-          await supabase.auth.signOut({ scope: 'local' });
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          // Only sign out if there's an active session
+          if (currentSession) {
+            await supabase.auth.signOut({ scope: 'local' });
+          }
         } catch (error) {
-          // Ignore errors when clearing session
+          // Silently handle errors during logout
           console.debug('Error clearing Supabase session:', error);
         }
       }
     };
 
     syncSession();
-  }, [session, status]);
+  }, [status]);
 }

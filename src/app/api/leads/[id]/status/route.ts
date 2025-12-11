@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { z } from 'zod';
 
 const updateStatusSchema = z.object({
@@ -23,17 +24,18 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { id: leadId } = await params;
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: { message: 'Unauthorized' } },
         { status: 401 }
       );
     }
+
+    const supabase = await createClient();
+    const { id: leadId } = await params;
 
     // Get user role
     const { data: userData } = await supabase

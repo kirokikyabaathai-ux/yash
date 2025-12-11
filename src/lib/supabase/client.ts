@@ -6,6 +6,10 @@
  * All permissions are enforced by RLS policies at the database level.
  * 
  * IMPORTANT: Never use the service role key in client-side code.
+ * 
+ * NOTE: With NextAuth integration, this client relies on cookie-based
+ * session management. For authenticated queries, prefer using server-side
+ * API routes which have direct access to NextAuth tokens.
  */
 
 import { createBrowserClient } from '@supabase/ssr';
@@ -18,6 +22,9 @@ import type { Database } from '@/types/database';
  * - Cookie-based session management
  * - Automatic token refresh
  * - RLS policy enforcement
+ * 
+ * For authenticated operations, prefer using server-side API routes
+ * which have direct access to NextAuth session tokens.
  * 
  * @returns Supabase client instance
  */

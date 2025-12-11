@@ -1,20 +1,19 @@
 import { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
-import bcrypt from "bcryptjs";
 
 // Create Supabase client for authentication - lazy initialization
 function getSupabaseClient() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
   }
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_ANON_KEY is not set");
   }
   
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
 }
 
@@ -51,17 +50,7 @@ export const authConfig: NextAuthConfig = {
             throw new Error("Your account has been disabled. Please contact support");
           }
 
-          // Get password from Supabase Auth
-          const { data: authUser } = await supabase.auth.admin.getUserById(
-            user.id
-          );
-
-          if (!authUser?.user) {
-            throw new Error("Invalid email or password");
-          }
-
-          // For now, we'll verify against Supabase Auth
-          // In the next phase, we'll implement password hashing in the users table
+          // Verify against Supabase Auth using signInWithPassword
           const { data: signInData, error: signInError } =
             await supabase.auth.signInWithPassword({
               email: credentials.email as string,
@@ -73,7 +62,7 @@ export const authConfig: NextAuthConfig = {
           }
 
           // Return user object for session with Supabase tokens
-          return {
+          const userSession = {
             id: user.id,
             email: user.email,
             name: user.name,
@@ -82,6 +71,18 @@ export const authConfig: NextAuthConfig = {
             supabaseAccessToken: signInData.session?.access_token,
             supabaseRefreshToken: signInData.session?.refresh_token,
           };
+
+          console.log('User session created:', {
+            id: userSession.id,
+            email: userSession.email,
+            name: userSession.name,
+            role: userSession.role,
+            status: userSession.status,
+            hasAccessToken: userSession.supabaseAccessToken,
+            hasRefreshToken: userSession.supabaseRefreshToken,
+          });
+
+          return userSession;
         } catch (error) {
           // Re-throw the error with a user-friendly message
           if (error instanceof Error) {

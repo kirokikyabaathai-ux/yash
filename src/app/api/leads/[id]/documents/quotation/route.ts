@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 import { numberToWords } from '@/lib/utils/number-to-words';
 
 export async function POST(
@@ -13,17 +14,18 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { id: leadId } = await params;
+    const session = await auth();
+    const user = session?.user;
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: { message: 'Unauthorized' } },
         { status: 401 }
       );
     }
+
+    const supabase = await createClient();
+    const { id: leadId } = await params;
 
     const body = await request.json();
     const { form_data } = body;
@@ -127,17 +129,18 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
-    const { id: leadId } = await params;
+    const session = await auth();
+    const user = session?.user;
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: { message: 'Unauthorized' } },
         { status: 401 }
       );
     }
+
+    const supabase = await createClient();
+    const { id: leadId } = await params;
 
     // Delete quotation document
     const { error: deleteError } = await supabase

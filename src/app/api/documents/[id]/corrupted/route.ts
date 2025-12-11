@@ -8,23 +8,25 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth/auth';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: documentId } = await params;
-    const supabase = await createClient();
+    const session = await auth();
+    const user = session?.user;
 
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
         { status: 401 }
       );
     }
+
+    const { id: documentId } = await params;
+    const supabase = await createClient();
 
     // Get user profile to check role
     const { data: userProfile, error: profileError } = await supabase

@@ -27,15 +27,16 @@ export interface LogActivityParams {
  */
 export async function logActivity(params: LogActivityParams): Promise<void> {
   try {
-    const supabase = await createClient();
+    const { auth } = await import('@/lib/auth/auth');
+    const session = await auth();
+    const user = session?.user;
     
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('Failed to get user for activity logging:', authError);
+    if (!user) {
+      console.error('Failed to get user for activity logging: No session');
       return;
     }
+
+    const supabase = await createClient();
 
     const logEntry: ActivityLog = {
       lead_id: params.leadId || null,

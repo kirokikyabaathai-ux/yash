@@ -59,12 +59,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Example: Get authenticated user
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { auth } = await import('@/lib/auth/auth');
+    const session = await auth();
+    const user = session?.user;
 
-    if (authError || !user) {
+    if (!user) {
       throw new AuthenticationError('User not authenticated');
     }
+
+    const supabase = await createClient();
 
     // Example: Validate request body
     const body = await request.json();
