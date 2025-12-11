@@ -108,6 +108,7 @@ export interface CreateLeadRequest {
   email?: string;
   address: string;
   notes?: string;
+  source?: LeadSource;
 }
 
 export interface UpdateLeadRequest {

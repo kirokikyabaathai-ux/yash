@@ -58,7 +58,6 @@ export function LeadFormWrapper() {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         hideSource={true}
-        defaultSource="agent"
       />
       <ConfirmDialog
         open={showConfirm}
