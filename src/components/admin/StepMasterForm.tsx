@@ -73,6 +73,8 @@ const DOCUMENT_CATEGORIES = [
   { value: 'cancelled_cheque', label: 'Cancelled Cheque' },
   { value: 'itr_documents', label: 'ITR Documents' },
   { value: 'site_survey', label: 'Site Survey' },
+  { value: 'material_dispatch', label: 'Material Dispatch' },
+  { value: 'material_received', label: 'Material Received' },
   { value: 'installation_photo', label: 'Installation Photo' },
   { value: 'completion_certificate', label: 'Completion Certificate' },
   { value: 'other', label: 'Other' },

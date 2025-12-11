@@ -250,6 +250,12 @@ export function StepCompletionModal({
         // TODO: Add vendor agreement form route
         toast.warning('Vendor Agreement form not yet implemented');
         break;
+      case 'material_dispatch':
+        router.push(`/materials/dispatch/new?leadId=${leadId}${editParam}`);
+        break;
+      case 'material_received':
+        router.push(`/materials/received/new?leadId=${leadId}${editParam}`);
+        break;
       default:
         toast.warning(`Form for ${category} not yet implemented`);
     }
@@ -278,6 +284,12 @@ export function StepCompletionModal({
           break;
         case 'bank_letter':
           router.push(`/forms/bank-letter/${documentId}`);
+          break;
+        case 'material_dispatch':
+          router.push(`/materials/dispatch/view?leadId=${leadId}`);
+          break;
+        case 'material_received':
+          router.push(`/materials/verification/view?leadId=${leadId}`);
           break;
         case 'cash_memo':
           // TODO: Add cash memo view route
