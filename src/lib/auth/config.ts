@@ -3,13 +3,23 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 
-// Create Supabase client for authentication
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Create Supabase client for authentication - lazy initialization
+function getSupabaseClient() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+  }
+  
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
 
 export const authConfig: NextAuthConfig = {
+  trustHost: true, // Required for NextAuth v5 in production
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -23,6 +33,8 @@ export const authConfig: NextAuthConfig = {
         }
 
         try {
+          const supabase = getSupabaseClient();
+          
           // Query user from Supabase users table
           const { data: user, error } = await supabase
             .from("users")
@@ -94,6 +106,7 @@ export const authConfig: NextAuthConfig = {
     async signOut() {
       // Clear Supabase session on sign out
       try {
+        const supabase = getSupabaseClient();
         await supabase.auth.signOut();
       } catch (error) {
         console.error('Error signing out from Supabase:', error);
@@ -124,6 +137,7 @@ export const authConfig: NextAuthConfig = {
         // Refresh if token is older than 50 minutes (before 1 hour expiry)
         if (tokenAge > 50 * 60 * 1000) {
           try {
+            const supabase = getSupabaseClient();
             const { data, error } = await supabase.auth.refreshSession({
               refresh_token: token.supabaseRefreshToken as string,
             });

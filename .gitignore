@@ -45,3 +45,6 @@ next-env.d.ts
 
 # temp directories
 /temp-penpot-mcp
+
+# Local Netlify folder
+.netlify
