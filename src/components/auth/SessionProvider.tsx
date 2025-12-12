@@ -30,8 +30,8 @@ export function SessionProvider({ children, session }: SessionProviderProps) {
       session={session}
       // Refetch session every 5 minutes to keep it fresh
       refetchInterval={5 * 60}
-      // Refetch session when window regains focus
-      refetchOnWindowFocus={true}
+      // Disable refetch on window focus to prevent excessive polling
+      refetchOnWindowFocus={false}
     >
       <SupabaseSessionSync />
       {children}

@@ -13,23 +13,24 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const fetchUnreadCount = async () => {
+    if (!session?.user?.id) return;
+
+    const supabase = createClient();
+    const { count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', session.user.id)
+      .eq('read', false);
+
+    setUnreadCount(count || 0);
+  };
+
   useEffect(() => {
     if (status === 'loading' || !session?.user?.id) return;
 
     const supabase = createClient();
     
-    const fetchUnreadCount = async () => {
-      if (!session?.user?.id) return;
-
-      const { count } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', session.user.id)
-        .eq('read', false);
-
-      setUnreadCount(count || 0);
-    };
-
     fetchUnreadCount();
 
     // Subscribe to new notifications
@@ -41,6 +42,7 @@ export default function NotificationBell() {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
+          filter: `user_id=eq.${session.user.id}`,
         },
         () => {
           fetchUnreadCount();
@@ -52,6 +54,7 @@ export default function NotificationBell() {
           event: 'UPDATE',
           schema: 'public',
           table: 'notifications',
+          filter: `user_id=eq.${session.user.id}`,
         },
         () => {
           fetchUnreadCount();
@@ -62,7 +65,7 @@ export default function NotificationBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session, status]);
+  }, [session?.user?.id, status]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -79,19 +82,6 @@ export default function NotificationBell() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
-
-  const fetchUnreadCount = async () => {
-    if (!session?.user?.id) return;
-
-    const supabase = createClient();
-    const { count } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
-      .eq('read', false);
-
-    setUnreadCount(count || 0);
-  };
 
   const handleToggle = () => {
     setIsOpen(!isOpen);

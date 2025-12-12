@@ -79,16 +79,15 @@ export function LoginForm() {
         return;
       }
 
-      // Redirect to appropriate dashboard based on role
+      // Use hard navigation (window.location) instead of router.push
+      // This ensures a full page reload and proper session initialization
       if (redirectTo) {
-        router.push(redirectTo);
+        window.location.href = redirectTo;
       } else {
         const role = session.user.role as UserRole;
         const dashboardPath = getDashboardPath(role);
-        router.push(dashboardPath);
+        window.location.href = dashboardPath;
       }
-      
-      router.refresh();
     } catch (err) {
       console.error('Login error:', err);
       setError('An unexpected error occurred. Please try again.');

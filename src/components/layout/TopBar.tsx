@@ -18,32 +18,15 @@ interface TopBarProps {
 export function TopBar({ onMobileMenuToggle }: TopBarProps = {}) {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const supabase = createClient();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (session?.user?.id) {
-        try {
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          setUser(profile);
-        } catch (error) {
-          console.error('Error fetching user:', error);
-        }
-      }
-    };
-
-    fetchUser();
-  }, [session, supabase]);
+  
+  // Use session data directly instead of fetching from database
+  // Session already contains all necessary user info from JWT token
+  const user = session?.user as (UserProfile & { customer_id?: string; agent_id?: string; office_id?: string }) | undefined;
 
   const handleLogout = async () => {
     try {
       // Sign out from Supabase Auth first
+      const supabase = createClient();
       await supabase.auth.signOut();
       
       // Then sign out from NextAuth with redirect

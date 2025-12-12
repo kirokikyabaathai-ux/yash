@@ -68,6 +68,9 @@ export const authConfig: NextAuthConfig = {
             name: user.name,
             role: user.role,
             status: user.status,
+            customer_id: user.customer_id,
+            agent_id: user.agent_id,
+            office_id: user.office_id,
             supabaseAccessToken: signInData.session?.access_token,
             supabaseRefreshToken: signInData.session?.refresh_token,
           };
@@ -78,8 +81,8 @@ export const authConfig: NextAuthConfig = {
             name: userSession.name,
             role: userSession.role,
             status: userSession.status,
-            hasAccessToken: userSession.supabaseAccessToken,
-            hasRefreshToken: userSession.supabaseRefreshToken,
+            hasAccessToken: !!userSession.supabaseAccessToken,
+            hasRefreshToken: !!userSession.supabaseRefreshToken,
           });
 
           return userSession;
@@ -124,6 +127,9 @@ export const authConfig: NextAuthConfig = {
         token.name = user.name;
         token.role = (user as any).role;
         token.status = (user as any).status;
+        token.customer_id = (user as any).customer_id;
+        token.agent_id = (user as any).agent_id;
+        token.office_id = (user as any).office_id;
         
         // Store Supabase tokens from the authorize function
         if ((user as any).supabaseAccessToken) {
@@ -160,6 +166,9 @@ export const authConfig: NextAuthConfig = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.status = token.status as string;
+        (session.user as any).customer_id = token.customer_id;
+        (session.user as any).agent_id = token.agent_id;
+        (session.user as any).office_id = token.office_id;
         
         // Pass Supabase tokens to session (for client-side Supabase client)
         (session as any).supabaseAccessToken = token.supabaseAccessToken;
