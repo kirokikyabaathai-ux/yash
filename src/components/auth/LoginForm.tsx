@@ -10,7 +10,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { getDashboardPath, type UserRole } from '@/lib/utils/navigation';
@@ -21,7 +21,6 @@ import { LoadingButton } from '@/components/ui/loading-button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') || null;
   const errorParam = searchParams.get('error');
@@ -40,13 +39,11 @@ export function LoginForm() {
     setError(null);
 
     try {
-      // Sign in with NextAuth
-      // Use callbackUrl to prevent default redirects
+      // First, sign in with NextAuth (redirect: false to handle errors)
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
-        callbackUrl: '/login', // Prevent automatic redirect
       });
 
       if (!result) {
@@ -68,8 +65,8 @@ export function LoginForm() {
         return;
       }
 
-      // Authentication successful - get user role from session
-      // The session will be available after successful sign in
+      // Authentication successful - session is now set
+      // Fetch session to get user role for redirect
       const response = await fetch('/api/auth/session');
       const session = await response.json();
 
@@ -79,15 +76,13 @@ export function LoginForm() {
         return;
       }
 
-      // Use hard navigation (window.location) instead of router.push
-      // This ensures a full page reload and proper session initialization
-      if (redirectTo) {
-        window.location.href = redirectTo;
-      } else {
-        const role = session.user.role as UserRole;
-        const dashboardPath = getDashboardPath(role);
-        window.location.href = dashboardPath;
-      }
+      // Determine redirect path based on role
+      const targetPath = redirectTo || getDashboardPath(session.user.role as UserRole);
+      
+      // Use window.location.replace for full page reload
+      // The server-side layout will fetch the session and pass it to components
+      // This ensures TopBar and Sidebar have the session immediately
+      window.location.replace(targetPath);
     } catch (err) {
       console.error('Login error:', err);
       setError('An unexpected error occurred. Please try again.');
