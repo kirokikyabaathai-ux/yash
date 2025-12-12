@@ -68,18 +68,10 @@ export function LoginForm() {
         return;
       }
 
-      // Authentication successful - wait for session to be fully established
-      // Poll for session with retry logic to ensure it's available
-      let session = null;
-      let retries = 0;
-      const maxRetries = 5;
-      
-      while (!session?.user?.role && retries < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms between retries
-        const response = await fetch('/api/auth/session');
-        session = await response.json();
-        retries++;
-      }
+      // Authentication successful - get user role from session
+      // The session will be available after successful sign in
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
 
       if (!session?.user?.role) {
         setError('Failed to retrieve user information. Please try again.');
@@ -88,16 +80,15 @@ export function LoginForm() {
       }
 
       // Redirect to appropriate dashboard based on role
-      // router.refresh() ensures the session is available on the next page
       if (redirectTo) {
-        router.refresh();
         router.push(redirectTo);
       } else {
         const role = session.user.role as UserRole;
         const dashboardPath = getDashboardPath(role);
-        router.refresh();
         router.push(dashboardPath);
       }
+      
+      router.refresh();
     } catch (err) {
       console.error('Login error:', err);
       setError('An unexpected error occurred. Please try again.');

@@ -5,8 +5,7 @@
  * Requirements: 17.1, 17.3, 17.4, 17.5
  */
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
