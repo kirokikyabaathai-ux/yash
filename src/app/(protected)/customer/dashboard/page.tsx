@@ -5,6 +5,9 @@
  * Requirements: 3.5
  */
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CustomerDashboardContent } from '@/components/customer/CustomerDashboardContent';

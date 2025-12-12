@@ -8,6 +8,9 @@
  * Validates: Requirements 6.1, 6.2, 6.3, 9.1, 9.2, 9.3
  */
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
