@@ -170,6 +170,7 @@ export const authConfig: NextAuthConfig = {
     async redirect({ url, baseUrl }) {
       // If redirecting after sign in, use the role-based redirect from the client
       // This allows the LoginForm to handle the redirect based on user role
+      // Always return the URL to ensure session is maintained during redirect
       if (url.startsWith(baseUrl)) {
         return url;
       }
@@ -198,5 +199,16 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
-  secret: process.env.AUTH_SECRET,
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 };
